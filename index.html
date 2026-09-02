@@ -150,12 +150,6 @@ body.beginner-mode .simple-only{display:inline-block;}
 .cb-t{font-size:9px;color:var(--text3);font-family:var(--mono);}
 .cat-btn.has-v .cb-t{color:var(--accent);}
 body.sub .cat-btn.has-v{border-color:var(--red);background:var(--red-dim);}
-/* Einfach-Modus: größere, fehlertolerantere Touch-Ziele (weniger Info pro Kachel -> mehr Platz) */
-body.beginner-mode .btn-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
-body.beginner-mode .cat-btn{min-height:100px;padding:14px 8px;gap:5px;}
-body.beginner-mode .cb-lbl{font-size:13px;}
-body.beginner-mode .cb-cnt{font-size:30px;}
-body.beginner-mode .cb-key{font-size:11px;padding:1px 5px;}
 body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .cb-note-panel{display:none;}
 
@@ -536,6 +530,13 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
           <span class="punit">%</span>
         </div>
       </div>
+      <div class="ana-soll-row">
+        <label class="exp-label">Stundensatz (€/hD, Industriestunde)</label>
+        <div class="ana-soll-input-row">
+          <input type="number" step="0.01" class="exp-input" id="stundensatzInput" placeholder="z.B. 105,84" onchange="updateStundensatz()"/>
+          <span class="punit">€/hD</span>
+        </div>
+      </div>
       <div class="ana-kpi-row">
         <div class="ana-kpi"><span class="ana-kpi-lbl">Ist</span><span class="ana-kpi-val" id="anaIst">0.000</span></div>
         <div class="ana-kpi" title="Ist-Zeit inkl. Verteilzeit-Zuschlag">
@@ -547,6 +548,9 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
           <span class="ana-kpi-lbl">Ø Zeit/Stk.</span><span class="ana-kpi-val" id="anaAvgPiece">–</span>
         </div>
         <div class="ana-kpi"><span class="ana-kpi-lbl">Anzahl aller Teile</span><span class="ana-kpi-val" id="anaTotalQty">–</span></div>
+        <div class="ana-kpi" title="(Ist-Zeit inkl. Verteilzeit ÷ 100) × Stundensatz">
+          <span class="ana-kpi-lbl">Montagekosten</span><span class="ana-kpi-val" id="anaCost">–</span>
+        </div>
       </div>
       <div class="ana-chart-head">
         <span class="ana-chart-title" id="anaChartTitle">Zeitanteil je Kategorie-Gruppe</span>
@@ -679,6 +683,7 @@ let currentProject = null;
 let hasUnsavedChanges = false;
 let sollzeit = 0; // Sollzeit gesamte Baugruppe, kanonisch in minD gespeichert
 let verteilzeitFactor = 0; // Verteilzeit-Zuschlag in Prozent, z.B. 16 = 16%
+let hourlyRate = 0; // Stundensatz in €/hD (Industriestunde = 100 minD)
 let showExtraCols = false; // Zusatzspalten (Excel-Freitext) ein-/ausgeblendet
 let uiMode = 'advanced'; // 'beginner' | 'advanced' — reine Anzeigeeinstellung, keine Daten betroffen
 let showSachnrCol = true; // nur im Einfach-Modus per Schalter relevant; im Erweitert-Modus immer sichtbar
@@ -833,6 +838,7 @@ function openAnalysis(){
   document.getElementById('sollInput').value = sollzeit ? dispParam(sollzeit) : '';
   document.getElementById('sollUnit').textContent=ul();
   document.getElementById('verteilInput').value = verteilzeitFactor ? verteilzeitFactor : '';
+  document.getElementById('stundensatzInput').value = hourlyRate ? hourlyRate : '';
   markVerteilPreset();
   buildAnaCompareList();
   renderAnalysis();
@@ -848,6 +854,11 @@ function updateSoll(){
 function updateVerteil(){
   verteilzeitFactor=parseFloat(document.getElementById('verteilInput').value)||0;
   markVerteilPreset();
+  markDirty();
+  renderAnalysis();
+}
+function updateStundensatz(){
+  hourlyRate=parseFloat(document.getElementById('stundensatzInput').value)||0;
   markDirty();
   renderAnalysis();
 }
@@ -901,6 +912,17 @@ function renderAnalysis(){
   avgEl.textContent = totalQtySum>0 ? (disp(ist/totalQtySum)+' '+ul()) : '–';
   avgEl.title = totalQtySum>0 ? (disp(ist)+' '+ul()+' ÷ '+totalQtySum+' Stk.') : 'Keine Anzahl (Stückzahl) erfasst';
   document.getElementById('anaTotalQty').textContent = totalQtySum>0 ? totalQtySum : '–';
+
+  // Montagekosten: (Ist-Zeit inkl. Verteilzeit in minD ÷ 100) × Stundensatz (€/hD)
+  const costEl=document.getElementById('anaCost');
+  if(hourlyRate>0){
+    const cost=(istVz/100)*hourlyRate;
+    costEl.textContent=cost.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+    costEl.title=disp(istVz)+' minD ÷ 100 × '+hourlyRate.toLocaleString('de-DE',{minimumFractionDigits:2})+' €/hD';
+  } else {
+    costEl.textContent='–';
+    costEl.title='Stundensatz eingeben, um die Montagekosten zu berechnen';
+  }
 
   let items;
   if(anaDrillLevel==='group'){
@@ -1025,6 +1047,7 @@ function startNewProject(){
   activePart=parts[0].id;
   sollzeit=0;
   verteilzeitFactor=0;
+  hourlyRate=0;
   lastExportTime=null;
   lastActionText='';
   undoStack=[];
@@ -1065,6 +1088,7 @@ function handleStartImport(evt){
       projectDescription=parsed.description||'';
       sollzeit=parsed.sollzeit||0;
       verteilzeitFactor=parsed.verteilzeit||0;
+      hourlyRate=parsed.stundensatz||0;
       lastExportTime=null;
       lastActionText='';
       undoStack=[];
@@ -1126,6 +1150,12 @@ function parseImportedCSV(text){
     verteilParsed=parseFloat(p[1])||0;
     idx++;
   }
+  let stundensatzParsed=0;
+  if(lines[idx] && lines[idx].startsWith('__STUNDENSATZ__')){
+    const p=lines[idx].split(';');
+    stundensatzParsed=parseFloat(p[1])||0;
+    idx++;
+  }
   let colsFromFile=null;
   if(lines[idx] && lines[idx].startsWith('__COLS__')){
     const metaParts=lines[idx].split(';');
@@ -1170,7 +1200,7 @@ function parseImportedCSV(text){
       newData[id].__note='';
     }
   }
-  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed};
+  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed};
 }
 
 /* ═══════════════════════════════════════
@@ -1655,7 +1685,7 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -1687,6 +1717,7 @@ function loadState(){
     lastExportTime = s.lastExportTime || null;
     verteilzeitFactor = s.verteilzeitFactor || 0;
     uiMode = s.uiMode === 'beginner' ? 'beginner' : 'advanced';
+    hourlyRate = s.hourlyRate || 0;
     ensureKeys();
     return true;
   } catch(e){ return false; }
@@ -1719,9 +1750,10 @@ function doExport(){
   const metaDesc = ['__DESC__',encodeURIComponent(projectDescription||'')].join(sep);
   const metaSoll = ['__SOLLZEIT__',sollzeit||0].join(sep);
   const metaVerteil = ['__VERTEILZEIT__',verteilzeitFactor||0].join(sep);
+  const metaStunden = ['__STUNDENSATZ__',hourlyRate||0].join(sep);
   // Also export column params (inkl. Notiz, URL-kodiert) as a metadata row for re-import
   const metaKeys = ['__COLS__','','','','','','',...COLS.flatMap(c=>[c.key+'|'+c.label+'|'+c.param+'|'+(c.group||'process')+'|'+encodeURIComponent(c.note||''),'']),''].join(sep);
-  const csv='\uFEFF'+[metaProject,metaDesc,metaSoll,metaVerteil,metaKeys,hdr,...rows].join('\n');
+  const csv='\uFEFF'+[metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaKeys,hdr,...rows].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();
@@ -1768,6 +1800,7 @@ function handleImport(evt){
       projectDescription=parsed.description||'';
       sollzeit=parsed.sollzeit||0;
       verteilzeitFactor=parsed.verteilzeit||0;
+      hourlyRate=parsed.stundensatz||0;
       undoStack=[];
       rowClipboard=null;
       activePart=parts[0].id;

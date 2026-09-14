@@ -154,6 +154,45 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .cb-note-panel{display:none;}
 
 /* ── NOTIZ-POPUP (Excel-Kommentar-Stil, für Kategorie- und Bauteil-Notizen) ── */
+/* ── SPALTEN-MENÜ & SPALTENFILTER ── */
+.col-popup{
+  display:none;position:fixed;z-index:650;width:230px;max-height:60vh;overflow-y:auto;
+  background:var(--surface);border:1px solid var(--border2);border-radius:8px;
+  box-shadow:0 12px 40px rgba(0,0,0,.28);padding:8px;
+}
+.col-popup.open{display:block;}
+.col-popup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;}
+.col-popup-title{font-size:11px;font-weight:700;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.col-popup-close{flex-shrink:0;background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;padding:0 4px;line-height:1;}
+.col-opt{display:flex;align-items:center;gap:7px;padding:5px 4px;font-size:12px;color:var(--text);cursor:pointer;border-radius:5px;}
+.col-opt:active{background:var(--surface2);}
+.col-opt input{width:15px;height:15px;flex-shrink:0;margin:0;}
+.col-opt span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.col-popup-sep{height:1px;background:var(--border);margin:6px 0;}
+.col-popup-actions{display:flex;gap:6px;margin-top:8px;}
+.col-popup-actions .tbtn{flex:1;font-size:11px;padding:5px 6px;text-align:center;}
+.flt-search{
+  width:100%;font-size:12px;padding:5px 8px;margin-bottom:6px;box-sizing:border-box;
+  border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);
+}
+.flt-search:focus{outline:none;border-color:var(--accent);}
+.flt-range{display:flex;align-items:center;gap:5px;margin-bottom:6px;}
+.flt-range input{
+  width:100%;min-width:0;font-size:12px;padding:5px 6px;box-sizing:border-box;
+  border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);
+}
+.flt-range input:focus{outline:none;border-color:var(--accent);}
+.flt-range span{font-size:11px;color:var(--text3);}
+/* Filter-Icon im Spaltenkopf */
+.data-tbl thead th{position:relative;}
+.flt-ico{
+  display:inline-block;margin-left:3px;font-size:9px;opacity:.45;cursor:pointer;
+  -webkit-user-select:none;user-select:none;
+}
+.flt-ico:active{opacity:1;}
+.flt-ico.on{opacity:1;color:var(--accent-bright);font-weight:700;}
+.data-tbl thead th.flt-active{box-shadow:inset 0 -3px 0 var(--accent);}
+
 .note-popup{
   display:none;position:fixed;z-index:600;width:230px;
   background:var(--surface);border:1px solid var(--border2);border-radius:8px;
@@ -208,18 +247,31 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
   font-weight:500;color:var(--text2);font-family:var(--mono);font-size:10px;text-align:center;
 }
 .data-tbl thead th:first-child{text-align:left;padding-left:12px;}
+body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .th-t{color:var(--accent);}
 .th-tot{color:var(--green);}
-/* sticky Nr.-Spalte */
+/* sticky Nr.-Spalte (ganz vorne) */
 .data-tbl th.nr,.data-tbl td.nr{
   position:sticky;left:0;z-index:5;background:var(--surface);
   border-right:1px solid var(--border);width:32px;min-width:32px;max-width:32px;
   text-align:center;color:var(--text3);font-family:var(--mono);font-size:10px;
 }
 .data-tbl thead th.nr{z-index:15;}
+/* sticky Level-Spalte */
+.data-tbl th.level,.data-tbl td.level{
+  position:sticky;left:32px;z-index:5;background:var(--surface);
+  border-right:1px solid var(--border);width:38px;min-width:38px;max-width:38px;
+  text-align:center;
+}
+.data-tbl thead th.level{z-index:15;}
+.level-select{
+  background:transparent;border:none;outline:none;text-align:center;
+  font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text);width:100%;
+}
+.level-select:focus{outline:none;background:var(--surface2);}
 /* sticky Sachnummer-Spalte */
 .data-tbl th.sachnr,.data-tbl td.sachnr{
-  position:sticky;left:32px;z-index:5;background:var(--surface);
+  position:sticky;left:70px;z-index:5;background:var(--surface);
   border-right:1px solid var(--border);width:85px;min-width:85px;max-width:85px;
   text-align:center;font-family:var(--mono);font-size:10px;
 }
@@ -232,10 +284,19 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .sachnr-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
 /* sticky name col */
 .data-tbl th.cn,.data-tbl td.cn{
-  position:sticky;left:117px;z-index:5;background:var(--surface);
+  position:sticky;left:155px;z-index:5;background:var(--surface);
   border-right:1px solid var(--border);min-width:195px;
 }
 .data-tbl thead th.cn{z-index:15;}
+/* Level-Farbcodierung (Struktur-/Hierarchieerkennung) — Aktive-Zeile-Hervorhebung hat via !important weiterhin Vorrang */
+/* Level-Farbcodierung: nur bis einschließlich Spalte "Anzahl" (qty) — danach neutral */
+.data-tbl tbody tr.lvl-1 td.nr,.data-tbl tbody tr.lvl-1 td.level,.data-tbl tbody tr.lvl-1 td.sachnr,.data-tbl tbody tr.lvl-1 td.cn,.data-tbl tbody tr.lvl-1 td.extra,.data-tbl tbody tr.lvl-1 td.qty{background:#ffffff;}
+.data-tbl tbody tr.lvl-2 td.nr,.data-tbl tbody tr.lvl-2 td.level,.data-tbl tbody tr.lvl-2 td.sachnr,.data-tbl tbody tr.lvl-2 td.cn,.data-tbl tbody tr.lvl-2 td.extra,.data-tbl tbody tr.lvl-2 td.qty{background:#eef3fb;}
+.data-tbl tbody tr.lvl-3 td.nr,.data-tbl tbody tr.lvl-3 td.level,.data-tbl tbody tr.lvl-3 td.sachnr,.data-tbl tbody tr.lvl-3 td.cn,.data-tbl tbody tr.lvl-3 td.extra,.data-tbl tbody tr.lvl-3 td.qty{background:#d8e6f7;}
+.data-tbl tbody tr.lvl-4 td.nr,.data-tbl tbody tr.lvl-4 td.level,.data-tbl tbody tr.lvl-4 td.sachnr,.data-tbl tbody tr.lvl-4 td.cn,.data-tbl tbody tr.lvl-4 td.extra,.data-tbl tbody tr.lvl-4 td.qty{background:#b9d0f0;}
+.data-tbl tbody tr.lvl-5 td.nr,.data-tbl tbody tr.lvl-5 td.level,.data-tbl tbody tr.lvl-5 td.sachnr,.data-tbl tbody tr.lvl-5 td.cn,.data-tbl tbody tr.lvl-5 td.extra,.data-tbl tbody tr.lvl-5 td.qty{background:#97b8e8;}
+.data-tbl tbody tr.lvl-6 td.nr,.data-tbl tbody tr.lvl-6 td.level,.data-tbl tbody tr.lvl-6 td.sachnr,.data-tbl tbody tr.lvl-6 td.cn,.data-tbl tbody tr.lvl-6 td.extra,.data-tbl tbody tr.lvl-6 td.qty{background:#7aa3de;}
+.data-tbl tbody tr.lvl-7 td.nr,.data-tbl tbody tr.lvl-7 td.level,.data-tbl tbody tr.lvl-7 td.sachnr,.data-tbl tbody tr.lvl-7 td.cn,.data-tbl tbody tr.lvl-7 td.extra,.data-tbl tbody tr.lvl-7 td.qty{background:#5c8bd1;}
 /* Zusatzspalten (optional ein-/ausblendbar, Inhalte bleiben beim Export erhalten) */
 .data-tbl td.extra{text-align:center;}
 .extra-input{
@@ -276,9 +337,11 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .data-tbl tbody td.ct{font-weight:600;color:var(--text2);text-align:center;}
 .data-tbl tbody tr{cursor:pointer;}
 .data-tbl tbody tr:active td{background:var(--surface2)!important;}
-.data-tbl tbody tr.ar td{background:#e8eefb!important;}
-.data-tbl tbody tr.ar td.cn{color:var(--accent-bright);}
-.data-tbl tbody tr.ar td.ct{color:var(--green);}
+/* Aktive Zeile: bewusst warmer Ton + Randakzent, damit sie nicht mit der blauen Level-Färbung verwechselt wird */
+.data-tbl tbody tr.ar td{background:#fff3cd!important;}
+.data-tbl tbody tr.ar td:first-child{box-shadow:inset 3px 0 0 var(--yellow);}
+.data-tbl tbody tr.ar td.cn{color:#7a5c00;font-weight:600;}
+.data-tbl tbody tr.ar td.ct{color:#7a5c00;}
 .vnz{background:#edf2fc!important;color:var(--accent-bright)!important;}
 .tnz{background:#e6f7f1!important;color:var(--green)!important;}
 .sum-row td{background:var(--surface2)!important;color:var(--text)!important;font-weight:600;border-top:1px solid var(--border2)!important;}
@@ -414,6 +477,22 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .install-banner.show{display:block;}
 .install-banner strong{display:block;font-size:14px;margin-bottom:4px;}
 .ib-close{float:right;background:none;border:none;color:#fff;font-size:18px;cursor:pointer;margin:-4px -4px 0 8px;}
+
+/* ── DRUCKANSICHT DER AUSWERTUNG ── */
+#printArea{display:none;}
+#printArea h1{font-size:20px;margin:0 0 4px;}
+#printArea h2{font-size:14px;margin:20px 0 8px;border-bottom:1px solid #ccc;padding-bottom:4px;}
+#printArea p{font-size:12px;color:#444;margin:2px 0;}
+.print-kpi-table{border-collapse:collapse;margin-top:12px;width:100%;max-width:420px;}
+.print-kpi-table td{padding:5px 10px;border:1px solid #ccc;font-size:13px;}
+.print-kpi-table td:first-child{color:#555;}
+.print-kpi-table td:last-child{font-weight:700;text-align:right;font-family:var(--mono);}
+.print-chart{margin-top:10px;}
+@media print{
+  body *{visibility:hidden;}
+  #printArea, #printArea *{visibility:visible;}
+  #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:10px;color:#000;background:#fff;}
+}
 </style>
 </head>
 <body>
@@ -481,14 +560,11 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
   <span class="act-time"><span>∑ </span><span id="actTime">0.000</span> <span id="actUnit">minD</span></span>
 </div>
 
-<!-- FILTER & WERKZEUGE -->
+<!-- WERKZEUGE -->
 <div class="filter-bar">
   <button class="tbtn" onclick="addPart()">➕ Bauteil</button>
-  <button class="tbtn adv-only" onclick="toggleExtraCols()" id="extraColsBtn">➕ Zusatzspalten</button>
-  <button class="tbtn simple-only" onclick="toggleSachnrCol()" id="sachnrColBtn">➖ Sachnr.</button>
-  <div class="sep adv-only"></div>
-  <input type="text" class="filter-input adv-only" id="filterInput" placeholder="🔍 Bauteil filtern…" oninput="applyFilter()"/>
-  <button class="tbtn adv-only" id="filterClearBtn" onclick="clearFilter()" style="display:none;">✕ Filter</button>
+  <button class="tbtn" onclick="openColMenu(this)" id="colMenuBtn">🔧 Spalten</button>
+  <button class="tbtn" id="filterClearBtn" onclick="clearAllFilters()" style="display:none;">✕ Filter zurücksetzen</button>
   <div class="sep adv-only"></div>
   <select class="copy-select adv-only" id="copyTargetCat"></select>
   <button class="tbtn adv-only" onclick="copyAnzahlToCategory()">→ Anzahl kopieren</button>
@@ -507,6 +583,7 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
   <div class="modal ana-modal">
     <div class="mh">
       <span class="mh-title">📊 Auswertung</span>
+      <button class="tbtn" onclick="printAnalysis()">🖨 Drucken / PDF</button>
       <button class="mclose" onclick="closeAnalysis()">✕</button>
     </div>
     <div class="mbody">
@@ -597,17 +674,18 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 <div class="modal-bg" id="expModal">
   <div class="modal exp-modal">
     <div class="mh">
-      <span class="mh-title">CSV exportieren</span>
+      <span class="mh-title">Exportieren</span>
       <button class="mclose" onclick="closeExpModal()">✕</button>
     </div>
     <div class="exp-row">
       <label class="exp-label">Dateiname</label>
       <input class="exp-input" id="expFilename" type="text" placeholder="z.B. Linie3_Getriebe_Welle"/>
-      <span class="exp-hint">Datum wird automatisch angehängt · Endung .csv nicht nötig</span>
+      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (3 Blätter)</span>
     </div>
     <div class="exp-btns">
       <button class="exp-cancel" onclick="closeExpModal()">Abbrechen</button>
-      <button class="exp-go" onclick="doExport()">↓ Exportieren</button>
+      <button class="exp-go" onclick="doExportXlsx()">📊 Excel (.xlsx)</button>
+      <button class="exp-go" onclick="doExport()">↓ CSV</button>
     </div>
   </div>
 </div>
@@ -617,8 +695,17 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+<div id="printArea"></div>
 
 <!-- NOTIZ-POPUP (Excel-Kommentar-Stil) -->
+<div class="col-popup" id="colPopup">
+  <div class="col-popup-head">
+    <span class="col-popup-title" id="colPopupTitle">Spalten</span>
+    <button class="col-popup-close" onclick="closeColPopup()">✕</button>
+  </div>
+  <div id="colPopupBody"></div>
+</div>
+
 <div class="note-popup" id="notePopup">
   <div class="note-popup-head">
     <span class="note-popup-title" id="notePopupTitle">Notiz</span>
@@ -684,9 +771,7 @@ let hasUnsavedChanges = false;
 let sollzeit = 0; // Sollzeit gesamte Baugruppe, kanonisch in minD gespeichert
 let verteilzeitFactor = 0; // Verteilzeit-Zuschlag in Prozent, z.B. 16 = 16%
 let hourlyRate = 0; // Stundensatz in €/hD (Industriestunde = 100 minD)
-let showExtraCols = false; // Zusatzspalten (Excel-Freitext) ein-/ausgeblendet
 let uiMode = 'advanced'; // 'beginner' | 'advanced' — reine Anzeigeeinstellung, keine Daten betroffen
-let showSachnrCol = true; // nur im Einfach-Modus per Schalter relevant; im Erweitert-Modus immer sichtbar
 let projectDescription = '';
 let lastExportTime = null; // ISO-String
 let lastActionText = '';
@@ -765,6 +850,10 @@ function initPart(p){
   if(data[p].__extra1===undefined) data[p].__extra1='';
   if(data[p].__extra2===undefined) data[p].__extra2='';
   if(data[p].__extra3===undefined) data[p].__extra3='';
+  if(data[p].__level===undefined) data[p].__level=1;
+  if(data[p].__stufe===undefined) data[p].__stufe='';
+  if(data[p].__werkzeug===undefined) data[p].__werkzeug='';
+  if(data[p].__quelle===undefined) data[p].__quelle='';
 }
 function ensureKeys(){
   parts.forEach(part=>{
@@ -776,6 +865,10 @@ function ensureKeys(){
     if(data[p].__extra1===undefined) data[p].__extra1='';
     if(data[p].__extra2===undefined) data[p].__extra2='';
     if(data[p].__extra3===undefined) data[p].__extra3='';
+    if(data[p].__level===undefined) data[p].__level=1;
+    if(data[p].__stufe===undefined) data[p].__stufe='';
+    if(data[p].__werkzeug===undefined) data[p].__werkzeug='';
+    if(data[p].__quelle===undefined) data[p].__quelle='';
   });
 }
 function calcTotal(p){ if(!p||!data[p]) return 0; return COLS.reduce((s,c)=>s+(data[p][c.key]||0)*c.param,0); }
@@ -792,29 +885,250 @@ function updateProjLabel(){
 /* ═══════════════════════════════════════
    FILTER (Spalte "Bauteil")
 ═══════════════════════════════════════ */
-let filterText='';
-function applyFilter(){
-  filterText=document.getElementById('filterInput').value.trim().toLowerCase();
-  document.getElementById('filterClearBtn').style.display=filterText?'':'none';
-  renderBody();
+/* ═══════════════════════════════════════
+   SPALTEN-SICHTBARKEIT & SPALTENFILTER
+   Filter im Excel-Autofilter-Stil: Klick aufs Filtersymbol
+   im Spaltenkopf öffnet ein Popup. Mehrere Spaltenfilter
+   werden UND-verknüpft (wie in Excel).
+═══════════════════════════════════════ */
+
+/* Definition aller optionalen (ein-/ausblendbaren) Spalten */
+const OPT_COLS=[
+  {key:'sachnr',   label:'Sachnummer'},
+  {key:'stufe',    label:'Montagestufe'},
+  {key:'werkzeug', label:'Werkzeug / WT'},
+  {key:'quelle',   label:'Quelle'},
+  {key:'extra1',   label:'Zusatz 1'},
+  {key:'extra2',   label:'Zusatz 2'},
+  {key:'extra3',   label:'Zusatz 3'},
+];
+/* Sichtbarkeit; wird projektbezogen gespeichert */
+let colVis={sachnr:true,stufe:false,werkzeug:false,quelle:false,extra1:false,extra2:false,extra3:false};
+function isColVisible(k){ return !!colVis[k]; }
+
+/* Aktive Filter:
+   - Textspalten:  {type:'set', values:Set(...)}
+   - Zahlenspalten:{type:'range', min:Number|null, max:Number|null}
+   - Kategorien:   {type:'nonzero'}
+   Schlüssel: 'level','sachnr','name','stufe','werkzeug','quelle',
+              'extra1','extra2','extra3','qty','total', 'cat:<key>'   */
+let colFilters={};
+function hasAnyFilter(){ return Object.keys(colFilters).length>0; }
+function updateFilterClearBtn(){
+  const b=document.getElementById('filterClearBtn');
+  if(b) b.style.display=hasAnyFilter()?'':'none';
+}
+function clearAllFilters(){
+  colFilters={};
+  closeColPopup();
+  updateFilterClearBtn();
+  buildHead();renderBody();
+  refreshAnalysisIfOpen();
+}
+function refreshAnalysisIfOpen(){
   if(document.getElementById('anaModal').classList.contains('open')){
     buildAnaCompareList();
     renderAnalysis();
   }
 }
-function clearFilter(){
-  document.getElementById('filterInput').value='';
-  filterText='';
-  document.getElementById('filterClearBtn').style.display='none';
-  renderBody();
-  if(document.getElementById('anaModal').classList.contains('open')){
-    buildAnaCompareList();
-    renderAnalysis();
+
+/* Wert einer Spalte für ein Bauteil (für Filterung und Werteliste) */
+function colValue(part,fk){
+  const d=data[part.id]||{};
+  if(fk==='name') return part.name||'';
+  if(fk==='level') return String(d.__level||1);
+  if(fk==='qty') return d.__qty||0;
+  if(fk==='total') return calcTotal(part.id);
+  if(fk.startsWith('cat:')) return d[fk.slice(4)]||0;
+  return d['__'+fk]||'';
+}
+function partPassesFilters(part){
+  for(const fk in colFilters){
+    const f=colFilters[fk];
+    const v=colValue(part,fk);
+    if(f.type==='set'){
+      const sv=(v===''||v===null||v===undefined)?'(leer)':String(v);
+      if(!f.values.has(sv)) return false;
+    } else if(f.type==='range'){
+      const n=parseFloat(v)||0;
+      if(f.min!==null && n<f.min) return false;
+      if(f.max!==null && n>f.max) return false;
+    } else if(f.type==='nonzero'){
+      if(!((parseFloat(v)||0)>0)) return false;
+    }
   }
+  return true;
 }
 function getFilteredParts(){
-  return filterText ? parts.filter(p=>p.name.toLowerCase().includes(filterText)) : parts.slice();
+  return hasAnyFilter() ? parts.filter(partPassesFilters) : parts.slice();
 }
+
+/* ── Popup-Grundgerüst ── */
+function positionPopup(pop,anchorEl){
+  const r=anchorEl.getBoundingClientRect(), w=230;
+  let left=r.left, top=r.bottom+6;
+  if(left+w>window.innerWidth-8) left=window.innerWidth-w-8;
+  const h=Math.min(pop.scrollHeight||260,window.innerHeight*0.6);
+  if(top+h>window.innerHeight-8) top=Math.max(8,r.top-h-6);
+  pop.style.left=Math.max(8,left)+'px';
+  pop.style.top=Math.max(8,top)+'px';
+}
+function closeColPopup(){
+  const p=document.getElementById('colPopup');
+  if(p) p.classList.remove('open');
+}
+document.addEventListener('click',e=>{
+  const p=document.getElementById('colPopup');
+  if(p && p.classList.contains('open') && !p.contains(e.target)
+     && !e.target.closest('.flt-ico') && !e.target.closest('#colMenuBtn')){
+    closeColPopup();
+  }
+});
+
+/* ── Spalten-Menü ── */
+function openColMenu(anchorEl){
+  const pop=document.getElementById('colPopup');
+  const body=document.getElementById('colPopupBody');
+  document.getElementById('colPopupTitle').textContent='Spalten anzeigen';
+  body.innerHTML='';
+  OPT_COLS.forEach(oc=>{
+    const lab=document.createElement('label');
+    lab.className='col-opt';
+    lab.innerHTML=`<input type="checkbox" ${isColVisible(oc.key)?'checked':''}/><span>${escHtml(oc.label)}</span>`;
+    lab.querySelector('input').addEventListener('change',ev=>{
+      colVis[oc.key]=ev.target.checked;
+      markDirty();
+      buildHead();renderBody();
+    });
+    body.appendChild(lab);
+  });
+  const sep=document.createElement('div');sep.className='col-popup-sep';body.appendChild(sep);
+  const act=document.createElement('div');act.className='col-popup-actions';
+  const bAll=document.createElement('button');bAll.className='tbtn';bAll.textContent='Alle';
+  bAll.addEventListener('click',()=>{OPT_COLS.forEach(o=>colVis[o.key]=true);markDirty();buildHead();renderBody();openColMenu(anchorEl);});
+  const bNone=document.createElement('button');bNone.className='tbtn';bNone.textContent='Keine';
+  bNone.addEventListener('click',()=>{OPT_COLS.forEach(o=>colVis[o.key]=false);markDirty();buildHead();renderBody();openColMenu(anchorEl);});
+  act.appendChild(bAll);act.appendChild(bNone);
+  body.appendChild(act);
+  pop.classList.add('open');
+  positionPopup(pop,anchorEl);
+}
+
+/* ── Spaltenfilter-Popup ── */
+function openColFilter(anchorEl,fk,label,kind){
+  const pop=document.getElementById('colPopup');
+  const body=document.getElementById('colPopupBody');
+  document.getElementById('colPopupTitle').textContent='Filter: '+label;
+  body.innerHTML='';
+
+  const apply=()=>{ updateFilterClearBtn(); buildHead(); renderBody(); refreshAnalysisIfOpen(); };
+
+  if(kind==='nonzero'){
+    const cur=colFilters[fk];
+    const lab=document.createElement('label');
+    lab.className='col-opt';
+    lab.innerHTML=`<input type="checkbox" ${cur?'checked':''}/><span>Nur Zeilen mit Wert &gt; 0</span>`;
+    lab.querySelector('input').addEventListener('change',ev=>{
+      if(ev.target.checked) colFilters[fk]={type:'nonzero'}; else delete colFilters[fk];
+      apply();
+    });
+    body.appendChild(lab);
+  } else if(kind==='range'){
+    const cur=colFilters[fk]||{min:null,max:null};
+    const wrap=document.createElement('div');wrap.className='flt-range';
+    wrap.innerHTML=`<input type="number" step="any" placeholder="von" value="${cur.min!==null&&cur.min!==undefined?cur.min:''}"/><span>–</span><input type="number" step="any" placeholder="bis" value="${cur.max!==null&&cur.max!==undefined?cur.max:''}"/>`;
+    const [iMin,iMax]=wrap.querySelectorAll('input');
+    const upd=()=>{
+      const mn=iMin.value===''?null:parseFloat(iMin.value);
+      const mx=iMax.value===''?null:parseFloat(iMax.value);
+      if(mn===null&&mx===null) delete colFilters[fk];
+      else colFilters[fk]={type:'range',min:mn,max:mx};
+      apply();
+    };
+    iMin.addEventListener('change',upd);iMax.addEventListener('change',upd);
+    body.appendChild(wrap);
+  } else {
+    /* Werteliste (Excel-Autofilter) — Werte aus allen ANDEREN Filtern heraus ermittelt */
+    const others={};Object.keys(colFilters).forEach(k=>{if(k!==fk)others[k]=colFilters[fk===k?'':k];});
+    const saved=colFilters[fk];delete colFilters[fk];
+    const base=parts.filter(partPassesFilters);
+    if(saved) colFilters[fk]=saved;
+    const vals=[...new Set(base.map(p=>{const v=colValue(p,fk);return (v===''||v===null||v===undefined)?'(leer)':String(v);}))]
+      .sort((a,b)=>{
+        const na=parseFloat(a),nb=parseFloat(b);
+        if(!isNaN(na)&&!isNaN(nb)) return na-nb;
+        return a.localeCompare(b,'de');
+      });
+    const sel=colFilters[fk]&&colFilters[fk].type==='set'?colFilters[fk].values:new Set(vals);
+
+    const search=document.createElement('input');
+    search.className='flt-search';search.type='text';search.placeholder='🔍 suchen…';
+    body.appendChild(search);
+    const list=document.createElement('div');
+    body.appendChild(list);
+
+    const commit=()=>{
+      const all=vals.every(v=>sel.has(v));
+      if(all||sel.size===0&&false) delete colFilters[fk];
+      else colFilters[fk]={type:'set',values:new Set(sel)};
+      apply();
+    };
+    const draw=(q)=>{
+      list.innerHTML='';
+      const shown=vals.filter(v=>!q||v.toLowerCase().includes(q));
+      const labAll=document.createElement('label');
+      labAll.className='col-opt';
+      const allChecked=shown.length>0&&shown.every(v=>sel.has(v));
+      labAll.innerHTML=`<input type="checkbox" ${allChecked?'checked':''}/><span><b>(Alle)</b></span>`;
+      labAll.querySelector('input').addEventListener('change',ev=>{
+        shown.forEach(v=>{ if(ev.target.checked) sel.add(v); else sel.delete(v); });
+        draw(q);commit();
+      });
+      list.appendChild(labAll);
+      shown.forEach(v=>{
+        const lab=document.createElement('label');
+        lab.className='col-opt';
+        lab.innerHTML=`<input type="checkbox" ${sel.has(v)?'checked':''}/><span>${escHtml(v)}</span>`;
+        lab.querySelector('input').addEventListener('change',ev=>{
+          if(ev.target.checked) sel.add(v); else sel.delete(v);
+          commit();
+          const a=list.querySelector('label .col-opt, label input');
+          draw(q);
+        });
+        list.appendChild(lab);
+      });
+      if(shown.length===0) list.innerHTML+='<div style="font-size:11px;color:var(--text3);padding:6px;">Keine Treffer</div>';
+    };
+    search.addEventListener('input',()=>draw(search.value.trim().toLowerCase()));
+    draw('');
+  }
+
+  const sep=document.createElement('div');sep.className='col-popup-sep';body.appendChild(sep);
+  const act=document.createElement('div');act.className='col-popup-actions';
+  const bClr=document.createElement('button');bClr.className='tbtn';bClr.textContent='Filter entfernen';
+  bClr.addEventListener('click',()=>{delete colFilters[fk];closeColPopup();updateFilterClearBtn();buildHead();renderBody();refreshAnalysisIfOpen();});
+  act.appendChild(bClr);
+  body.appendChild(act);
+
+  pop.classList.add('open');
+  positionPopup(pop,anchorEl);
+}
+
+/* Filtersymbol für einen Spaltenkopf erzeugen */
+function fltIco(fk,label,kind){
+  const on=!!colFilters[fk];
+  return `<span class="flt-ico${on?' on':''}" data-fk="${escAttr(fk)}" data-lbl="${escAttr(label)}" data-kind="${kind}" title="Filter">▼</span>`;
+}
+/* Klick-Handler für alle Filtersymbole (nach buildHead aufrufen) */
+function bindFilterIcons(){
+  document.querySelectorAll('#tblHead .flt-ico').forEach(ico=>{
+    ico.addEventListener('click',e=>{
+      e.stopPropagation();
+      openColFilter(ico,ico.dataset.fk,ico.dataset.lbl,ico.dataset.kind);
+    });
+  });
+}
+
 
 /* ═══════════════════════════════════════
    ANZAHL → KATEGORIE KOPIEREN
@@ -845,6 +1159,39 @@ function openAnalysis(){
   document.getElementById('anaModal').classList.add('open');
 }
 function closeAnalysis(){ document.getElementById('anaModal').classList.remove('open'); }
+function printAnalysis(){
+  const pa=document.getElementById('printArea');
+  const now=new Date().toLocaleString('de-DE');
+  const chartHtml=document.getElementById('anaChartWrap').innerHTML;
+  const legendHtml=document.getElementById('anaLegend').innerHTML;
+  const topHighHtml=document.getElementById('anaTopHigh').innerHTML;
+  const topLowHtml=document.getElementById('anaTopLow').innerHTML;
+  const rows=[
+    ['Ist', document.getElementById('anaIst').textContent],
+    ['Ist inkl. Verteilzeit', document.getElementById('anaIstVz').textContent],
+    ['Soll', document.getElementById('anaSoll').textContent],
+    ['Abweichung', document.getElementById('anaDiff').textContent],
+    ['Ø Zeit/Stk.', document.getElementById('anaAvgPiece').textContent],
+    ['Anzahl aller Teile', document.getElementById('anaTotalQty').textContent],
+    ['Montagekosten', document.getElementById('anaCost').textContent],
+  ];
+  pa.innerHTML = `
+    <h1>Auswertung${currentProject?' – '+escHtml(currentProject):''}</h1>
+    ${projectDescription?'<p>'+escHtml(projectDescription)+'</p>':''}
+    <p>Erstellt: ${now}</p>
+    <table class="print-kpi-table">
+      ${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}
+    </table>
+    <h2>${escHtml(document.getElementById('anaChartTitle').textContent)}</h2>
+    <div class="print-chart">${chartHtml}</div>
+    <div class="ana-legend">${legendHtml}</div>
+    <h2>Top 10 – höchste Gesamtzeit</h2>
+    <div>${topHighHtml}</div>
+    <h2>Top 10 – niedrigste Gesamtzeit</h2>
+    <div>${topLowHtml}</div>
+  `;
+  window.print();
+}
 function updateSoll(){
   const v=parseFloat(document.getElementById('sollInput').value)||0;
   sollzeit = unit==='minD' ? v : v/MIND_FACTOR; // kanonisch in minD
@@ -882,8 +1229,8 @@ function renderAnalysis(){
   const fParts=getFilteredParts();
 
   const scopeNote=document.getElementById('anaScopeNote');
-  if(filterText){
-    scopeNote.textContent='🔍 Bezieht sich nur auf die '+fParts.length+' gefilterten Bauteile (Filter: "'+filterText+'")';
+  if(hasAnyFilter()){
+    scopeNote.textContent='🔍 Bezieht sich nur auf die '+fParts.length+' gefilterten Bauteile';
     scopeNote.classList.add('show');
   } else {
     scopeNote.classList.remove('show');
@@ -1160,7 +1507,7 @@ function parseImportedCSV(text){
   if(lines[idx] && lines[idx].startsWith('__COLS__')){
     const metaParts=lines[idx].split(';');
     const newCols=[];
-    for(let i=7;i<metaParts.length;i+=2){
+    for(let i=11;i<metaParts.length;i+=2){
       if(!metaParts[i]) continue;
       const segments=metaParts[i].split('|');
       if(segments.length>=3){
@@ -1178,22 +1525,27 @@ function parseImportedCSV(text){
   const newData={};
   for(let i=idx;i<lines.length;i++){
     const cells=lines[i].split(';');
-    if(!cells[1]||cells[1].startsWith('∑')) continue;
-    const sachnr=cells[0]||'';
-    const pName=cells[1];
+    if(!cells[2]||cells[2].startsWith('∑')) continue;
+    const level=parseInt(cells[0])||1;
+    const sachnr=cells[1]||'';
+    const pName=cells[2];
     const id=newPartId();
     newParts.push({id,name:pName});
     newData[id]={};
+    newData[id].__level=(level>=1&&level<=7)?level:1;
     newData[id].__sachnr=sachnr;
-    newData[id].__extra1=cells[2]||'';
-    newData[id].__extra2=cells[3]||'';
-    newData[id].__extra3=cells[4]||'';
-    newData[id].__qty=parseInt(cells[5])||0;
+    newData[id].__stufe=cells[3]||'';
+    newData[id].__werkzeug=cells[4]||'';
+    newData[id].__quelle=cells[5]||'';
+    newData[id].__extra1=cells[6]||'';
+    newData[id].__extra2=cells[7]||'';
+    newData[id].__extra3=cells[8]||'';
+    newData[id].__qty=parseInt(cells[9])||0;
     cols.forEach((c,ci)=>{
-      const qtyIdx=7+ci*2; // 0:Sachnr 1:Bauteil 2-4:Zusatzspalten 5:Anzahl 6:Gesamt 7+:Kategorien
+      const qtyIdx=11+ci*2; // 0:Level 1:Sachnr 2:Bauteil 3-5:Stufe/Werkzeug/Quelle 6-8:Zusatzspalten 9:Anzahl 10:Gesamt 11+:Kategorien
       newData[id][c.key]=parseInt(cells[qtyIdx])||0;
     });
-    const noteIdx=7+cols.length*2; // letzte Spalte: Bauteil-Notiz
+    const noteIdx=11+cols.length*2; // letzte Spalte: Bauteil-Notiz
     if(cells[noteIdx]!==undefined){
       try{ newData[id].__note=decodeURIComponent(cells[noteIdx]); }catch(e){ newData[id].__note=''; }
     } else {
@@ -1308,36 +1660,30 @@ function updateActiveBar(){
 ═══════════════════════════════════════ */
 function buildHead(){
   const tr=document.getElementById('tblHead');
-  const showSach = uiMode==='advanced' || showSachnrCol;
-  const cnLeft = showSach ? 117 : 32;
+  const showSach = isColVisible('sachnr');
+  const cnLeft = showSach ? 155 : 70;
   let h='<th class="nr">#</th>';
-  h+=`<th class="sachnr"${showSach?'':' style="display:none;"'}>Sachnr.</th>`;
-  h+=`<th class="cn" style="left:${cnLeft}px;">Bauteil</th>`;
-  if(showExtraCols && uiMode==='advanced'){
-    h+='<th class="extra">Zusatz 1</th><th class="extra">Zusatz 2</th><th class="extra">Zusatz 3</th>';
-  }
-  h+='<th class="th-qty">Anzahl</th>';
-  h+=`<th class="ct th-tot">∑ ${ul()}</th>`;
+  h+=`<th class="level">Lvl${fltIco('level','Level','set')}</th>`;
+  h+=`<th class="sachnr"${showSach?'':' style="display:none;"'}>Sachnr.${fltIco('sachnr','Sachnummer','set')}</th>`;
+  h+=`<th class="cn" style="left:${cnLeft}px;">Bauteil${fltIco('name','Bauteil','set')}</th>`;
+  OPT_COLS.filter(o=>o.key!=='sachnr').forEach(o=>{
+    if(isColVisible(o.key)) h+=`<th class="extra">${o.label}${fltIco(o.key,o.label,'set')}</th>`;
+  });
+  h+=`<th class="th-qty">Anzahl${fltIco('qty','Anzahl','range')}</th>`;
+  h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
   COLS.forEach(c=>{
     const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
-    h+=`<th class="th-q" title="${c.label}" style="background:${gCol}e6;border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).join('<br>')}</th>`;
+    h+=`<th class="th-q" title="${c.label}" style="background:${gCol}e6;border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
     h+=`<th class="th-t adv-only" style="background:${gCol}b3;">[${ul()}]</th>`;
   });
   tr.innerHTML=h;
+  // aktive Filter im Kopf markieren
+  [...tr.children].forEach(th=>{
+    const ico=th.querySelector('.flt-ico');
+    th.classList.toggle('flt-active', !!(ico && colFilters[ico.dataset.fk]));
+  });
+  bindFilterIcons();
 }
-function toggleSachnrCol(){
-  showSachnrCol=!showSachnrCol;
-  document.getElementById('sachnrColBtn').textContent = showSachnrCol ? '➖ Sachnr.' : '➕ Sachnr.';
-  buildHead();
-  renderBody();
-}
-function toggleExtraCols(){
-  showExtraCols=!showExtraCols;
-  document.getElementById('extraColsBtn').textContent = showExtraCols ? '➖ Zusatzspalten' : '➕ Zusatzspalten';
-  buildHead();
-  renderBody();
-}
-
 /* ═══════════════════════════════════════
    BEGINNER / ADVANCED MODUS
    Reine Anzeigeeinstellung — verändert oder verbirgt keine Daten
@@ -1360,20 +1706,42 @@ function renderBody(){
   COLS.forEach(c=>totQ[c.key]=0);
 
   const visibleParts=getFilteredParts();
-  const showSach = uiMode==='advanced' || showSachnrCol;
-  const cnLeft = showSach ? 117 : 32;
+  const showSach = isColVisible('sachnr');
+  const cnLeft = showSach ? 155 : 70;
 
   visibleParts.forEach(part=>{
     const id=part.id, name=part.name;
     const tr=document.createElement('tr');
     tr.dataset.id=id;
-    if(id===activePart) tr.className='ar';
+    const lvl=data[id].__level||1;
+    tr.className=(id===activePart?'ar ':'')+'lvl-'+lvl;
 
     // Nr. (fortlaufende Position, unabhängig vom Filter)
     const tdNr=document.createElement('td');
     tdNr.className='nr';
     tdNr.textContent=parts.findIndex(x=>x.id===id)+1;
     tr.appendChild(tdNr);
+
+    // Level (Struktur-/Hierarchieebene, 1-7)
+    const tdLevel=document.createElement('td');
+    tdLevel.className='level';
+    const lvSel=document.createElement('select');
+    lvSel.className='level-select';
+    for(let n=1;n<=7;n++){
+      const opt=document.createElement('option');
+      opt.value=n;opt.textContent=n;
+      if(lvl===n) opt.selected=true;
+      lvSel.appendChild(opt);
+    }
+    lvSel.addEventListener('focus',e=>{e.stopPropagation();selectPart(id);});
+    lvSel.addEventListener('click',e=>e.stopPropagation());
+    lvSel.addEventListener('change',()=>{
+      data[id].__level=parseInt(lvSel.value)||1;
+      markDirty();
+      tr.className=tr.className.replace(/\blvl-\d\b/,'lvl-'+data[id].__level);
+    });
+    tdLevel.appendChild(lvSel);
+    tr.appendChild(tdLevel);
 
     // Sachnummer (SAP-Materialnummer, i.d.R. 8-stellig)
     const tdSach=document.createElement('td');
@@ -1435,8 +1803,8 @@ function renderBody(){
     tr.appendChild(td0);
 
     // Zusatzspalten (optional, Inhalte bleiben unabhängig von der Anzeige erhalten)
-    if(showExtraCols && uiMode==='advanced'){
-      ['__extra1','__extra2','__extra3'].forEach(fld=>{
+    {
+      OPT_COLS.filter(o=>o.key!=='sachnr'&&isColVisible(o.key)).map(o=>'__'+o.key).forEach(fld=>{
         const tdE=document.createElement('td');
         tdE.className='extra';
         const ei=document.createElement('input');
@@ -1479,7 +1847,9 @@ function renderBody(){
       const tdv=document.createElement('td');
       tdv.className=v>0?'vnz':'';tdv.textContent=v>0?v:'–';tr.appendChild(tdv);
       const tdt=document.createElement('td');
-      tdt.className=(t>0?'tnz':'')+' adv-only';tdt.textContent=t>0?disp(t):'–';tr.appendChild(tdt);
+      tdt.className=(t>0?'tnz':'')+' adv-only';tdt.textContent=t>0?disp(t):'–';
+      if(t>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'59';tdt.style.color='#2b3244';}
+      tr.appendChild(tdt);
     });
 
     tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(id); });
@@ -1497,17 +1867,21 @@ function renderBody(){
   // summary row
   const sr=document.createElement('tr');sr.className='sum-row';
   const sNr=document.createElement('td');sNr.className='nr';sNr.textContent='';sr.appendChild(sNr);
+  const sLvl=document.createElement('td');sLvl.className='level';sLvl.textContent='';sr.appendChild(sLvl);
   const sSach=document.createElement('td');sSach.className='sachnr';sSach.textContent='';if(!showSach)sSach.style.display='none';sr.appendChild(sSach);
   const s0=document.createElement('td');s0.className='cn';s0.style.left=cnLeft+'px';s0.textContent='∑ Gesamt';sr.appendChild(s0);
-  if(showExtraCols && uiMode==='advanced'){
-    for(let i=0;i<3;i++){ const sE=document.createElement('td');sE.className='extra';sE.textContent='';sr.appendChild(sE); }
+  {
+    const nOpt=OPT_COLS.filter(o=>o.key!=='sachnr'&&isColVisible(o.key)).length;
+    for(let i=0;i<nOpt;i++){ const sE=document.createElement('td');sE.className='extra';sE.textContent='';sr.appendChild(sE); }
   }
   const sQty=document.createElement('td');sQty.className='qty';sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
   const stot=document.createElement('td');stot.className='ct';stot.textContent=disp(totT);sr.appendChild(stot);
   COLS.forEach(c=>{
     const qt=totQ[c.key],tt=qt*c.param;
     const tdv=document.createElement('td');tdv.className=qt>0?'vnz':'';tdv.textContent=qt>0?qt:'–';sr.appendChild(tdv);
-    const tdt=document.createElement('td');tdt.className=(tt>0?'tnz':'')+' adv-only';tdt.textContent=tt>0?disp(tt):'–';sr.appendChild(tdt);
+    const tdt=document.createElement('td');tdt.className=(tt>0?'tnz':'')+' adv-only';tdt.textContent=tt>0?disp(tt):'–';
+    if(tt>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'8c';tdt.style.color='#2b3244';}
+    sr.appendChild(tdt);
   });
   body.appendChild(sr);
 }
@@ -1594,7 +1968,13 @@ function addPart(){
   const existingNames=parts.map(x=>x.name);
   while(existingNames.includes(name)){ n++; name='Bauteil '+n; }
   const id=newPartId();
-  parts.push({id,name});
+  const newPart={id,name};
+  const activeIdx=parts.findIndex(p=>p.id===activePart);
+  if(activeIdx>=0){
+    parts.splice(activeIdx+1,0,newPart);
+  } else {
+    parts.push(newPart);
+  }
   initPart(id);
   if(!activePart) activePart=id;
   renderBody();markDirty();
@@ -1678,14 +2058,14 @@ function saveCfg(){
 /* ═══════════════════════════════════════
    AUTOSAVE (localStorage)
 ═══════════════════════════════════════ */
-const LS_KEY = 'zeitaufnahme_v16';
+const LS_KEY = 'zeitaufnahme_v19';
 let saveTmr;
 const dot = ()=>document.getElementById('saveDot');
 
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -1718,6 +2098,7 @@ function loadState(){
     verteilzeitFactor = s.verteilzeitFactor || 0;
     uiMode = s.uiMode === 'beginner' ? 'beginner' : 'advanced';
     hourlyRate = s.hourlyRate || 0;
+    if(s.colVis && typeof s.colVis==='object'){ OPT_COLS.forEach(o=>{ if(typeof s.colVis[o.key]==='boolean') colVis[o.key]=s.colVis[o.key]; }); }
     ensureKeys();
     return true;
   } catch(e){ return false; }
@@ -1739,20 +2120,338 @@ function closeExpModal(){ document.getElementById('expModal').classList.remove('
 /* ═══════════════════════════════════════
    EXPORT
 ═══════════════════════════════════════ */
+
+/* ═══════════════════════════════════════
+   XLSX-EXPORT (formatiert, ohne externe Bibliothek)
+   .xlsx = ZIP-Archiv mit XML-Dateien; ZIP wird hier
+   unkomprimiert ("stored") selbst geschrieben.
+═══════════════════════════════════════ */
+const CRC_TABLE=(()=>{const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c>>>0;}return t;})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC_TABLE[(c^b[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function utf8(s){return new TextEncoder().encode(s);}
+function zipStore(files){
+  const parts=[],central=[];let offset=0;
+  files.forEach(f=>{
+    const data=utf8(f.content), nameB=utf8(f.name), crc=crc32(data);
+    const lh=new Uint8Array(30+nameB.length), dv=new DataView(lh.buffer);
+    dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(6,0,true);
+    dv.setUint16(8,0,true);dv.setUint16(10,0,true);dv.setUint16(12,0x21,true);
+    dv.setUint32(14,crc,true);dv.setUint32(18,data.length,true);dv.setUint32(22,data.length,true);
+    dv.setUint16(26,nameB.length,true);dv.setUint16(28,0,true);
+    lh.set(nameB,30);
+    parts.push(lh,data);
+    const ch=new Uint8Array(46+nameB.length), cv=new DataView(ch.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);
+    cv.setUint16(8,0,true);cv.setUint16(10,0,true);cv.setUint16(12,0,true);cv.setUint16(14,0x21,true);
+    cv.setUint32(16,crc,true);cv.setUint32(20,data.length,true);cv.setUint32(24,data.length,true);
+    cv.setUint16(28,nameB.length,true);cv.setUint16(30,0,true);cv.setUint16(32,0,true);
+    cv.setUint16(34,0,true);cv.setUint16(36,0,true);cv.setUint32(38,0,true);
+    cv.setUint32(42,offset,true);
+    ch.set(nameB,46);
+    central.push(ch);
+    offset+=lh.length+data.length;
+  });
+  const cdSize=central.reduce((s,c)=>s+c.length,0);
+  const eocd=new Uint8Array(22), ev=new DataView(eocd.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(4,0,true);ev.setUint16(6,0,true);
+  ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);
+  ev.setUint32(12,cdSize,true);ev.setUint32(16,offset,true);ev.setUint16(20,0,true);
+  const all=[...parts,...central,eocd];
+  const total=all.reduce((s,a)=>s+a.length,0);
+  const out=new Uint8Array(total);let pos=0;
+  all.forEach(a=>{out.set(a,pos);pos+=a.length;});
+  return out;
+}
+function xmlEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function colLetter(n){let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
+/* Zelle: v=Wert, st=Style-Index, num=true für Zahl */
+function xc(col,row,v,st,num){
+  const ref=colLetter(col)+row;
+  const sAttr=st?` s="${st}"`:'';
+  if(v===''||v===null||v===undefined) return `<c r="${ref}"${sAttr}/>`;
+  if(num) return `<c r="${ref}"${sAttr}><v>${v}</v></c>`;
+  return `<c r="${ref}"${sAttr} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+}
+const XLSX_GROUP_ORDER=['admin','handling','process','trace','safety'];
+function xlsxStyles(){
+  const groupFills=XLSX_GROUP_ORDER.map(k=>((GROUPS[k]||{}).color||'#dddddd').replace('#','FF'));
+  const levelFills=['FFFFFFFF','FFEEF3FB','FFD8E6F7','FFB9D0F0','FF97B8E8','FF7AA3DE','FF5C8BD1'];
+  const fillsXml=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>',
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF44506B"/><bgColor indexed="64"/></patternFill></fill>']
+    .concat(groupFills.map(c=>`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`))
+    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFEDF1F8"/><bgColor indexed="64"/></patternFill></fill>'])
+    .concat(levelFills.map(c=>`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`))
+    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFF7F7F7"/><bgColor indexed="64"/></patternFill></fill>']);
+  // Fill-Indizes: 0 none,1 gray,2 dark,3-7 Gruppen,8 zeitwert,9-15 Level1-7,16 kpi
+  const fonts=[
+    '<font><sz val="9"/><name val="Arial"/></font>',
+    '<font><b/><sz val="15"/><name val="Arial"/></font>',
+    '<font><sz val="9"/><color rgb="FF666666"/><name val="Arial"/></font>',
+    '<font><b/><sz val="9"/><color rgb="FFFFFFFF"/><name val="Arial"/></font>',
+    '<font><b/><sz val="8"/><name val="Arial"/></font>',
+    '<font><sz val="8"/><name val="Arial"/></font>',
+    '<font><b/><sz val="9"/><name val="Arial"/></font>'
+  ];
+  const borders=['<border><left/><right/><top/><bottom/><diagonal/></border>',
+    '<border><left style="thin"><color rgb="FFD9D9D9"/></left><right style="thin"><color rgb="FFD9D9D9"/></right><top style="thin"><color rgb="FFD9D9D9"/></top><bottom style="thin"><color rgb="FFD9D9D9"/></bottom><diagonal/></border>'];
+  const xfs=[];
+  const push=(o)=>{xfs.push(`<xf numFmtId="${o.n||0}" fontId="${o.f||0}" fillId="${o.fl||0}" borderId="${o.b||0}" applyFont="1" applyFill="1" applyBorder="1"${o.al?` applyAlignment="1"><alignment ${o.al}/></xf>`:'/>'}`);};
+  push({});                                   // 0 default
+  push({f:1});                                // 1 Titel
+  push({f:2});                                // 2 Untertitel
+  push({f:3,fl:2,b:1,al:'horizontal="center" vertical="center"'});   // 3 Gruppenkopf dunkel
+  for(let i=0;i<5;i++) push({f:6,fl:3+i,b:1,al:'horizontal="center" vertical="center"'}); // 4-8 Gruppenköpfe
+  push({f:3,fl:2,b:1,al:'horizontal="center" vertical="center" wrapText="1"'});           // 9 Spaltenkopf dunkel
+  for(let i=0;i<5;i++) push({f:4,fl:3+i,b:1,al:'horizontal="center" vertical="center" wrapText="1"'}); // 10-14
+  push({f:5,fl:8,b:1});                       // 15 Zeitwert-Label
+  push({f:4,fl:8,b:1,n:164});                 // 16 Zeitwert-Wert
+  for(let i=0;i<7;i++) push({fl:9+i,b:1,al:'vertical="top" wrapText="1"'});  // 17-23 Text je Level
+  for(let i=0;i<7;i++) push({fl:9+i,b:1,n:164});                             // 24-30 Zahl je Level
+  push({f:6,fl:16,b:1});                      // 31 KPI-Label
+  push({b:1,n:164});                          // 32 KPI-Zahl
+  push({b:1});                                // 33 KPI-Text
+  push({b:1,n:165});                          // 34 KPI-Euro
+  push({f:6,fl:8,b:1});                       // 35 Summenzeile Text
+  push({f:6,fl:8,b:1,n:164});                 // 36 Summenzeile Zahl
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<numFmts count="2"><numFmt numFmtId="164" formatCode="0.000"/><numFmt numFmtId="165" formatCode="#,##0.00&quot; €&quot;"/></numFmts>
+<fonts count="${fonts.length}">${fonts.join('')}</fonts>
+<fills count="${fillsXml.length}">${fillsXml.join('')}</fills>
+<borders count="${borders.length}">${borders.join('')}</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+}
+/* Blatt 1: Stückliste */
+function xlsxSheetStueckliste(){
+  const u=ul();
+  const nCat=COLS.length;
+  const fixedCols=['Level','Sachnummer','Bauteil','Montagestufe','Werkzeug / WT','Quelle','Zusatzinfo 1','Zusatzinfo 2','Zusatzinfo 3','Anzahl','Gesamt '+u];
+  const firstCatCol=fixedCols.length+1;             // 1-basiert
+  const noteCol=firstCatCol+nCat*2;
+  const lastCol=noteCol;
+  const gIdx=k=>Math.max(0,XLSX_GROUP_ORDER.indexOf(k));
+  let rows='',merges=[];
+
+  // Zeile 1: Titel
+  rows+=`<row r="1" ht="20" customHeight="1">${xc(1,1,'MTM-Analyse'+(currentProject?' – '+currentProject:''),1)}</row>`;
+  // Zeile 2: Untertitel
+  const sub='Einheit: '+u+' (1 minD = 0,6 min)'+(verteilzeitFactor?'  ·  Verteilzeit: '+verteilzeitFactor+'%':'')+(projectDescription?'  ·  '+projectDescription:'')+'  ·  Export: '+new Date().toLocaleString('de-DE');
+  rows+=`<row r="2">${xc(1,2,sub,2)}</row>`;
+  // Zeile 3: Gruppenköpfe
+  let r3=xc(1,3,'Stammdaten / Ablauf',3);
+  for(let i=2;i<=fixedCols.length;i++) r3+=xc(i,3,'',3);
+  merges.push(`A3:${colLetter(fixedCols.length)}3`);
+  let c=firstCatCol, i2=0;
+  while(i2<nCat){
+    const g=COLS[i2].group; let run=0;
+    while(i2+run<nCat && COLS[i2+run].group===g) run++;
+    const st=4+gIdx(g);
+    r3+=xc(c,3,(GROUPS[g]||{}).name||g,st);
+    for(let k=1;k<run*2;k++) r3+=xc(c+k,3,'',st);
+    if(run*2>1) merges.push(`${colLetter(c)}3:${colLetter(c+run*2-1)}3`);
+    c+=run*2; i2+=run;
+  }
+  r3+=xc(noteCol,3,'',3);
+  rows+=`<row r="3" ht="16" customHeight="1">${r3}</row>`;
+  // Zeile 4: Spaltenköpfe
+  let r4='';
+  fixedCols.forEach((h,i)=>{ r4+=xc(i+1,4,h,9); });
+  c=firstCatCol;
+  COLS.forEach(col=>{
+    const st=10+gIdx(col.group);
+    r4+=xc(c,4,col.label,st); r4+=xc(c+1,4,'['+u+']',st); c+=2;
+  });
+  r4+=xc(noteCol,4,'Notiz',9);
+  rows+=`<row r="4" ht="42" customHeight="1">${r4}</row>`;
+  // Zeile 5: Zeitwert je Baustein
+  let r5=xc(1,5,'Zeitwert je Baustein ['+u+'] →',15);
+  for(let i=2;i<=fixedCols.length;i++) r5+=xc(i,5,'',15);
+  merges.push(`A5:${colLetter(fixedCols.length)}5`);
+  c=firstCatCol;
+  COLS.forEach(col=>{ r5+=xc(c,5,dispParam(col.param),16,true); r5+=xc(c+1,5,'',16); c+=2; });
+  r5+=xc(noteCol,5,'',15);
+  rows+=`<row r="5">${r5}</row>`;
+  // Datenzeilen ab 6
+  let rn=6;
+  parts.forEach(p=>{
+    const d=data[p.id], lvl=Math.min(7,Math.max(1,d.__level||1));
+    const sT=17+(lvl-1), sN=24+(lvl-1);
+    let r=xc(1,rn,lvl,sN===0?0:sT,true);
+    r+=xc(2,rn,d.__sachnr||'',sT);
+    r+=xc(3,rn,p.name,sT);
+    r+=xc(4,rn,d.__stufe||'',sT);
+    r+=xc(5,rn,d.__werkzeug||'',sT);
+    r+=xc(6,rn,d.__quelle||'',sT);
+    r+=xc(7,rn,d.__extra1||'',sT);
+    r+=xc(8,rn,d.__extra2||'',sT);
+    r+=xc(9,rn,d.__extra3||'',sT);
+    r+=xc(10,rn,d.__qty||0,sT,true);
+    // Gesamt als Formel-freie Zahl (Zwischenwerte stehen daneben)
+    r+=xc(11,rn,disp(calcTotal(p.id)),sN,true);
+    c=firstCatCol;
+    COLS.forEach(col=>{
+      const q=d[col.key]||0;
+      r+=xc(c,rn,q,sT,true);
+      r+=xc(c+1,rn,disp(q*col.param),sN,true);
+      c+=2;
+    });
+    r+=xc(noteCol,rn,d.__note||'',sT);
+    rows+=`<row r="${rn}">${r}</row>`;
+    rn++;
+  });
+  // Summenzeile
+  let rs=xc(1,rn,'',35)+xc(2,rn,'',35)+xc(3,rn,'∑ Gesamt',35);
+  for(let i=4;i<=9;i++) rs+=xc(i,rn,'',35);
+  const totQty=parts.reduce((s,p)=>s+(data[p.id].__qty||0),0);
+  rs+=xc(10,rn,totQty,35,true);
+  rs+=xc(11,rn,disp(parts.reduce((s,p)=>s+calcTotal(p.id),0)),36,true);
+  c=firstCatCol;
+  COLS.forEach(col=>{
+    const q=parts.reduce((s,p)=>s+(data[p.id][col.key]||0),0);
+    rs+=xc(c,rn,q,35,true); rs+=xc(c+1,rn,disp(q*col.param),36,true); c+=2;
+  });
+  rs+=xc(noteCol,rn,'',35);
+  rows+=`<row r="${rn}">${rs}</row>`;
+
+  const colsXml='<cols>'
+    +'<col min="1" max="1" width="6" customWidth="1"/>'
+    +'<col min="2" max="2" width="13" customWidth="1"/>'
+    +'<col min="3" max="3" width="42" customWidth="1"/>'
+    +'<col min="4" max="4" width="16" customWidth="1"/>'
+    +'<col min="5" max="5" width="26" customWidth="1"/>'
+    +'<col min="6" max="6" width="10" customWidth="1"/>'
+    +'<col min="7" max="9" width="16" customWidth="1"/>'
+    +'<col min="10" max="11" width="11" customWidth="1"/>'
+    +`<col min="${firstCatCol}" max="${noteCol-1}" width="8" customWidth="1"/>`
+    +`<col min="${noteCol}" max="${noteCol}" width="60" customWidth="1"/>`
+    +'</cols>';
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:${colLetter(lastCol)}${rn}"/>
+<sheetViews><sheetView tabSelected="1" workbookViewId="0"><pane xSplit="3" ySplit="5" topLeftCell="D6" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>
+<sheetFormatPr defaultRowHeight="12"/>
+${colsXml}
+<sheetData>${rows}</sheetData>
+<autoFilter ref="A4:${colLetter(lastCol)}${rn-1}"/>
+${merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}
+</worksheet>`;
+}
+/* Blatt 2: Auswertung */
+function xlsxSheetAuswertung(){
+  const u=ul();
+  const fParts=parts;
+  const ist=fParts.reduce((s,p)=>s+calcTotal(p.id),0);
+  const istVz=ist*(1+(verteilzeitFactor||0)/100);
+  const totQty=fParts.reduce((s,p)=>s+(data[p.id].__qty||0),0);
+  let rows='',rn=1;
+  rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Auswertung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Export: '+new Date().toLocaleString('de-DE')+(projectDescription?'  ·  '+projectDescription:''),2)}</row>`;rn++;
+  rn++;
+  const kpi=(label,val,style,isNum)=>{rows+=`<row r="${rn}">${xc(1,rn,label,31)}${xc(2,rn,val,style,isNum)}</row>`;rn++;};
+  kpi('Ist ['+u+']', disp(ist), 32, true);
+  kpi('Verteilzeit-Faktor [%]', verteilzeitFactor||0, 33, true);
+  kpi('Ist inkl. Verteilzeit ['+u+']', disp(istVz), 32, true);
+  kpi('Sollzeit ['+u+']', sollzeit? disp(sollzeit):'–', sollzeit?32:33, !!sollzeit);
+  kpi('Abweichung ['+u+']', sollzeit? disp(istVz-sollzeit):'–', sollzeit?32:33, !!sollzeit);
+  kpi('Abweichung [%]', sollzeit? ((istVz-sollzeit)/sollzeit*100).toFixed(1):'–', 33, !!sollzeit);
+  kpi('Anzahl aller Teile', totQty, 33, true);
+  kpi('Ø Zeit je Stück ['+u+']', totQty>0? disp(ist/totQty):'–', totQty>0?32:33, totQty>0);
+  kpi('Stundensatz [€/hD]', hourlyRate||0, 34, true);
+  kpi('Montagekosten [€]', hourlyRate>0? ((istVz/100)*hourlyRate).toFixed(2):'–', hourlyRate>0?34:33, hourlyRate>0);
+  rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Zeitanteil je Kategorie-Gruppe',6===6?31:31)}${xc(2,rn,'['+u+']',31)}${xc(3,rn,'Anteil [%]',31)}</row>`;rn++;
+  const gTot={};Object.keys(GROUPS).forEach(g=>gTot[g]=0);
+  fParts.forEach(p=>COLS.forEach(col=>{gTot[col.group]=(gTot[col.group]||0)+(data[p.id][col.key]||0)*col.param;}));
+  const gSum=Object.values(gTot).reduce((s,v)=>s+v,0);
+  Object.entries(GROUPS).forEach(([k,g])=>{
+    const v=gTot[k]||0;
+    rows+=`<row r="${rn}">${xc(1,rn,g.name,33)}${xc(2,rn,disp(v),32,true)}${xc(3,rn,gSum>0?(v/gSum*100).toFixed(1):'0.0',33)}</row>`;rn++;
+  });
+  rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Zeitanteil je Kategorie',31)}${xc(2,rn,'['+u+']',31)}${xc(3,rn,'Anteil [%]',31)}</row>`;rn++;
+  COLS.forEach(col=>{
+    const v=fParts.reduce((s,p)=>s+(data[p.id][col.key]||0)*col.param,0);
+    rows+=`<row r="${rn}">${xc(1,rn,col.label,33)}${xc(2,rn,disp(v),32,true)}${xc(3,rn,gSum>0?(v/gSum*100).toFixed(1):'0.0',33)}</row>`;rn++;
+  });
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:C${rn}"/>
+<sheetFormatPr defaultRowHeight="12"/>
+<cols><col min="1" max="1" width="34" customWidth="1"/><col min="2" max="3" width="18" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+</worksheet>`;
+}
+/* Blatt 3: Kategorie-Zeitwerte */
+function xlsxSheetZeitwerte(){
+  const u=ul();
+  let rows='',rn=1;
+  rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Kategorie-Zeitwerte',1)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Basis der Berechnung · Einheit: '+u,2)}</row>`;rn++;
+  rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Gruppe',9)}${xc(2,rn,'Kategorie',9)}${xc(3,rn,'Zeitwert ['+u+']',9)}${xc(4,rn,'Notiz',9)}</row>`;rn++;
+  const gIdx=k=>Math.max(0,XLSX_GROUP_ORDER.indexOf(k));
+  COLS.forEach(col=>{
+    const st=17;
+    rows+=`<row r="${rn}">${xc(1,rn,(GROUPS[col.group]||{}).name||col.group,4+gIdx(col.group))}${xc(2,rn,col.label,st)}${xc(3,rn,dispParam(col.param),24,true)}${xc(4,rn,col.note||'',st)}</row>`;rn++;
+  });
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:D${rn}"/>
+<sheetFormatPr defaultRowHeight="12"/>
+<cols><col min="1" max="1" width="24" customWidth="1"/><col min="2" max="2" width="28" customWidth="1"/><col min="3" max="3" width="16" customWidth="1"/><col min="4" max="4" width="50" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+</worksheet>`;
+}
+function doExportXlsx(){
+  let filename=(document.getElementById('expFilename').value.trim()||(currentProject||'Zeitaufnahme'));
+  filename=filename.replace(/\.csv$/i,'');
+  if(!filename.toLowerCase().endsWith('.xlsx')) filename+='.xlsx';
+  closeExpModal();
+  try{
+    const files=[
+      {name:'[Content_Types].xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+      {name:'_rels/.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+      {name:'xl/workbook.xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Stückliste" sheetId="1" r:id="rId1"/><sheet name="Auswertung" sheetId="2" r:id="rId2"/><sheet name="Zeitwerte" sheetId="3" r:id="rId3"/></sheets></workbook>`},
+      {name:'xl/_rels/workbook.xml.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+      {name:'xl/styles.xml',content:xlsxStyles()},
+      {name:'xl/worksheets/sheet1.xml',content:xlsxSheetStueckliste()},
+      {name:'xl/worksheets/sheet2.xml',content:xlsxSheetAuswertung()},
+      {name:'xl/worksheets/sheet3.xml',content:xlsxSheetZeitwerte()}
+    ];
+    const bytes=zipStore(files);
+    const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+    lastExportTime=new Date().toISOString();
+    updateExportIndicator();
+    saveState();
+    toast('✓ Excel exportiert: '+filename);
+  }catch(err){
+    toast('⚠ Excel-Export fehlgeschlagen: '+err.message);
+  }
+}
+
 function doExport(){
   let filename = (document.getElementById('expFilename').value.trim()||(currentProject||'Zeitaufnahme'));
   if(!filename.toLowerCase().endsWith('.csv')) filename+='.csv';
   closeExpModal();
   const sep=';'; const u=ul();
-  const hdr=['Sachnummer','Bauteil','Zusatzinfo 1','Zusatzinfo 2','Zusatzinfo 3','Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
-  const rows=parts.map(p=>[data[p.id].__sachnr||'',p.name,data[p.id].__extra1||'',data[p.id].__extra2||'',data[p.id].__extra3||'',data[p.id].__qty||0,disp(calcTotal(p.id)).replace('.',','),...COLS.flatMap(c=>{const q=data[p.id][c.key]||0;return[q,disp(q*c.param).replace('.',',')];}),encodeURIComponent(data[p.id].__note||'')].join(sep));
+  const hdr=['Level','Sachnummer','Bauteil','Montagestufe','Werkzeug / WT','Quelle','Zusatzinfo 1','Zusatzinfo 2','Zusatzinfo 3','Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
+  const rows=parts.map(p=>[data[p.id].__level||1,data[p.id].__sachnr||'',p.name,data[p.id].__stufe||'',data[p.id].__werkzeug||'',data[p.id].__quelle||'',data[p.id].__extra1||'',data[p.id].__extra2||'',data[p.id].__extra3||'',data[p.id].__qty||0,disp(calcTotal(p.id)).replace('.',','),...COLS.flatMap(c=>{const q=data[p.id][c.key]||0;return[q,disp(q*c.param).replace('.',',')];}),encodeURIComponent(data[p.id].__note||'')].join(sep));
   const metaProject = ['__PROJECT__',currentProject||''].join(sep);
   const metaDesc = ['__DESC__',encodeURIComponent(projectDescription||'')].join(sep);
   const metaSoll = ['__SOLLZEIT__',sollzeit||0].join(sep);
   const metaVerteil = ['__VERTEILZEIT__',verteilzeitFactor||0].join(sep);
   const metaStunden = ['__STUNDENSATZ__',hourlyRate||0].join(sep);
   // Also export column params (inkl. Notiz, URL-kodiert) as a metadata row for re-import
-  const metaKeys = ['__COLS__','','','','','','',...COLS.flatMap(c=>[c.key+'|'+c.label+'|'+c.param+'|'+(c.group||'process')+'|'+encodeURIComponent(c.note||''),'']),''].join(sep);
+  const metaKeys = ['__COLS__','','','','','','','','','','',...COLS.flatMap(c=>[c.key+'|'+c.label+'|'+c.param+'|'+(c.group||'process')+'|'+encodeURIComponent(c.note||''),'']),''].join(sep);
   const csv='\uFEFF'+[metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaKeys,hdr,...rows].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
@@ -1903,6 +2602,7 @@ if(hadSaved){
 }
 startAutosaveReminder();
 setInterval(updateExportIndicator, 30000);
+updateFilterClearBtn();
 
 const projDescBtn=document.getElementById('projDescBtn');
 if(projDescBtn){

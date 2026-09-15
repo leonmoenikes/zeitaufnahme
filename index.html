@@ -1615,6 +1615,11 @@ function switchProject(){
 /* Gemeinsamer CSV-Parser für Start-Import und laufenden Import */
 function parseImportedCSV(text){
   const clean=text.replace(/^\uFEFF/,'');
+  /* Ohne diese Pr\u00FCfungen wird eine Bin\u00E4rdatei zeichenweise als Tabelle gelesen
+     und ersetzt das Projekt durch Datenm\u00FCll (ZIP-Signatur = .xlsx/.ods) */
+  if(clean.startsWith('PK\x03\x04')) throw new Error('Das ist eine Excel-Datei (.xlsx), keine CSV. Bitte \u00FCber \u201E\u2193 CSV Export" erzeugte Datei w\u00E4hlen.');
+  if(clean.includes('\x00')) throw new Error('Die Datei ist keine UTF-8-Textdatei. Bitte als CSV (UTF-8) speichern.');
+  if(!clean.includes(';')) throw new Error('Keine mit Semikolon getrennte CSV-Datei.');
   const lines=clean.split('\n').map(l=>l.trim()).filter(l=>l);
   if(lines.length<2) return null;
   let idx=0;

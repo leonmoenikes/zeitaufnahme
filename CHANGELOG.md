@@ -32,6 +32,10 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   schreibt sie jetzt in die Metazeile `__COLLABELS__`, der Import stellt sie
   wieder her. CSV-Dateien ohne diese Zeile (ältere Exporte) lassen die aktuell
   eingestellte Benennung unverändert.
+- Der CSV-Import akzeptierte auch Binärdateien (z.B. eine versehentlich gewählte
+  `.xlsx`) und ersetzte das Projekt dabei durch Datenmüll. Solche Dateien werden
+  jetzt mit einer verständlichen Meldung abgewiesen, die vorhandenen Daten
+  bleiben unangetastet.
 
 ## [1.0.0] - 2026-09-15
 

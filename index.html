@@ -326,6 +326,8 @@ body.dark-mode .data-tbl tbody tr.lvl-7 td.nr,body.dark-mode .data-tbl tbody tr.
 .extra-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
 .cn-wrap{display:flex;align-items:center;gap:0;}
 .cn-wrap .ni{flex:1;min-width:50px;}
+/* Zeilen-Aktionen: eigene Spalte, damit sie auch bei ausgeblendeter Bauteil-Spalte erreichbar bleiben */
+.data-tbl th.acts,.data-tbl td.acts{white-space:nowrap;text-align:center;padding-left:2px;padding-right:2px;}
 .row-icon-btn{
   flex-shrink:0;width:20px;height:20px;line-height:20px;border:none;background:transparent;
   color:var(--text3);font-size:11px;cursor:pointer;border-radius:4px;padding:0;
@@ -700,12 +702,12 @@ body.dark-mode .takt-tbl tr.tk-sum td{background:#233150;}
 
       <div id="anaPanelTakt" style="display:none;">
         <div class="ana-chart-head">
-          <span class="ana-chart-title">Zeit je Station – Taktabgleich</span>
-          <span class="takt-hint">Gruppiert nach Spalte „Station"</span>
+          <span class="ana-chart-title" id="taktTitle">Zeit je Station – Taktabgleich</span>
+          <span class="takt-hint" id="taktHint">Gruppiert nach Spalte „Station"</span>
         </div>
         <div id="taktTableWrap"></div>
         <div class="ana-chart-head" style="margin-top:18px;">
-          <span class="ana-chart-title">Zeit je Station [min]</span>
+          <span class="ana-chart-title" id="taktChartTitle">Zeit je Station [min]</span>
         </div>
         <div id="taktChartWrap"></div>
       </div>
@@ -953,14 +955,16 @@ function updateProjLabel(){
 ═══════════════════════════════════════ */
 
 /* Definition aller optionalen (ein-/ausblendbaren) Spalten */
+/* own:true = Spalte mit eigener Zelle im Zeilenaufbau, nicht Teil der generischen Zusatzspalten */
 const OPT_COLS=[
-  {key:'sachnr',   label:'Sachnummer'},
-  {key:'stufe',    label:'Montagestufe'},
-  {key:'werkzeug', label:'Werkzeug / WT'},
-  {key:'quelle',   label:'Quelle'},
-  {key:'extra1',   label:'Station',    fixed:true},   // fest: Grundlage des Taktabgleichs
-  {key:'extra2',   label:'Zusatz 2',   renameable:true},
-  {key:'extra3',   label:'Zusatz 3',   renameable:true},
+  {key:'sachnr',   label:'Sachnummer', own:true},
+  {key:'name',     label:'Bauteil',    own:true},
+  {key:'stufe',    label:'Montagestufe',  renameable:true},
+  {key:'werkzeug', label:'Werkzeug / WT', renameable:true},
+  {key:'quelle',   label:'Quelle',        renameable:true},
+  {key:'extra1',   label:'Station',       renameable:true},   // Grundlage des Taktabgleichs
+  {key:'extra2',   label:'Zusatz 2',      renameable:true},
+  {key:'extra3',   label:'Zusatz 3',      renameable:true},
 ];
 /* Frei vergebene Überschriften für die umbenennbaren Spalten */
 let colLabels={};
@@ -969,7 +973,7 @@ function colLabel(k){
   return (oc.renameable && colLabels[k]) ? colLabels[k] : (oc.label||k);
 }
 /* Sichtbarkeit; wird projektbezogen gespeichert */
-let colVis={sachnr:true,stufe:false,werkzeug:false,quelle:false,extra1:true,extra2:false,extra3:false};
+let colVis={sachnr:true,name:true,stufe:false,werkzeug:false,quelle:false,extra1:true,extra2:false,extra3:false};
 function isColVisible(k){ return !!colVis[k]; }
 
 /* Aktive Filter:
@@ -1316,11 +1320,12 @@ function setAnaTab(t){
   if(t==='takt') renderTaktabgleich();
 }
 /* Zeiten je Station ermitteln (minD-basiert, unabhängig von der Anzeigeeinheit) */
+function noStationLabel(){ return '(ohne '+colLabel('extra1')+')'; }
 function taktData(){
   const fParts=getFilteredParts();
   const map=new Map();
   fParts.forEach(p=>{
-    const st=(data[p.id].__extra1||'').trim() || '(ohne Station)';
+    const st=(data[p.id].__extra1||'').trim() || noStationLabel();
     if(!map.has(st)) map.set(st,{name:st,rows:0,minD:0});
     const e=map.get(st);
     e.rows++;
@@ -1338,6 +1343,10 @@ function taktData(){
 }
 function renderTaktabgleich(){
   const {list,total,avgMin}=taktData();
+  const stLbl=colLabel('extra1');
+  document.getElementById('taktTitle').textContent='Zeit je '+stLbl+' – Taktabgleich';
+  document.getElementById('taktHint').textContent='Gruppiert nach Spalte „'+stLbl+'"';
+  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [min]';
   const tw=document.getElementById('taktTableWrap');
   const cw=document.getElementById('taktChartWrap');
   if(list.length===0){
@@ -1345,9 +1354,9 @@ function renderTaktabgleich(){
     cw.innerHTML='';
     return;
   }
-  const noStationOnly = list.length===1 && list[0].name==='(ohne Station)';
+  const noStationOnly = list.length===1 && list[0].name===noStationLabel();
   const hint = noStationOnly
-    ? '<div style="color:var(--text3);font-size:11px;padding:8px 2px;">Noch keine Stationen vergeben – Spalte „Station" über 🔧 Spalten einblenden und befüllen.</div>' : '';
+    ? `<div style="color:var(--text3);font-size:11px;padding:8px 2px;">Noch keine Einträge vergeben – Spalte „${escHtml(stLbl)}" über 🔧 Spalten einblenden und befüllen.</div>` : '';
 
   let rows='';
   list.forEach(e=>{
@@ -1371,9 +1380,9 @@ function renderTaktabgleich(){
     <td></td>
   </tr>`;
   tw.innerHTML=hint+`<table class="takt-tbl">
-    <thead><tr><th>Station</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. vom Mittel [min]</th></tr></thead>
+    <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. vom Mittel [min]</th></tr></thead>
     <tbody>${rows}</tbody></table>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je Station: ${avgMin.toFixed(2)} min · Engpass rot markiert</div>`;
+    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je ${escHtml(stLbl)}: ${avgMin.toFixed(2)} min · Engpass rot markiert</div>`;
 
   // Balkendiagramm
   const max=Math.max(...list.map(e=>e.min),0.0001);
@@ -1796,15 +1805,17 @@ function updateActiveBar(){
 function buildHead(){
   const tr=document.getElementById('tblHead');
   const showSach = isColVisible('sachnr');
+  const showName = isColVisible('name');
   const cnLeft = showSach ? 155 : 70;
   let h='<th class="nr">#</th>';
   h+=`<th class="level">Lvl${fltIco('level','Level','set')}</th>`;
   h+=`<th class="sachnr"${showSach?'':' style="display:none;"'}>Sachnr.${fltIco('sachnr','Sachnummer','set')}</th>`;
-  h+=`<th class="cn" style="left:${cnLeft}px;">Bauteil${fltIco('name','Bauteil','set')}</th>`;
-  OPT_COLS.filter(o=>o.key!=='sachnr').forEach(o=>{
+  h+=`<th class="cn" style="left:${cnLeft}px;${showName?'':'display:none;'}">Bauteil${fltIco('name','Bauteil','set')}</th>`;
+  OPT_COLS.filter(o=>!o.own).forEach(o=>{
     if(isColVisible(o.key)){const L=colLabel(o.key);h+=`<th class="extra">${escHtml(L)}${fltIco(o.key,L,'set')}</th>`;}
   });
   h+=`<th class="th-qty">Anzahl${fltIco('qty','Anzahl','range')}</th>`;
+  h+='<th class="acts"></th>';
   h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
   COLS.forEach(c=>{
     const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
@@ -1858,6 +1869,7 @@ function renderBody(){
 
   const visibleParts=getFilteredParts();
   const showSach = isColVisible('sachnr');
+  const showName = isColVisible('name');
   const cnLeft = showSach ? 155 : 70;
 
   visibleParts.forEach(part=>{
@@ -1910,10 +1922,11 @@ function renderBody(){
     tdSach.appendChild(si);
     tr.appendChild(tdSach);
 
-    // name cell with inline edit + Zeile kopieren/einfügen
+    // name cell with inline edit
     const td0=document.createElement('td');
     td0.className='cn';
     td0.style.left=cnLeft+'px';
+    if(!showName) td0.style.display='none';
     const wrap=document.createElement('div');
     wrap.className='cn-wrap';
     const inp=document.createElement('input');
@@ -1922,16 +1935,22 @@ function renderBody(){
     inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});
     inp.addEventListener('blur',()=>renamePart(id,inp.value.trim(),inp));
     wrap.appendChild(inp);
+    td0.appendChild(wrap);
+    tr.appendChild(td0);
+
+    // Zeilen-Aktionen (eigene Spalte hinter "Anzahl", damit sie unabhängig von der Bauteil-Spalte erreichbar bleiben)
+    const tdActs=document.createElement('td');
+    tdActs.className='acts';
     const copyBtn=document.createElement('button');
     copyBtn.type='button';copyBtn.className='row-icon-btn adv-only';copyBtn.title='Zeile kopieren';copyBtn.textContent='⧉';
     copyBtn.addEventListener('click',e=>{e.stopPropagation();copyRow(id);});
-    wrap.appendChild(copyBtn);
+    tdActs.appendChild(copyBtn);
     const pasteBtn=document.createElement('button');
     pasteBtn.type='button';pasteBtn.className='row-icon-btn adv-only'+(rowClipboard?' active':'');
     pasteBtn.title=rowClipboard?('Inhalte von "'+rowClipboard.sourceName+'" einfügen'):'Erst eine Zeile kopieren (⧉)';
     pasteBtn.textContent='📋';
     pasteBtn.addEventListener('click',e=>{e.stopPropagation();pasteRow(id);});
-    wrap.appendChild(pasteBtn);
+    tdActs.appendChild(pasteBtn);
     const noteBtn=document.createElement('button');
     noteBtn.type='button';noteBtn.className='row-icon-btn adv-only'+(data[id].__note?' active':'');
     noteBtn.title='Notiz zum Bauteil';
@@ -1945,17 +1964,15 @@ function renderBody(){
         }
       });
     });
-    wrap.appendChild(noteBtn);
+    tdActs.appendChild(noteBtn);
     const delBtn=document.createElement('button');
     delBtn.type='button';delBtn.className='row-icon-btn danger';delBtn.title='Bauteil löschen';delBtn.textContent='🗑';
     delBtn.addEventListener('click',e=>{e.stopPropagation();delPart(id);});
-    wrap.appendChild(delBtn);
-    td0.appendChild(wrap);
-    tr.appendChild(td0);
+    tdActs.appendChild(delBtn);
 
     // Zusatzspalten (optional, Inhalte bleiben unabhängig von der Anzeige erhalten)
     {
-      OPT_COLS.filter(o=>o.key!=='sachnr'&&isColVisible(o.key)).map(o=>'__'+o.key).forEach(fld=>{
+      OPT_COLS.filter(o=>!o.own&&isColVisible(o.key)).map(o=>'__'+o.key).forEach(fld=>{
         const tdE=document.createElement('td');
         tdE.className='extra';
         const ei=document.createElement('input');
@@ -1986,6 +2003,7 @@ function renderBody(){
     });
     tdQty.appendChild(qi);
     tr.appendChild(tdQty);
+    tr.appendChild(tdActs);
 
     // Summe (jetzt direkt hinter Bauteil/Anzahl)
     const tot=calcTotal(id);
@@ -2020,12 +2038,13 @@ function renderBody(){
   const sNr=document.createElement('td');sNr.className='nr';sNr.textContent='';sr.appendChild(sNr);
   const sLvl=document.createElement('td');sLvl.className='level';sLvl.textContent='';sr.appendChild(sLvl);
   const sSach=document.createElement('td');sSach.className='sachnr';sSach.textContent='';if(!showSach)sSach.style.display='none';sr.appendChild(sSach);
-  const s0=document.createElement('td');s0.className='cn';s0.style.left=cnLeft+'px';s0.textContent='∑ Gesamt';sr.appendChild(s0);
+  const s0=document.createElement('td');s0.className='cn';s0.style.left=cnLeft+'px';s0.textContent='∑ Gesamt';if(!showName)s0.style.display='none';sr.appendChild(s0);
   {
-    const nOpt=OPT_COLS.filter(o=>o.key!=='sachnr'&&isColVisible(o.key)).length;
+    const nOpt=OPT_COLS.filter(o=>!o.own&&isColVisible(o.key)).length;
     for(let i=0;i<nOpt;i++){ const sE=document.createElement('td');sE.className='extra';sE.textContent='';sr.appendChild(sE); }
   }
   const sQty=document.createElement('td');sQty.className='qty';sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
+  const sActs=document.createElement('td');sActs.className='acts';sr.appendChild(sActs);
   const stot=document.createElement('td');stot.className='ct';stot.textContent=disp(totT);sr.appendChild(stot);
   COLS.forEach(c=>{
     const qt=totQ[c.key],tt=qt*c.param;
@@ -2380,7 +2399,7 @@ function xlsxStyles(){
 function xlsxSheetStueckliste(){
   const u=ul();
   const nCat=COLS.length;
-  const fixedCols=['Level','Sachnummer','Bauteil','Montagestufe','Werkzeug / WT','Quelle','Station',colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u];
+  const fixedCols=['Level','Sachnummer','Bauteil',colLabel('stufe'),colLabel('werkzeug'),colLabel('quelle'),colLabel('extra1'),colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u];
   const firstCatCol=fixedCols.length+1;             // 1-basiert
   const noteCol=firstCatCol+nCat*2;
   const lastCol=noteCol;
@@ -2595,7 +2614,7 @@ function doExport(){
   if(!filename.toLowerCase().endsWith('.csv')) filename+='.csv';
   closeExpModal();
   const sep=';'; const u=ul();
-  const hdr=['Level','Sachnummer','Bauteil','Montagestufe','Werkzeug / WT','Quelle','Station',colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
+  const hdr=['Level','Sachnummer','Bauteil',colLabel('stufe'),colLabel('werkzeug'),colLabel('quelle'),colLabel('extra1'),colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
   const rows=parts.map(p=>[data[p.id].__level||1,data[p.id].__sachnr||'',p.name,data[p.id].__stufe||'',data[p.id].__werkzeug||'',data[p.id].__quelle||'',data[p.id].__extra1||'',data[p.id].__extra2||'',data[p.id].__extra3||'',data[p.id].__qty||0,disp(calcTotal(p.id)).replace('.',','),...COLS.flatMap(c=>{const q=data[p.id][c.key]||0;return[q,disp(q*c.param).replace('.',',')];}),encodeURIComponent(data[p.id].__note||'')].join(sep));
   const metaProject = ['__PROJECT__',currentProject||''].join(sep);
   const metaDesc = ['__DESC__',encodeURIComponent(projectDescription||'')].join(sep);

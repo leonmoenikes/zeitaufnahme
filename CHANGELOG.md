@@ -12,6 +12,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Dunkelmodus: manueller Umschalt-Button (🌙/☀) in der Toolbar, Auswahl wird
+  projektübergreifend in `localStorage` gespeichert und beim Start
+  wiederhergestellt.
+
 ## [1.0.0] - 2026-09-15
 
 ### Hinzugefügt

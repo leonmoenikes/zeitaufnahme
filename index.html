@@ -45,6 +45,15 @@ document.currentScript.parentNode.appendChild(link);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
 }
+body.dark-mode {
+  --bg:#11131b; --surface:#1a1d29; --surface2:#232734;
+  --border:#2b3040; --border2:#3a4056;
+  --accent:#3f7ae4; --accent-dim:#1c2d4a; --accent-bright:#89b4ff;
+  --green:#31c48d; --green-dim:#123527;
+  --red:#f2665f; --red-dim:#3a1c1c;
+  --yellow:#e3b34e;
+  --text:#eef0f6; --text2:#b4b9cf; --text3:#7d8299;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{-webkit-tap-highlight-color:transparent;height:100%;}
 body{
@@ -297,6 +306,13 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .data-tbl tbody tr.lvl-5 td.nr,.data-tbl tbody tr.lvl-5 td.level,.data-tbl tbody tr.lvl-5 td.sachnr,.data-tbl tbody tr.lvl-5 td.cn,.data-tbl tbody tr.lvl-5 td.extra,.data-tbl tbody tr.lvl-5 td.qty{background:#97b8e8;}
 .data-tbl tbody tr.lvl-6 td.nr,.data-tbl tbody tr.lvl-6 td.level,.data-tbl tbody tr.lvl-6 td.sachnr,.data-tbl tbody tr.lvl-6 td.cn,.data-tbl tbody tr.lvl-6 td.extra,.data-tbl tbody tr.lvl-6 td.qty{background:#7aa3de;}
 .data-tbl tbody tr.lvl-7 td.nr,.data-tbl tbody tr.lvl-7 td.level,.data-tbl tbody tr.lvl-7 td.sachnr,.data-tbl tbody tr.lvl-7 td.cn,.data-tbl tbody tr.lvl-7 td.extra,.data-tbl tbody tr.lvl-7 td.qty{background:#5c8bd1;}
+body.dark-mode .data-tbl tbody tr.lvl-1 td.nr,body.dark-mode .data-tbl tbody tr.lvl-1 td.level,body.dark-mode .data-tbl tbody tr.lvl-1 td.sachnr,body.dark-mode .data-tbl tbody tr.lvl-1 td.cn,body.dark-mode .data-tbl tbody tr.lvl-1 td.extra,body.dark-mode .data-tbl tbody tr.lvl-1 td.qty{background:#1a1d29;}
+body.dark-mode .data-tbl tbody tr.lvl-2 td.nr,body.dark-mode .data-tbl tbody tr.lvl-2 td.level,body.dark-mode .data-tbl tbody tr.lvl-2 td.sachnr,body.dark-mode .data-tbl tbody tr.lvl-2 td.cn,body.dark-mode .data-tbl tbody tr.lvl-2 td.extra,body.dark-mode .data-tbl tbody tr.lvl-2 td.qty{background:#202a40;}
+body.dark-mode .data-tbl tbody tr.lvl-3 td.nr,body.dark-mode .data-tbl tbody tr.lvl-3 td.level,body.dark-mode .data-tbl tbody tr.lvl-3 td.sachnr,body.dark-mode .data-tbl tbody tr.lvl-3 td.cn,body.dark-mode .data-tbl tbody tr.lvl-3 td.extra,body.dark-mode .data-tbl tbody tr.lvl-3 td.qty{background:#263252;}
+body.dark-mode .data-tbl tbody tr.lvl-4 td.nr,body.dark-mode .data-tbl tbody tr.lvl-4 td.level,body.dark-mode .data-tbl tbody tr.lvl-4 td.sachnr,body.dark-mode .data-tbl tbody tr.lvl-4 td.cn,body.dark-mode .data-tbl tbody tr.lvl-4 td.extra,body.dark-mode .data-tbl tbody tr.lvl-4 td.qty{background:#2d3c64;}
+body.dark-mode .data-tbl tbody tr.lvl-5 td.nr,body.dark-mode .data-tbl tbody tr.lvl-5 td.level,body.dark-mode .data-tbl tbody tr.lvl-5 td.sachnr,body.dark-mode .data-tbl tbody tr.lvl-5 td.cn,body.dark-mode .data-tbl tbody tr.lvl-5 td.extra,body.dark-mode .data-tbl tbody tr.lvl-5 td.qty{background:#354876;}
+body.dark-mode .data-tbl tbody tr.lvl-6 td.nr,body.dark-mode .data-tbl tbody tr.lvl-6 td.level,body.dark-mode .data-tbl tbody tr.lvl-6 td.sachnr,body.dark-mode .data-tbl tbody tr.lvl-6 td.cn,body.dark-mode .data-tbl tbody tr.lvl-6 td.extra,body.dark-mode .data-tbl tbody tr.lvl-6 td.qty{background:#3e5489;}
+body.dark-mode .data-tbl tbody tr.lvl-7 td.nr,body.dark-mode .data-tbl tbody tr.lvl-7 td.level,body.dark-mode .data-tbl tbody tr.lvl-7 td.sachnr,body.dark-mode .data-tbl tbody tr.lvl-7 td.cn,body.dark-mode .data-tbl tbody tr.lvl-7 td.extra,body.dark-mode .data-tbl tbody tr.lvl-7 td.qty{background:#47609c;}
 /* Zusatzspalten (optional ein-/ausblendbar, Inhalte bleiben beim Export erhalten) */
 .data-tbl td.extra{text-align:center;}
 .extra-input{
@@ -342,8 +358,13 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .data-tbl tbody tr.ar td:first-child{box-shadow:inset 3px 0 0 var(--yellow);}
 .data-tbl tbody tr.ar td.cn{color:#7a5c00;font-weight:600;}
 .data-tbl tbody tr.ar td.ct{color:#7a5c00;}
+body.dark-mode .data-tbl tbody tr.ar td{background:#4a3a14!important;}
+body.dark-mode .data-tbl tbody tr.ar td.cn,
+body.dark-mode .data-tbl tbody tr.ar td.ct{color:#f0cf7a;}
 .vnz{background:#edf2fc!important;color:var(--accent-bright)!important;}
 .tnz{background:#e6f7f1!important;color:var(--green)!important;}
+body.dark-mode .vnz{background:#1c2d4a!important;}
+body.dark-mode .tnz{background:#123527!important;}
 .sum-row td{background:var(--surface2)!important;color:var(--text)!important;font-weight:600;border-top:1px solid var(--border2)!important;}
 .sum-row td.ct{color:var(--yellow)!important;}
 /* inline name edit */
@@ -471,7 +492,7 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 /* ── PWA INSTALL BANNER ── */
 .install-banner{
   display:none;position:fixed;bottom:calc(60px + var(--safe-bot));left:12px;right:12px;
-  background:var(--accent-bright);color:#fff;border-radius:10px;padding:12px 16px;
+  background:var(--accent);color:#fff;border-radius:10px;padding:12px 16px;
   font-size:13px;line-height:1.5;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.3);
 }
 .install-banner.show{display:block;}
@@ -522,6 +543,8 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
     <button class="tg-btn on-mode" id="modeBeginnerBtn" onclick="setUIMode('beginner')" title="Einfach">🔵<span class="tg-label"> Einfach</span></button>
     <button class="tg-btn" id="modeAdvancedBtn" onclick="setUIMode('advanced')" title="Erweitert">⚙<span class="tg-label"> Erweitert</span></button>
   </div>
+  <div class="sep"></div>
+  <button class="tbtn" id="themeToggleBtn" onclick="toggleTheme()" title="Dunkelmodus">🌙</button>
   <div class="sep"></div>
   <button class="tbtn" onclick="switchProject()">⇄ Projekt</button>
   <div class="sep"></div>
@@ -772,6 +795,7 @@ let sollzeit = 0; // Sollzeit gesamte Baugruppe, kanonisch in minD gespeichert
 let verteilzeitFactor = 0; // Verteilzeit-Zuschlag in Prozent, z.B. 16 = 16%
 let hourlyRate = 0; // Stundensatz in €/hD (Industriestunde = 100 minD)
 let uiMode = 'advanced'; // 'beginner' | 'advanced' — reine Anzeigeeinstellung, keine Daten betroffen
+let darkMode = false; // reine Anzeigeeinstellung, projektübergreifend gespeichert
 let projectDescription = '';
 let lastExportTime = null; // ISO-String
 let lastActionText = '';
@@ -1598,7 +1622,7 @@ function buildGrid(){
     btn.id='cb_'+c.key;
     btn.tabIndex=0;
     btn.style.borderTop='3px solid '+gCol;
-    if(v>0) btn.style.background=gCol+'33';
+    if(v>0) btn.style.background=gCol+(darkMode?'55':'33');
     btn.innerHTML=(sc?`<span class="cb-key">${sc}</span>`:'')
       +`<span class="cb-note-tgl${c.note?' has-note':''}" id="nt_${c.key}" title="Notiz">📝</span>`
       +`<span class="cb-lbl">${c.label}</span>`
@@ -1640,7 +1664,7 @@ function updGrid(){
     if(btn){
       btn.className='cat-btn'+(v>0?' has-v':'');
       const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
-      btn.style.background=v>0?gCol+'33':'';
+      btn.style.background=v>0?gCol+(darkMode?'55':'33'):'';
     }
   });
   updateActiveBar();
@@ -1688,6 +1712,22 @@ function buildHead(){
    BEGINNER / ADVANCED MODUS
    Reine Anzeigeeinstellung — verändert oder verbirgt keine Daten
 ═══════════════════════════════════════ */
+const THEME_KEY = 'zeitaufnahme_theme';
+function applyTheme(){
+  document.body.classList.toggle('dark-mode', darkMode);
+  const btn=document.getElementById('themeToggleBtn');
+  if(btn) btn.textContent = darkMode ? '☀' : '🌙';
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', darkMode ? '#11131b' : '#1a55c8');
+}
+function toggleTheme(){
+  darkMode=!darkMode;
+  try{ localStorage.setItem(THEME_KEY, darkMode?'dark':'light'); }catch(e){}
+  applyTheme();
+  buildGrid();
+  buildHead();
+  renderBody();
+}
 function setUIMode(m){
   uiMode=m;
   document.getElementById('modeBeginnerBtn').className='tg-btn'+(m==='beginner'?' on-mode':'');
@@ -1848,7 +1888,7 @@ function renderBody(){
       tdv.className=v>0?'vnz':'';tdv.textContent=v>0?v:'–';tr.appendChild(tdv);
       const tdt=document.createElement('td');
       tdt.className=(t>0?'tnz':'')+' adv-only';tdt.textContent=t>0?disp(t):'–';
-      if(t>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'59';tdt.style.color='#2b3244';}
+      if(t>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+(darkMode?'40':'59');tdt.style.color=darkMode?'#eef0f6':'#2b3244';}
       tr.appendChild(tdt);
     });
 
@@ -1880,7 +1920,7 @@ function renderBody(){
     const qt=totQ[c.key],tt=qt*c.param;
     const tdv=document.createElement('td');tdv.className=qt>0?'vnz':'';tdv.textContent=qt>0?qt:'–';sr.appendChild(tdv);
     const tdt=document.createElement('td');tdt.className=(tt>0?'tnz':'')+' adv-only';tdt.textContent=tt>0?disp(tt):'–';
-    if(tt>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'8c';tdt.style.color='#2b3244';}
+    if(tt>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+(darkMode?'55':'8c');tdt.style.color=darkMode?'#eef0f6':'#2b3244';}
     sr.appendChild(tdt);
   });
   body.appendChild(sr);
@@ -2579,6 +2619,8 @@ if(isIOS&&!isStandalone&&!sessionStorage.getItem('ib_dismissed')){
    INIT
 ═══════════════════════════════════════ */
 const hadSaved = loadState();
+try{ darkMode = localStorage.getItem(THEME_KEY)==='dark'; }catch(e){}
+applyTheme();
 document.getElementById('modeBeginnerBtn').className='tg-btn'+(uiMode==='beginner'?' on-mode':'');
 document.getElementById('modeAdvancedBtn').className='tg-btn'+(uiMode==='advanced'?' on-mode':'');
 document.body.classList.toggle('beginner-mode', uiMode==='beginner');

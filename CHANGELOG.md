@@ -25,6 +25,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 - Die Zeilen-Aktionen (⧉ kopieren, 📋 einfügen, 📝 Notiz, 🗑 löschen) liegen jetzt
   in einer eigenen Spalte direkt hinter „Anzahl" statt in der Spalte „Bauteil" —
   so bleiben sie auch bei ausgeblendeter Bauteil-Spalte erreichbar.
+- „🖨 Drucken / PDF" der Auswertung neu aufgebaut: Kopfzeile mit Projekt, Einheit,
+  Verteilzeit und Stundensatz, Kennzahlen als Kacheln, Kreisdiagramm mit
+  Anteils-Tabelle, Top-10-Listen nebeneinander und eine Fußzeile. Tabellenköpfe
+  wiederholen sich auf Folgeseiten, Zeilen und kurze Blöcke werden nicht mehr
+  über zwei Seiten gerissen.
 
 ### Behoben
 - Umbenannte Spaltenüberschriften gingen beim CSV-Import verloren, weil die
@@ -32,6 +37,13 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   schreibt sie jetzt in die Metazeile `__COLLABELS__`, der Import stellt sie
   wieder her. CSV-Dateien ohne diese Zeile (ältere Exporte) lassen die aktuell
   eingestellte Benennung unverändert.
+- Der Druck-Export der Auswertung enthielt nur die Übersicht; der Taktabgleich
+  fehlte vollständig. Er ist jetzt mit Tabelle und Verteilungsbalken enthalten.
+- Im Dunkelmodus druckte die Auswertung helle Schrift auf weißes Papier, weil die
+  Druckansicht die Theme-Farben übernahm. Sie bringt jetzt eigene Farben mit.
+- Bauteil- und Kategoriebezeichnungen wurden in der Auswertung ungefiltert als
+  HTML eingefügt — aus einer importierten CSV konnte so Markup in die Anzeige
+  gelangen. Die Bezeichnungen werden jetzt maskiert.
 - Der CSV-Import akzeptierte auch Binärdateien (z.B. eine versehentlich gewählte
   `.xlsx`) und ersetzte das Projekt dabei durch Datenmüll. Solche Dateien werden
   jetzt mit einer verständlichen Meldung abgewiesen, die vorhandenen Daten

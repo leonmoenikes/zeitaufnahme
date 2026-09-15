@@ -522,20 +522,60 @@ body.dark-mode .takt-tbl tr.tk-sum td{background:#233150;}
 .install-banner strong{display:block;font-size:14px;margin-bottom:4px;}
 .ib-close{float:right;background:none;border:none;color:#fff;font-size:18px;cursor:pointer;margin:-4px -4px 0 8px;}
 
-/* ── DRUCKANSICHT DER AUSWERTUNG ── */
+/* ── DRUCKANSICHT DER AUSWERTUNG ──
+   Bewusst eigene Farbwerte statt der Theme-Variablen: im Dunkelmodus
+   würde sonst helle Schrift auf weißem Papier landen. */
 #printArea{display:none;}
-#printArea h1{font-size:20px;margin:0 0 4px;}
-#printArea h2{font-size:14px;margin:20px 0 8px;border-bottom:1px solid #ccc;padding-bottom:4px;}
-#printArea p{font-size:12px;color:#444;margin:2px 0;}
-.print-kpi-table{border-collapse:collapse;margin-top:12px;width:100%;max-width:420px;}
-.print-kpi-table td{padding:5px 10px;border:1px solid #ccc;font-size:13px;}
-.print-kpi-table td:first-child{color:#555;}
-.print-kpi-table td:last-child{font-weight:700;text-align:right;font-family:var(--mono);}
-.print-chart{margin-top:10px;}
+.pr-head{border-bottom:2px solid #1a1e2e;padding-bottom:7px;margin-bottom:12px;}
+.pr-title{font-size:18px;font-weight:700;color:#1a1e2e;margin:0;}
+.pr-desc{font-size:11px;color:#333;margin:4px 0 0;}
+.pr-meta{font-size:10px;color:#5a6076;margin-top:4px;}
+.pr-scope{font-size:10px;border:1px solid #c9b878;background:#fdf6df;padding:5px 8px;margin-bottom:10px;}
+.pr-sec{margin-top:15px;}
+.pr-keep{break-inside:avoid;page-break-inside:avoid;}   /* kurze Blöcke nicht über zwei Seiten reißen */
+.pr-sec h2{
+  font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#1a1e2e;
+  margin:0 0 6px;padding-bottom:3px;border-bottom:1px solid #9aa0b5;
+  break-after:avoid;page-break-after:avoid;
+}
+.pr-kpis{display:flex;flex-wrap:wrap;gap:5px;break-inside:avoid;page-break-inside:avoid;}
+.pr-kpi{flex:1 1 112px;border:1px solid #c5cbe0;border-radius:4px;padding:5px 7px;}
+.pr-kpi-lbl{display:block;font-size:8px;letter-spacing:.04em;text-transform:uppercase;color:#5a6076;}
+.pr-kpi-val{display:block;font-size:12px;font-weight:700;font-family:var(--mono);color:#1a1e2e;margin-top:2px;}
+.pr-kpi-val.over{color:#b32020;}
+.pr-kpi-val.under{color:#0c7a52;}
+.pr-cols{display:flex;gap:14px;align-items:flex-start;}
+.pr-cols>*{flex:1;min-width:0;}
+.pr-tbl{border-collapse:collapse;width:100%;font-size:10px;}
+.pr-tbl thead{display:table-header-group;}      /* Kopfzeile auf Folgeseiten wiederholen */
+.pr-tbl tr{break-inside:avoid;page-break-inside:avoid;}
+.pr-tbl th{background:#e7ecf6;border:1px solid #9aa0b5;padding:3px 5px;text-align:right;font-weight:700;color:#1a1e2e;}
+.pr-tbl th:first-child{text-align:left;}
+.pr-tbl td{border:1px solid #c5cbe0;padding:3px 5px;text-align:right;font-family:var(--mono);color:#1a1e2e;}
+.pr-tbl td.pr-txt{text-align:left;font-family:var(--sans);}
+.pr-tbl tbody tr:nth-child(even) td{background:#f7f9fc;}
+.pr-tbl tr.pr-sum td{background:#eef1f7;font-weight:700;}
+.pr-tbl td.pr-pos{color:#b32020;}
+.pr-tbl td.pr-neg{color:#0c7a52;}
+.pr-swatch{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;}
+.pr-bar{height:8px;background:#eceff5;border:1px solid #d5daea;position:relative;}
+.pr-bar-fill{height:100%;background:#5c8bd1;}
+.pr-bar-fill.pr-max{background:#b32020;}
+.pr-bar-avg{position:absolute;top:-2px;bottom:-2px;width:1px;background:#b07a00;}
+.pr-hint{font-size:9px;color:#5a6076;margin-top:4px;}
+.pr-empty{font-size:10px;color:#666;font-style:italic;}
+.pr-foot{margin-top:16px;border-top:1px solid #c5cbe0;padding-top:4px;font-size:8px;color:#777;}
 @media print{
+  @page{margin:14mm;}
+  /* sonst druckt der Dunkelmodus eine schwarze Seite, sobald Hintergrundgrafiken aktiv sind */
+  html,body{background:#fff!important;}
   body *{visibility:hidden;}
   #printArea, #printArea *{visibility:visible;}
-  #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:10px;color:#000;background:#fff;}
+  #printArea{
+    display:block;position:absolute;top:0;left:0;width:100%;
+    color:#1a1e2e;background:#fff;font-family:var(--sans);
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
 }
 </style>
 </head>
@@ -1240,34 +1280,98 @@ function openAnalysis(){
 function closeAnalysis(){ document.getElementById('anaModal').classList.remove('open'); }
 function printAnalysis(){
   const pa=document.getElementById('printArea');
-  const now=new Date().toLocaleString('de-DE');
-  const chartHtml=document.getElementById('anaChartWrap').innerHTML;
-  const legendHtml=document.getElementById('anaLegend').innerHTML;
-  const topHighHtml=document.getElementById('anaTopHigh').innerHTML;
-  const topLowHtml=document.getElementById('anaTopLow').innerHTML;
-  const rows=[
-    ['Ist', document.getElementById('anaIst').textContent],
-    ['Ist inkl. Verteilzeit', document.getElementById('anaIstVz').textContent],
-    ['Soll', document.getElementById('anaSoll').textContent],
-    ['Abweichung', document.getElementById('anaDiff').textContent],
-    ['Ø Zeit/Stk.', document.getElementById('anaAvgPiece').textContent],
-    ['Anzahl aller Teile', document.getElementById('anaTotalQty').textContent],
-    ['Montagekosten', document.getElementById('anaCost').textContent],
-  ];
-  pa.innerHTML = `
-    <h1>Auswertung${currentProject?' – '+escHtml(currentProject):''}</h1>
-    ${projectDescription?'<p>'+escHtml(projectDescription)+'</p>':''}
-    <p>Erstellt: ${now}</p>
-    <table class="print-kpi-table">
-      ${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}
-    </table>
-    <h2>${escHtml(document.getElementById('anaChartTitle').textContent)}</h2>
-    <div class="print-chart">${chartHtml}</div>
-    <div class="ana-legend">${legendHtml}</div>
-    <h2>Top 10 – höchste Gesamtzeit</h2>
-    <div>${topHighHtml}</div>
-    <h2>Top 10 – niedrigste Gesamtzeit</h2>
-    <div>${topLowHtml}</div>
+  const u=ul();
+  const fParts=getFilteredParts();
+  const {items,total}=analysisItems(fParts);
+  const {high,low}=topParts(fParts);
+  const takt=taktData();
+  const stLbl=colLabel('extra1');
+
+  const kpi=(label,id)=>{
+    const el=document.getElementById(id);
+    const cls=el.classList.contains('over')?' over':(el.classList.contains('under')?' under':'');
+    return `<div class="pr-kpi"><span class="pr-kpi-lbl">${label}</span><span class="pr-kpi-val${cls}">${escHtml(el.textContent)}</span></div>`;
+  };
+  const meta=['Einheit: '+u];
+  if(verteilzeitFactor) meta.push('Verteilzeit: '+verteilzeitFactor+'%');
+  if(hourlyRate) meta.push('Stundensatz: '+hourlyRate.toLocaleString('de-DE',{minimumFractionDigits:2})+' €/hD');
+  meta.push('Bauteile: '+fParts.length);
+
+  const legendRows=items.filter(it=>it.value>0).sort((a,b)=>b.value-a.value).map(it=>`
+    <tr>
+      <td class="pr-txt"><span class="pr-swatch" style="background:${it.color}"></span>${escHtml(it.name)}</td>
+      <td>${disp(it.value)}</td>
+      <td>${(it.value/total*100).toFixed(1)}%</td>
+    </tr>`).join('');
+
+  /* Taktabgleich: Balken direkt in der Tabelle, das spart auf Papier eine zweite Grafik */
+  const noStations = takt.list.length===0 || (takt.list.length===1 && takt.list[0].name===noStationLabel());
+  const taktMax=Math.max(...takt.list.map(e=>e.min),0.0001);
+  const taktRows=takt.list.slice().sort((a,b)=>b.min-a.min).map(e=>{
+    const isMax=Math.abs(e.min-taktMax)<1e-9;
+    return `<tr>
+      <td class="pr-txt">${escHtml(e.name)}</td>
+      <td>${e.rows}</td>
+      <td>${e.minD.toFixed(3)}</td>
+      <td>${e.min.toFixed(2)}</td>
+      <td>${e.share.toFixed(1)}%</td>
+      <td class="${e.dev>0?'pr-pos':(e.dev<0?'pr-neg':'')}">${e.dev>=0?'+':''}${e.dev.toFixed(2)}</td>
+      <td style="width:24%"><div class="pr-bar"><div class="pr-bar-fill${isMax?' pr-max':''}" style="width:${(e.min/taktMax*100).toFixed(1)}%"></div><div class="pr-bar-avg" style="left:${(takt.avgMin/taktMax*100).toFixed(1)}%"></div></div></td>
+    </tr>`;
+  }).join('');
+  const taktBody = noStations
+    ? `<p class="pr-empty">Keine ${escHtml(stLbl)}-Zuordnung vorhanden – Spalte „${escHtml(stLbl)}" befüllen, um den Taktabgleich auszuwerten.</p>`
+    : `<table class="pr-tbl">
+        <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. [min]</th><th>Verteilung</th></tr></thead>
+        <tbody>${taktRows}
+          <tr class="pr-sum"><td class="pr-txt">∑ Gesamt</td><td>${takt.list.reduce((s,e)=>s+e.rows,0)}</td><td>${takt.total.toFixed(3)}</td><td>${(takt.total*MIND_FACTOR).toFixed(2)}</td><td>100,0%</td><td></td><td></td></tr>
+        </tbody></table>
+       <p class="pr-hint">Ø je ${escHtml(stLbl)}: ${takt.avgMin.toFixed(2)} min · rot = Engpass · senkrechte Linie = Mittelwert</p>`;
+
+  const topTbl=list=>`<table class="pr-tbl">
+    <thead><tr><th>#</th><th>Bauteil</th><th>Gesamt [${u}]</th></tr></thead>
+    <tbody>${list.map((it,i)=>`<tr><td class="pr-txt" style="width:18px">${i+1}</td><td class="pr-txt">${escHtml(it.name)}</td><td>${disp(it.value)}</td></tr>`).join('')}</tbody></table>`;
+
+  pa.innerHTML=`
+    <div class="pr-head">
+      <h1 class="pr-title">Auswertung${currentProject?' – '+escHtml(currentProject):''}</h1>
+      ${projectDescription?`<p class="pr-desc">${escHtml(projectDescription)}</p>`:''}
+      <div class="pr-meta">${new Date().toLocaleString('de-DE')} · ${meta.join(' · ')}</div>
+    </div>
+    ${hasAnyFilter()?`<div class="pr-scope">🔍 Ausgewertet wurden nur die ${fParts.length} gefilterten Bauteile.</div>`:''}
+
+    <div class="pr-sec">
+      <h2>Kennzahlen</h2>
+      <div class="pr-kpis">
+        ${kpi('Ist','anaIst')}${kpi('Ist inkl. Verteilzeit','anaIstVz')}${kpi('Soll','anaSoll')}${kpi('Abweichung','anaDiff')}
+        ${kpi('Ø Zeit/Stk.','anaAvgPiece')}${kpi('Anzahl aller Teile','anaTotalQty')}${kpi('Montagekosten','anaCost')}
+      </div>
+    </div>
+
+    <div class="pr-sec">
+      <h2>${escHtml(document.getElementById('anaChartTitle').textContent)}</h2>
+      ${total>0
+        ? `<div class="pr-cols">
+             <div style="flex:0 0 170px">${pieSvg(items,total,'#fff',170)}</div>
+             <table class="pr-tbl"><thead><tr><th>Bezeichnung</th><th>Zeit [${u}]</th><th>Anteil</th></tr></thead><tbody>${legendRows}</tbody></table>
+           </div>`
+        : '<p class="pr-empty">Noch keine Zeiten erfasst.</p>'}
+    </div>
+
+    <div class="pr-sec">
+      <h2>Taktabgleich – Zeit je ${escHtml(stLbl)}</h2>
+      ${taktBody}
+    </div>
+
+    <div class="pr-sec pr-keep">
+      <h2>Top 10 Bauteile</h2>
+      <div class="pr-cols">
+        <div><div class="pr-hint">Höchste Gesamtzeit</div>${topTbl(high)}</div>
+        <div><div class="pr-hint">Niedrigste Gesamtzeit</div>${topTbl(low)}</div>
+      </div>
+    </div>
+
+    <div class="pr-foot">Zeitaufnahme · ${escHtml(currentProject||'')} · minD = Industrieminute (1 minD = ${MIND_FACTOR} min)</div>
   `;
   window.print();
 }
@@ -1446,6 +1550,18 @@ function renderAnalysis(){
     costEl.title='Stundensatz eingeben, um die Montagekosten zu berechnen';
   }
 
+  const {items,total}=analysisItems(fParts);
+  renderAnaPie(items,total);
+  renderAnaLegend(items,total);
+
+  const {high,low}=topParts(fParts);
+  renderAnaTopList('anaTopHigh',high);
+  renderAnaTopList('anaTopLow',low);
+  if(anaTab==='takt') renderTaktabgleich();
+
+}
+/* Zeitanteile je Gruppe bzw. Kategorie — Grundlage für Diagramm, Legende und Druck */
+function analysisItems(fParts){
   let items;
   if(anaDrillLevel==='group'){
     const totals={};
@@ -1458,43 +1574,43 @@ function renderAnalysis(){
     fParts.forEach(p=>COLS.forEach(c=>{ totals[c.key]+=(data[p.id][c.key]||0)*c.param; }));
     items=COLS.map(c=>({name:c.label,color:(GROUPS[c.group]||{}).color||'#ccc',value:totals[c.key]||0}));
   }
-  const total=items.reduce((s,it)=>s+it.value,0);
-  renderAnaPie(items,total);
-  renderAnaLegend(items,total);
-
-  // Top 10 (höchste/niedrigste Gesamtzeit)
+  return {items, total:items.reduce((s,it)=>s+it.value,0)};
+}
+/* Top 10 nach Gesamtzeit (höchste/niedrigste) */
+function topParts(fParts){
   const partTotals=fParts.map(p=>({name:p.name,value:calcTotal(p.id)}));
-  const sortedHigh=partTotals.slice().sort((a,b)=>b.value-a.value).slice(0,10);
-  const sortedLow=partTotals.slice().sort((a,b)=>a.value-b.value).slice(0,10);
-  renderAnaTopList('anaTopHigh',sortedHigh);
-  renderAnaTopList('anaTopLow',sortedLow);
-  if(anaTab==='takt') renderTaktabgleich();
-
+  return {
+    high:partTotals.slice().sort((a,b)=>b.value-a.value).slice(0,10),
+    low :partTotals.slice().sort((a,b)=>a.value-b.value).slice(0,10),
+  };
 }
 function renderAnaTopList(elId,list){
   const el=document.getElementById(elId);
   if(!el) return;
   if(list.length===0){ el.innerHTML='<div style="color:var(--text3);font-size:11px;">–</div>'; return; }
-  el.innerHTML=list.map((it,i)=>`<div class="ana-top-row"><span class="ana-top-rank">${i+1}.</span><span class="ana-top-name" title="${escAttr(it.name)}">${it.name}</span><span class="ana-top-val">${disp(it.value)} ${ul()}</span></div>`).join('');
+  el.innerHTML=list.map((it,i)=>`<div class="ana-top-row"><span class="ana-top-rank">${i+1}.</span><span class="ana-top-name" title="${escAttr(it.name)}">${escHtml(it.name)}</span><span class="ana-top-val">${disp(it.value)} ${ul()}</span></div>`).join('');
 }
-function renderAnaPie(items,total){
-  const wrap=document.getElementById('anaChartWrap');
-  if(total<=0){ wrap.innerHTML='<div style="color:var(--text3);font-size:12px;padding:20px;">Noch keine Daten erfasst</div>'; return; }
+/* Kreisdiagramm als SVG-String; stroke trennt die Segmente (Druck braucht Weiß statt Theme-Farbe) */
+function pieSvg(items,total,stroke,size){
   const cx=100,cy=100,r=90;
   let angle=-90;
   let paths='';
   items.forEach(it=>{
     if(it.value<=0) return;
-    const frac=it.value/total;
-    const sweep=frac*360;
+    const sweep=(it.value/total)*360;
     const a1=Math.PI*angle/180, a2=Math.PI*(angle+sweep)/180;
     const x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1);
     const x2=cx+r*Math.cos(a2), y2=cy+r*Math.sin(a2);
     const large=sweep>180?1:0;
-    paths+=`<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${it.color}" stroke="var(--surface)" stroke-width="1.5"/>`;
+    paths+=`<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${it.color}" stroke="${stroke}" stroke-width="1.5"/>`;
     angle+=sweep;
   });
-  wrap.innerHTML=`<svg viewBox="0 0 200 200" width="200" height="200">${paths}</svg>`;
+  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}">${paths}</svg>`;
+}
+function renderAnaPie(items,total){
+  const wrap=document.getElementById('anaChartWrap');
+  if(total<=0){ wrap.innerHTML='<div style="color:var(--text3);font-size:12px;padding:20px;">Noch keine Daten erfasst</div>'; return; }
+  wrap.innerHTML=pieSvg(items,total,'var(--surface)',200);
 }
 function renderAnaLegend(items,total){
   const l=document.getElementById('anaLegend');
@@ -1503,7 +1619,7 @@ function renderAnaLegend(items,total){
     const pct=total>0?(it.value/total*100):0;
     return `<div class="ana-bar-row">
       <span class="ana-leg-dot" style="background:${it.color}"></span>
-      <span class="ana-leg-name" title="${it.name}">${it.name}</span>
+      <span class="ana-leg-name" title="${escAttr(it.name)}">${escHtml(it.name)}</span>
       <div class="ana-bar-track"><div class="ana-bar-fill" style="width:${pct.toFixed(1)}%;background:${it.color}"></div></div>
       <span class="ana-leg-val">${disp(it.value)} ${ul()} · ${pct.toFixed(1)}%</span>
     </div>`;

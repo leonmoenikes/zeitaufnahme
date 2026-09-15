@@ -168,6 +168,8 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .col-opt:active{background:var(--surface2);}
 .col-opt input{width:15px;height:15px;flex-shrink:0;margin:0;}
 .col-opt span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.col-rename{margin-left:auto;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;padding:0 3px;flex-shrink:0;}
+.col-rename:active{color:var(--accent-bright);}
 .col-popup-sep{height:1px;background:var(--border);margin:6px 0;}
 .col-popup-actions{display:flex;gap:6px;margin-top:8px;}
 .col-popup-actions .tbtn{flex:1;font-size:11px;padding:5px 6px;text-align:center;}
@@ -254,7 +256,7 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .data-tbl th.nr,.data-tbl td.nr{
   position:sticky;left:0;z-index:5;background:var(--surface);
   border-right:1px solid var(--border);width:32px;min-width:32px;max-width:32px;
-  text-align:center;color:var(--text3);font-family:var(--mono);font-size:10px;
+  text-align:center;color:#3a3f52;font-weight:600;font-family:var(--mono);font-size:10px;
 }
 .data-tbl thead th.nr{z-index:15;}
 /* sticky Level-Spalte */
@@ -343,7 +345,7 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .data-tbl tbody tr.ar td.cn{color:#7a5c00;font-weight:600;}
 .data-tbl tbody tr.ar td.ct{color:#7a5c00;}
 .vnz{background:#edf2fc!important;color:var(--accent-bright)!important;}
-.tnz{background:#e6f7f1!important;color:var(--green)!important;}
+.tnz{background:#eef1f6;color:#2b3244;}  /* Rückfall — die Kategoriefarbe wird je Zelle inline gesetzt */
 .sum-row td{background:var(--surface2)!important;color:var(--text)!important;font-weight:600;border-top:1px solid var(--border2)!important;}
 .sum-row td.ct{color:var(--yellow)!important;}
 /* inline name edit */
@@ -426,6 +428,33 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .ana-scope-note.show{display:block;}
 .ana-kpi-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
 .ana-kpi{flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;}
+/* ── AUSWERTUNGS-REITER & TAKTABGLEICH ── */
+.ana-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border);}
+.ana-tab{
+  background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;
+  padding:7px 12px;font-size:13px;color:var(--text3);cursor:pointer;
+}
+.ana-tab.on{color:var(--accent-bright);border-bottom-color:var(--accent);font-weight:600;}
+.takt-hint{font-size:10px;color:var(--text3);}
+.takt-tbl{border-collapse:collapse;width:100%;font-size:11px;}
+.takt-tbl th{
+  background:#44506b;color:#fff;font-weight:600;padding:6px 7px;text-align:center;
+  border:1px solid #333d54;white-space:nowrap;
+}
+.takt-tbl td{padding:5px 7px;border:1px solid var(--border);text-align:right;font-family:var(--mono);}
+.takt-tbl td.tk-name{text-align:left;font-family:var(--sans);font-weight:600;color:var(--text);}
+.takt-tbl tr:nth-child(even) td{background:var(--surface2);}
+.takt-tbl td.tk-pos{color:var(--red);}
+.takt-tbl td.tk-neg{color:var(--green);}
+.takt-tbl tr.tk-sum td{background:#dde5f5;font-weight:700;border-top:2px solid var(--accent);}
+.takt-bars{display:flex;flex-direction:column;gap:5px;}
+.takt-bar-row{display:flex;align-items:center;gap:8px;font-size:11px;}
+.takt-bar-name{width:110px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
+.takt-bar-track{flex:1;height:16px;background:var(--surface2);border-radius:4px;position:relative;}
+.takt-bar-fill{height:100%;border-radius:4px;background:#5b8bd0;}
+.takt-bar-fill.tk-max{background:var(--red);}
+.takt-bar-avg{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--yellow);}
+.takt-bar-val{width:64px;text-align:right;flex-shrink:0;font-family:var(--mono);color:var(--text2);}
 .ana-top-head{margin-top:20px;margin-bottom:8px;}
 .ana-top-cols{display:flex;gap:14px;margin-bottom:4px;}
 .ana-top-col{flex:1;min-width:0;}
@@ -434,16 +463,6 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .ana-top-rank{color:var(--text3);width:16px;flex-shrink:0;}
 .ana-top-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
 .ana-top-val{font-family:var(--mono);color:var(--text2);flex-shrink:0;}
-.ana-compare-head{margin-top:20px;margin-bottom:8px;}
-.ana-compare-list{
-  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;max-height:110px;overflow-y:auto;
-  padding:8px;background:var(--surface2);border-radius:8px;
-}
-.ana-compare-chip{
-  display:flex;align-items:center;gap:4px;font-size:11px;padding:4px 9px;border-radius:12px;
-  border:1px solid var(--border2);background:var(--surface);cursor:pointer;color:var(--text2);
-}
-.ana-compare-chip.sel{background:var(--accent-dim);border-color:var(--accent);color:var(--accent-bright);}
 .ana-kpi-lbl{display:block;font-size:10px;color:var(--text3);margin-bottom:4px;}
 .ana-kpi-val{display:block;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);}
 .ana-kpi-val.over{color:var(--red);}
@@ -587,7 +606,12 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
       <button class="mclose" onclick="closeAnalysis()">✕</button>
     </div>
     <div class="mbody">
+      <div class="ana-tabs">
+        <button class="ana-tab on" id="anaTabUeb" onclick="setAnaTab('ueberblick')">Übersicht</button>
+        <button class="ana-tab" id="anaTabTakt" onclick="setAnaTab('takt')">Taktabgleich</button>
+      </div>
       <div class="ana-scope-note" id="anaScopeNote"></div>
+      <div id="anaPanelUeberblick">
       <div class="ana-soll-row">
         <label class="exp-label">Sollzeit gesamte Baugruppe</label>
         <div class="ana-soll-input-row">
@@ -647,10 +671,20 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
           <div id="anaTopLow"></div>
         </div>
       </div>
+      </div>
 
-      <div class="ana-compare-head"><span class="ana-chart-title">Bauteile vergleichen</span></div>
-      <div class="ana-compare-list" id="anaCompareList"></div>
-      <div id="anaCompareChart"></div>
+      <div id="anaPanelTakt" style="display:none;">
+        <div class="ana-chart-head">
+          <span class="ana-chart-title">Zeit je Station – Taktabgleich</span>
+          <span class="takt-hint">Gruppiert nach Spalte „Station"</span>
+        </div>
+        <div id="taktTableWrap"></div>
+        <div class="ana-chart-head" style="margin-top:18px;">
+          <span class="ana-chart-title">Zeit je Station [min]</span>
+        </div>
+        <div id="taktChartWrap"></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -898,12 +932,18 @@ const OPT_COLS=[
   {key:'stufe',    label:'Montagestufe'},
   {key:'werkzeug', label:'Werkzeug / WT'},
   {key:'quelle',   label:'Quelle'},
-  {key:'extra1',   label:'Zusatz 1'},
-  {key:'extra2',   label:'Zusatz 2'},
-  {key:'extra3',   label:'Zusatz 3'},
+  {key:'extra1',   label:'Station',    fixed:true},   // fest: Grundlage des Taktabgleichs
+  {key:'extra2',   label:'Zusatz 2',   renameable:true},
+  {key:'extra3',   label:'Zusatz 3',   renameable:true},
 ];
+/* Frei vergebene Überschriften für die umbenennbaren Spalten */
+let colLabels={};
+function colLabel(k){
+  const oc=OPT_COLS.find(o=>o.key===k)||{};
+  return (oc.renameable && colLabels[k]) ? colLabels[k] : (oc.label||k);
+}
 /* Sichtbarkeit; wird projektbezogen gespeichert */
-let colVis={sachnr:true,stufe:false,werkzeug:false,quelle:false,extra1:false,extra2:false,extra3:false};
+let colVis={sachnr:true,stufe:false,werkzeug:false,quelle:false,extra1:true,extra2:false,extra3:false};
 function isColVisible(k){ return !!colVis[k]; }
 
 /* Aktive Filter:
@@ -927,7 +967,6 @@ function clearAllFilters(){
 }
 function refreshAnalysisIfOpen(){
   if(document.getElementById('anaModal').classList.contains('open')){
-    buildAnaCompareList();
     renderAnalysis();
   }
 }
@@ -994,11 +1033,22 @@ function openColMenu(anchorEl){
   OPT_COLS.forEach(oc=>{
     const lab=document.createElement('label');
     lab.className='col-opt';
-    lab.innerHTML=`<input type="checkbox" ${isColVisible(oc.key)?'checked':''}/><span>${escHtml(oc.label)}</span>`;
+    lab.innerHTML=`<input type="checkbox" ${isColVisible(oc.key)?'checked':''}/><span>${escHtml(colLabel(oc.key))}</span>`
+      +(oc.renameable?`<button class="col-rename" title="Überschrift umbenennen">✎</button>`:'');
     lab.querySelector('input').addEventListener('change',ev=>{
       colVis[oc.key]=ev.target.checked;
       markDirty();
       buildHead();renderBody();
+    });
+    const rn=lab.querySelector('.col-rename');
+    if(rn) rn.addEventListener('click',ev=>{
+      ev.preventDefault();ev.stopPropagation();
+      const cur=colLabel(oc.key);
+      const val=prompt('Neue Überschrift für diese Spalte:',cur);
+      if(val===null) return;
+      const t=val.trim();
+      if(t && t!==oc.label) colLabels[oc.key]=t; else delete colLabels[oc.key];
+      markDirty();buildHead();renderBody();openColMenu(anchorEl);
     });
     body.appendChild(lab);
   });
@@ -1146,7 +1196,6 @@ function buildCopySelect(){
    Bezieht sich immer nur auf die aktuell gefilterten Bauteile.
 ═══════════════════════════════════════ */
 let anaDrillLevel='group'; // 'group' | 'category'
-let anaCompareSelection=[];
 function grandTotal(list){ return (list||parts).reduce((s,p)=>s+calcTotal(p.id),0); }
 function openAnalysis(){
   document.getElementById('sollInput').value = sollzeit ? dispParam(sollzeit) : '';
@@ -1154,7 +1203,7 @@ function openAnalysis(){
   document.getElementById('verteilInput').value = verteilzeitFactor ? verteilzeitFactor : '';
   document.getElementById('stundensatzInput').value = hourlyRate ? hourlyRate : '';
   markVerteilPreset();
-  buildAnaCompareList();
+  setAnaTab(anaTab);
   renderAnalysis();
   document.getElementById('anaModal').classList.add('open');
 }
@@ -1225,6 +1274,97 @@ function toggleAnaDrill(){
   document.getElementById('anaChartTitle').textContent = anaDrillLevel==='group' ? 'Zeitanteil je Kategorie-Gruppe' : 'Zeitanteil je Kategorie';
   renderAnalysis();
 }
+
+/* ═══════════════════════════════════════
+   AUSWERTUNGS-REITER & TAKTABGLEICH
+   Gruppiert die Bauteile nach der Spalte "Station"
+   und zeigt Zeitverteilung + Abweichung vom Mittel.
+═══════════════════════════════════════ */
+let anaTab='ueberblick';
+function setAnaTab(t){
+  anaTab=t;
+  document.getElementById('anaTabUeb').className='ana-tab'+(t==='ueberblick'?' on':'');
+  document.getElementById('anaTabTakt').className='ana-tab'+(t==='takt'?' on':'');
+  document.getElementById('anaPanelUeberblick').style.display=(t==='ueberblick')?'':'none';
+  document.getElementById('anaPanelTakt').style.display=(t==='takt')?'':'none';
+  if(t==='takt') renderTaktabgleich();
+}
+/* Zeiten je Station ermitteln (minD-basiert, unabhängig von der Anzeigeeinheit) */
+function taktData(){
+  const fParts=getFilteredParts();
+  const map=new Map();
+  fParts.forEach(p=>{
+    const st=(data[p.id].__extra1||'').trim() || '(ohne Station)';
+    if(!map.has(st)) map.set(st,{name:st,rows:0,minD:0});
+    const e=map.get(st);
+    e.rows++;
+    e.minD+=calcTotal(p.id);   // kanonisch in minD
+  });
+  const list=[...map.values()];
+  const total=list.reduce((s,e)=>s+e.minD,0);
+  const avgMin=list.length? (total*MIND_FACTOR)/list.length : 0;
+  list.forEach(e=>{
+    e.min=e.minD*MIND_FACTOR;
+    e.share=total>0? e.minD/total*100 : 0;
+    e.dev=e.min-avgMin;
+  });
+  return {list,total,avgMin};
+}
+function renderTaktabgleich(){
+  const {list,total,avgMin}=taktData();
+  const tw=document.getElementById('taktTableWrap');
+  const cw=document.getElementById('taktChartWrap');
+  if(list.length===0){
+    tw.innerHTML='<div style="color:var(--text3);font-size:12px;padding:14px;">Keine Bauteile vorhanden.</div>';
+    cw.innerHTML='';
+    return;
+  }
+  const noStationOnly = list.length===1 && list[0].name==='(ohne Station)';
+  const hint = noStationOnly
+    ? '<div style="color:var(--text3);font-size:11px;padding:8px 2px;">Noch keine Stationen vergeben – Spalte „Station" über 🔧 Spalten einblenden und befüllen.</div>' : '';
+
+  let rows='';
+  list.forEach(e=>{
+    const cls=e.dev>0?'tk-pos':(e.dev<0?'tk-neg':'');
+    rows+=`<tr>
+      <td class="tk-name">${escHtml(e.name)}</td>
+      <td>${e.rows}</td>
+      <td>${e.minD.toFixed(3)}</td>
+      <td>${e.min.toFixed(2)}</td>
+      <td>${e.share.toFixed(1)}%</td>
+      <td class="${cls}">${e.dev>=0?'+':''}${e.dev.toFixed(2)}</td>
+    </tr>`;
+  });
+  const totRows=list.reduce((s,e)=>s+e.rows,0);
+  rows+=`<tr class="tk-sum">
+    <td class="tk-name">∑ Gesamt</td>
+    <td>${totRows}</td>
+    <td>${total.toFixed(3)}</td>
+    <td>${(total*MIND_FACTOR).toFixed(2)}</td>
+    <td>100,0%</td>
+    <td></td>
+  </tr>`;
+  tw.innerHTML=hint+`<table class="takt-tbl">
+    <thead><tr><th>Station</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. vom Mittel [min]</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je Station: ${avgMin.toFixed(2)} min · Engpass rot markiert</div>`;
+
+  // Balkendiagramm
+  const max=Math.max(...list.map(e=>e.min),0.0001);
+  cw.innerHTML='<div class="takt-bars">'+list.map(e=>{
+    const isMax=Math.abs(e.min-max)<1e-9;
+    const avgPct=(avgMin/max*100).toFixed(1);
+    return `<div class="takt-bar-row">
+      <span class="takt-bar-name" title="${escAttr(e.name)}">${escHtml(e.name)}</span>
+      <div class="takt-bar-track">
+        <div class="takt-bar-fill${isMax?' tk-max':''}" style="width:${(e.min/max*100).toFixed(1)}%"></div>
+        <div class="takt-bar-avg" style="left:${avgPct}%" title="Mittelwert ${avgMin.toFixed(2)} min"></div>
+      </div>
+      <span class="takt-bar-val">${e.min.toFixed(2)} min</span>
+    </div>`;
+  }).join('')+'</div>';
+}
+
 function renderAnalysis(){
   const fParts=getFilteredParts();
 
@@ -1293,8 +1433,8 @@ function renderAnalysis(){
   const sortedLow=partTotals.slice().sort((a,b)=>a.value-b.value).slice(0,10);
   renderAnaTopList('anaTopHigh',sortedHigh);
   renderAnaTopList('anaTopLow',sortedLow);
+  if(anaTab==='takt') renderTaktabgleich();
 
-  renderAnaCompareChart();
 }
 function renderAnaTopList(elId,list){
   const el=document.getElementById(elId);
@@ -1333,37 +1473,6 @@ function renderAnaLegend(items,total){
       <span class="ana-leg-val">${disp(it.value)} ${ul()} · ${pct.toFixed(1)}%</span>
     </div>`;
   }).join('');
-}
-function buildAnaCompareList(){
-  const wrap=document.getElementById('anaCompareList');
-  if(!wrap) return;
-  const list=getFilteredParts();
-  const listIds=list.map(p=>p.id);
-  anaCompareSelection=anaCompareSelection.filter(id=>listIds.includes(id));
-  if(list.length===0){ wrap.innerHTML='<div style="color:var(--text3);font-size:11px;">Keine (gefilterten) Bauteile vorhanden</div>'; return; }
-  wrap.innerHTML=list.map(p=>`<span class="ana-compare-chip${anaCompareSelection.includes(p.id)?' sel':''}" data-id="${escAttr(p.id)}">${escHtml(p.name)}</span>`).join('');
-  wrap.querySelectorAll('.ana-compare-chip').forEach(chip=>{
-    chip.addEventListener('click',()=>{
-      const id=chip.dataset.id;
-      const i=anaCompareSelection.indexOf(id);
-      if(i>=0) anaCompareSelection.splice(i,1); else anaCompareSelection.push(id);
-      buildAnaCompareList();
-      renderAnaCompareChart();
-    });
-  });
-}
-function renderAnaCompareChart(){
-  const wrap=document.getElementById('anaCompareChart');
-  if(!wrap) return;
-  if(anaCompareSelection.length<1){ wrap.innerHTML='<div style="color:var(--text3);font-size:11px;">Oben Bauteile antippen zum Vergleichen</div>'; return; }
-  const vals=anaCompareSelection.map(id=>({name:partName(id),value:calcTotal(id)}));
-  const max=Math.max(...vals.map(v=>v.value),0.0001);
-  wrap.innerHTML=vals.map(v=>`
-    <div class="ana-bar-row">
-      <span class="ana-leg-name" title="${escAttr(v.name)}">${v.name}</span>
-      <div class="ana-bar-track"><div class="ana-bar-fill" style="width:${(v.value/max*100).toFixed(1)}%;background:var(--accent);"></div></div>
-      <span class="ana-leg-val">${disp(v.value)} ${ul()}</span>
-    </div>`).join('');
 }
 function copyAnzahlToCategory(){
   const sel=document.getElementById('copyTargetCat');
@@ -1667,7 +1776,7 @@ function buildHead(){
   h+=`<th class="sachnr"${showSach?'':' style="display:none;"'}>Sachnr.${fltIco('sachnr','Sachnummer','set')}</th>`;
   h+=`<th class="cn" style="left:${cnLeft}px;">Bauteil${fltIco('name','Bauteil','set')}</th>`;
   OPT_COLS.filter(o=>o.key!=='sachnr').forEach(o=>{
-    if(isColVisible(o.key)) h+=`<th class="extra">${o.label}${fltIco(o.key,o.label,'set')}</th>`;
+    if(isColVisible(o.key)){const L=colLabel(o.key);h+=`<th class="extra">${escHtml(L)}${fltIco(o.key,L,'set')}</th>`;}
   });
   h+=`<th class="th-qty">Anzahl${fltIco('qty','Anzahl','range')}</th>`;
   h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
@@ -2058,14 +2167,14 @@ function saveCfg(){
 /* ═══════════════════════════════════════
    AUTOSAVE (localStorage)
 ═══════════════════════════════════════ */
-const LS_KEY = 'zeitaufnahme_v19';
+const LS_KEY = 'zeitaufnahme_v20';
 let saveTmr;
 const dot = ()=>document.getElementById('saveDot');
 
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -2098,6 +2207,7 @@ function loadState(){
     verteilzeitFactor = s.verteilzeitFactor || 0;
     uiMode = s.uiMode === 'beginner' ? 'beginner' : 'advanced';
     hourlyRate = s.hourlyRate || 0;
+    if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
     if(s.colVis && typeof s.colVis==='object'){ OPT_COLS.forEach(o=>{ if(typeof s.colVis[o.key]==='boolean') colVis[o.key]=s.colVis[o.key]; }); }
     ensureKeys();
     return true;
@@ -2228,7 +2338,7 @@ function xlsxStyles(){
 function xlsxSheetStueckliste(){
   const u=ul();
   const nCat=COLS.length;
-  const fixedCols=['Level','Sachnummer','Bauteil','Montagestufe','Werkzeug / WT','Quelle','Zusatzinfo 1','Zusatzinfo 2','Zusatzinfo 3','Anzahl','Gesamt '+u];
+  const fixedCols=['Level','Sachnummer','Bauteil','Montagestufe','Werkzeug / WT','Quelle','Station',colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u];
   const firstCatCol=fixedCols.length+1;             // 1-basiert
   const noteCol=firstCatCol+nCat*2;
   const lastCol=noteCol;
@@ -2443,7 +2553,7 @@ function doExport(){
   if(!filename.toLowerCase().endsWith('.csv')) filename+='.csv';
   closeExpModal();
   const sep=';'; const u=ul();
-  const hdr=['Level','Sachnummer','Bauteil','Montagestufe','Werkzeug / WT','Quelle','Zusatzinfo 1','Zusatzinfo 2','Zusatzinfo 3','Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
+  const hdr=['Level','Sachnummer','Bauteil','Montagestufe','Werkzeug / WT','Quelle','Station',colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
   const rows=parts.map(p=>[data[p.id].__level||1,data[p.id].__sachnr||'',p.name,data[p.id].__stufe||'',data[p.id].__werkzeug||'',data[p.id].__quelle||'',data[p.id].__extra1||'',data[p.id].__extra2||'',data[p.id].__extra3||'',data[p.id].__qty||0,disp(calcTotal(p.id)).replace('.',','),...COLS.flatMap(c=>{const q=data[p.id][c.key]||0;return[q,disp(q*c.param).replace('.',',')];}),encodeURIComponent(data[p.id].__note||'')].join(sep));
   const metaProject = ['__PROJECT__',currentProject||''].join(sep);
   const metaDesc = ['__DESC__',encodeURIComponent(projectDescription||'')].join(sep);

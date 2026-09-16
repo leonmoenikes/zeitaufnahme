@@ -2151,7 +2151,7 @@ function renderBody(){
     pasteBtn.addEventListener('click',e=>{e.stopPropagation();pasteRow(id);});
     tdActs.appendChild(pasteBtn);
     const noteBtn=document.createElement('button');
-    noteBtn.type='button';noteBtn.className='row-icon-btn adv-only'+(data[id].__note?' active':'');
+    noteBtn.type='button';noteBtn.className='row-icon-btn'+(data[id].__note?' active':'');
     noteBtn.title='Notiz zum Bauteil';
     noteBtn.textContent='📝';
     noteBtn.addEventListener('click',e=>{
@@ -2333,9 +2333,12 @@ function pasteRow(id){
 ═══════════════════════════════════════ */
 function addPart(){
   let n=parts.length+1;
-  let name='Bauteil '+n;
+  let suggestion='Bauteil '+n;
   const existingNames=parts.map(x=>x.name);
-  while(existingNames.includes(name)){ n++; name='Bauteil '+n; }
+  while(existingNames.includes(suggestion)){ n++; suggestion='Bauteil '+n; }
+  const answer=prompt('Name des neuen Bauteils:',suggestion);
+  if(answer===null) return;   // Abbrechen legt nichts an
+  const name=answer.trim()||suggestion;
   const id=newPartId();
   const newPart={id,name};
   const activeIdx=parts.findIndex(p=>p.id===activePart);
@@ -2347,7 +2350,7 @@ function addPart(){
   initPart(id);
   if(!activePart) activePart=id;
   renderBody();markDirty();
-  toast('✓ "'+name+'" hinzugefügt');
+  toast('✓ "'+name+'" hinzugefügt'+(existingNames.includes(name)?' – Name gibt es bereits':''));
 }
 function delPart(id){
   const name=partName(id);

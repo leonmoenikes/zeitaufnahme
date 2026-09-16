@@ -20,14 +20,21 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   Station (Zusatz 2 und Zusatz 3 bereits vorher). Die Bezeichnungen werden im
   Projekt gespeichert und in CSV-/Excel-Export sowie im Taktabgleich mitgeführt.
 - Spalte „Bauteil" lässt sich über 🔧 Spalten aus- und wieder einblenden.
+- Der Taktabgleich lässt sich über ein Auswahlfeld nach jeder Zusatzspalte
+  gruppieren (Montagestufe, Werkzeug / WT, Quelle, Station, Zusatz 2, Zusatz 3)
+  statt fest nach „Station". Die Auswahl wird im Projekt gespeichert.
 
 ### Geändert
 - Die Zeilen-Aktionen (⧉ kopieren, 📋 einfügen, 📝 Notiz, 🗑 löschen) liegen jetzt
   in einer eigenen Spalte direkt hinter „Anzahl" statt in der Spalte „Bauteil" —
   so bleiben sie auch bei ausgeblendeter Bauteil-Spalte erreichbar.
+- Der Taktabgleich rechnet Mittelwert und Abweichung jetzt in minD statt in min;
+  auch das Balkendiagramm ist auf minD umgestellt. Die Spalte „Zeit [min]" bleibt
+  als Umrechnung erhalten.
 - „🖨 Drucken / PDF" der Auswertung neu aufgebaut: Kopfzeile mit Projekt, Einheit,
-  Verteilzeit und Stundensatz, Kennzahlen als Kacheln, Kreisdiagramm mit
-  Anteils-Tabelle, Top-10-Listen nebeneinander und eine Fußzeile. Tabellenköpfe
+  Verteilzeit und Stundensatz, Kennzahlen als Kacheln, beide Kreisdiagramme
+  (je Kategorie-Gruppe und je Kategorie) mit Anteils-Tabelle, Top-10-Listen
+  nebeneinander und eine Fußzeile. Tabellenköpfe
   wiederholen sich auf Folgeseiten, Zeilen und kurze Blöcke werden nicht mehr
   über zwei Seiten gerissen.
 

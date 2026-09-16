@@ -32,8 +32,9 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   auch das Balkendiagramm ist auf minD umgestellt. Die Spalte „Zeit [min]" bleibt
   als Umrechnung erhalten.
 - „🖨 Drucken / PDF" der Auswertung neu aufgebaut: Kopfzeile mit Projekt, Einheit,
-  Verteilzeit und Stundensatz, Kennzahlen als Kacheln, Kreisdiagramm mit
-  Anteils-Tabelle, Top-10-Listen nebeneinander und eine Fußzeile. Tabellenköpfe
+  Verteilzeit und Stundensatz, Kennzahlen als Kacheln, beide Kreisdiagramme
+  (je Kategorie-Gruppe und je Kategorie) mit Anteils-Tabelle, Top-10-Listen
+  nebeneinander und eine Fußzeile. Tabellenköpfe
   wiederholen sich auf Folgeseiten, Zeilen und kurze Blöcke werden nicht mehr
   über zwei Seiten gerissen.
 

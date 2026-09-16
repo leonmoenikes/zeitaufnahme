@@ -1286,7 +1286,6 @@ function printAnalysis(){
   const pa=document.getElementById('printArea');
   const u=ul();
   const fParts=getFilteredParts();
-  const {items,total}=analysisItems(fParts);
   const {high,low}=topParts(fParts);
   const takt=taktData();
   const stLbl=taktGroupLabel();
@@ -1301,12 +1300,24 @@ function printAnalysis(){
   if(hourlyRate) meta.push('Stundensatz: '+hourlyRate.toLocaleString('de-DE',{minimumFractionDigits:2})+' €/hD');
   meta.push('Bauteile: '+fParts.length);
 
-  const legendRows=items.filter(it=>it.value>0).sort((a,b)=>b.value-a.value).map(it=>`
-    <tr>
-      <td class="pr-txt"><span class="pr-swatch" style="background:${it.color}"></span>${escHtml(it.name)}</td>
-      <td>${disp(it.value)}</td>
-      <td>${(it.value/total*100).toFixed(1)}%</td>
-    </tr>`).join('');
+  /* Beide Detailstufen drucken, unabhängig davon, welche gerade am Bildschirm gewählt ist */
+  const chartSec=(title,{items,total})=>{
+    const rows=items.filter(it=>it.value>0).sort((a,b)=>b.value-a.value).map(it=>`
+      <tr>
+        <td class="pr-txt"><span class="pr-swatch" style="background:${it.color}"></span>${escHtml(it.name)}</td>
+        <td>${disp(it.value)}</td>
+        <td>${(it.value/total*100).toFixed(1)}%</td>
+      </tr>`).join('');
+    return `<div class="pr-sec">
+      <h2>${escHtml(title)}</h2>
+      ${total>0
+        ? `<div class="pr-cols">
+             <div style="flex:0 0 170px">${pieSvg(items,total,'#fff',170)}</div>
+             <table class="pr-tbl"><thead><tr><th>Bezeichnung</th><th>Zeit [${u}]</th><th>Anteil</th></tr></thead><tbody>${rows}</tbody></table>
+           </div>`
+        : '<p class="pr-empty">Noch keine Zeiten erfasst.</p>'}
+    </div>`;
+  };
 
   /* Taktabgleich: Balken direkt in der Tabelle, das spart auf Papier eine zweite Grafik */
   const noStations = takt.list.length===0 || (takt.list.length===1 && takt.list[0].name===taktEmptyLabel());
@@ -1352,15 +1363,8 @@ function printAnalysis(){
       </div>
     </div>
 
-    <div class="pr-sec">
-      <h2>${escHtml(document.getElementById('anaChartTitle').textContent)}</h2>
-      ${total>0
-        ? `<div class="pr-cols">
-             <div style="flex:0 0 170px">${pieSvg(items,total,'#fff',170)}</div>
-             <table class="pr-tbl"><thead><tr><th>Bezeichnung</th><th>Zeit [${u}]</th><th>Anteil</th></tr></thead><tbody>${legendRows}</tbody></table>
-           </div>`
-        : '<p class="pr-empty">Noch keine Zeiten erfasst.</p>'}
-    </div>
+    ${chartSec('Zeitanteil je Kategorie-Gruppe', analysisItems(fParts,'group'))}
+    ${chartSec('Zeitanteil je Kategorie', analysisItems(fParts,'category'))}
 
     <div class="pr-sec">
       <h2>Taktabgleich – Zeit je ${escHtml(stLbl)}</h2>
@@ -1576,9 +1580,9 @@ function renderAnalysis(){
 
 }
 /* Zeitanteile je Gruppe bzw. Kategorie — Grundlage für Diagramm, Legende und Druck */
-function analysisItems(fParts){
+function analysisItems(fParts,level){
   let items;
-  if(anaDrillLevel==='group'){
+  if((level||anaDrillLevel)==='group'){
     const totals={};
     Object.keys(GROUPS).forEach(g=>totals[g]=0);
     fParts.forEach(p=>COLS.forEach(c=>{ totals[c.group]=(totals[c.group]||0)+(data[p.id][c.key]||0)*c.param; }));

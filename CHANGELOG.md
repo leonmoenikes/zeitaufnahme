@@ -25,6 +25,10 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   statt fest nach „Station". Die Auswahl wird im Projekt gespeichert.
 
 ### Geändert
+- Die Top-10-Bauteile zeigen pro Zeile einen gestapelten Balken: Länge = Gesamtzeit
+  im Verhältnis zu Platz 1, Farbsegmente = Zeitanteile der Kategorie-Gruppen. Die
+  Liste „niedrigste Gesamtzeit" entfällt dafür — sie enthielt bei wenigen Bauteilen
+  ohnehin dieselben Einträge in umgekehrter Reihenfolge.
 - Die Zeilen-Aktionen (⧉ kopieren, 📋 einfügen, 📝 Notiz, 🗑 löschen) liegen jetzt
   in einer eigenen Spalte direkt hinter „Anzahl" statt in der Spalte „Bauteil" —
   so bleiben sie auch bei ausgeblendeter Bauteil-Spalte erreichbar.

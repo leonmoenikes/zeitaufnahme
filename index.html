@@ -460,6 +460,10 @@ body.dark-mode .tnz{background:#123527;color:#eef0f6;}
 }
 .ana-tab.on{color:var(--accent-bright);border-bottom-color:var(--accent);font-weight:600;}
 .takt-hint{font-size:10px;color:var(--text3);}
+.takt-sel{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:5px;
+  padding:3px 5px;color:var(--text);font-size:10px;margin-left:3px;max-width:150px;
+}
 .takt-tbl{border-collapse:collapse;width:100%;font-size:11px;}
 .takt-tbl th{
   background:#44506b;color:#fff;font-weight:600;padding:6px 7px;text-align:center;
@@ -479,7 +483,7 @@ body.dark-mode .takt-tbl tr.tk-sum td{background:#233150;}
 .takt-bar-fill{height:100%;border-radius:4px;background:#5b8bd0;}
 .takt-bar-fill.tk-max{background:var(--red);}
 .takt-bar-avg{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--yellow);}
-.takt-bar-val{width:64px;text-align:right;flex-shrink:0;font-family:var(--mono);color:var(--text2);}
+.takt-bar-val{width:82px;text-align:right;flex-shrink:0;white-space:nowrap;font-family:var(--mono);color:var(--text2);}
 .ana-top-head{margin-top:20px;margin-bottom:8px;}
 .ana-top-cols{display:flex;gap:14px;margin-bottom:4px;}
 .ana-top-col{flex:1;min-width:0;}
@@ -743,7 +747,7 @@ body.dark-mode .takt-tbl tr.tk-sum td{background:#233150;}
       <div id="anaPanelTakt" style="display:none;">
         <div class="ana-chart-head">
           <span class="ana-chart-title" id="taktTitle">Zeit je Station – Taktabgleich</span>
-          <span class="takt-hint" id="taktHint">Gruppiert nach Spalte „Station"</span>
+          <span class="takt-hint">Gruppiert nach Spalte <select class="takt-sel" id="taktGroupSel" onchange="setTaktGroup(this.value)"></select></span>
         </div>
         <div id="taktTableWrap"></div>
         <div class="ana-chart-head" style="margin-top:18px;">
@@ -1285,7 +1289,7 @@ function printAnalysis(){
   const {items,total}=analysisItems(fParts);
   const {high,low}=topParts(fParts);
   const takt=taktData();
-  const stLbl=colLabel('extra1');
+  const stLbl=taktGroupLabel();
 
   const kpi=(label,id)=>{
     const el=document.getElementById(id);
@@ -1305,28 +1309,28 @@ function printAnalysis(){
     </tr>`).join('');
 
   /* Taktabgleich: Balken direkt in der Tabelle, das spart auf Papier eine zweite Grafik */
-  const noStations = takt.list.length===0 || (takt.list.length===1 && takt.list[0].name===noStationLabel());
-  const taktMax=Math.max(...takt.list.map(e=>e.min),0.0001);
-  const taktRows=takt.list.slice().sort((a,b)=>b.min-a.min).map(e=>{
-    const isMax=Math.abs(e.min-taktMax)<1e-9;
+  const noStations = takt.list.length===0 || (takt.list.length===1 && takt.list[0].name===taktEmptyLabel());
+  const taktMax=Math.max(...takt.list.map(e=>e.minD),0.0001);
+  const taktRows=takt.list.slice().sort((a,b)=>b.minD-a.minD).map(e=>{
+    const isMax=Math.abs(e.minD-taktMax)<1e-9;
     return `<tr>
       <td class="pr-txt">${escHtml(e.name)}</td>
       <td>${e.rows}</td>
       <td>${e.minD.toFixed(3)}</td>
       <td>${e.min.toFixed(2)}</td>
       <td>${e.share.toFixed(1)}%</td>
-      <td class="${e.dev>0?'pr-pos':(e.dev<0?'pr-neg':'')}">${e.dev>=0?'+':''}${e.dev.toFixed(2)}</td>
-      <td style="width:24%"><div class="pr-bar"><div class="pr-bar-fill${isMax?' pr-max':''}" style="width:${(e.min/taktMax*100).toFixed(1)}%"></div><div class="pr-bar-avg" style="left:${(takt.avgMin/taktMax*100).toFixed(1)}%"></div></div></td>
+      <td class="${e.dev>0?'pr-pos':(e.dev<0?'pr-neg':'')}">${e.dev>=0?'+':''}${e.dev.toFixed(3)}</td>
+      <td style="width:24%"><div class="pr-bar"><div class="pr-bar-fill${isMax?' pr-max':''}" style="width:${(e.minD/taktMax*100).toFixed(1)}%"></div><div class="pr-bar-avg" style="left:${(takt.avgMinD/taktMax*100).toFixed(1)}%"></div></div></td>
     </tr>`;
   }).join('');
   const taktBody = noStations
     ? `<p class="pr-empty">Keine ${escHtml(stLbl)}-Zuordnung vorhanden – Spalte „${escHtml(stLbl)}" befüllen, um den Taktabgleich auszuwerten.</p>`
     : `<table class="pr-tbl">
-        <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. [min]</th><th>Verteilung</th></tr></thead>
+        <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. [minD]</th><th>Verteilung</th></tr></thead>
         <tbody>${taktRows}
           <tr class="pr-sum"><td class="pr-txt">∑ Gesamt</td><td>${takt.list.reduce((s,e)=>s+e.rows,0)}</td><td>${takt.total.toFixed(3)}</td><td>${(takt.total*MIND_FACTOR).toFixed(2)}</td><td>100,0%</td><td></td><td></td></tr>
         </tbody></table>
-       <p class="pr-hint">Ø je ${escHtml(stLbl)}: ${takt.avgMin.toFixed(2)} min · rot = Engpass · senkrechte Linie = Mittelwert</p>`;
+       <p class="pr-hint">Ø je ${escHtml(stLbl)}: ${takt.avgMinD.toFixed(3)} minD · rot = Engpass · senkrechte Linie = Mittelwert</p>`;
 
   const topTbl=list=>`<table class="pr-tbl">
     <thead><tr><th>#</th><th>Bauteil</th><th>Gesamt [${u}]</th></tr></thead>
@@ -1415,6 +1419,7 @@ function toggleAnaDrill(){
    und zeigt Zeitverteilung + Abweichung vom Mittel.
 ═══════════════════════════════════════ */
 let anaTab='ueberblick';
+let taktGroupKey='extra1';   // Spalte, nach der der Taktabgleich gruppiert (projektbezogen gespeichert)
 function setAnaTab(t){
   anaTab=t;
   document.getElementById('anaTabUeb').className='ana-tab'+(t==='ueberblick'?' on':'');
@@ -1423,13 +1428,21 @@ function setAnaTab(t){
   document.getElementById('anaPanelTakt').style.display=(t==='takt')?'':'none';
   if(t==='takt') renderTaktabgleich();
 }
-/* Zeiten je Station ermitteln (minD-basiert, unabhängig von der Anzeigeeinheit) */
-function noStationLabel(){ return '(ohne '+colLabel('extra1')+')'; }
+/* Zeiten je Gruppe ermitteln — durchgängig minD, unabhängig von der Anzeigeeinheit */
+function taktGroupLabel(){ return colLabel(taktGroupKey); }
+function taktEmptyLabel(){ return '(ohne '+taktGroupLabel()+')'; }
+function setTaktGroup(k){
+  if(!OPT_COLS.some(o=>!o.own&&o.key===k)) return;
+  taktGroupKey=k;
+  markDirty();
+  renderTaktabgleich();
+}
 function taktData(){
   const fParts=getFilteredParts();
+  const fld='__'+taktGroupKey;
   const map=new Map();
   fParts.forEach(p=>{
-    const st=(data[p.id].__extra1||'').trim() || noStationLabel();
+    const st=(data[p.id][fld]||'').trim() || taktEmptyLabel();
     if(!map.has(st)) map.set(st,{name:st,rows:0,minD:0});
     const e=map.get(st);
     e.rows++;
@@ -1437,20 +1450,22 @@ function taktData(){
   });
   const list=[...map.values()];
   const total=list.reduce((s,e)=>s+e.minD,0);
-  const avgMin=list.length? (total*MIND_FACTOR)/list.length : 0;
+  const avgMinD=list.length? total/list.length : 0;
   list.forEach(e=>{
-    e.min=e.minD*MIND_FACTOR;
+    e.min=e.minD*MIND_FACTOR;   // nur als Umrechnungsspalte
     e.share=total>0? e.minD/total*100 : 0;
-    e.dev=e.min-avgMin;
+    e.dev=e.minD-avgMinD;
   });
-  return {list,total,avgMin};
+  return {list,total,avgMinD};
 }
 function renderTaktabgleich(){
-  const {list,total,avgMin}=taktData();
-  const stLbl=colLabel('extra1');
+  const {list,total,avgMinD}=taktData();
+  const stLbl=taktGroupLabel();
   document.getElementById('taktTitle').textContent='Zeit je '+stLbl+' – Taktabgleich';
-  document.getElementById('taktHint').textContent='Gruppiert nach Spalte „'+stLbl+'"';
-  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [min]';
+  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [minD]';
+  const sel=document.getElementById('taktGroupSel');
+  sel.innerHTML=OPT_COLS.filter(o=>!o.own).map(o=>
+    `<option value="${o.key}"${o.key===taktGroupKey?' selected':''}>${escHtml(colLabel(o.key))}</option>`).join('');
   const tw=document.getElementById('taktTableWrap');
   const cw=document.getElementById('taktChartWrap');
   if(list.length===0){
@@ -1458,7 +1473,7 @@ function renderTaktabgleich(){
     cw.innerHTML='';
     return;
   }
-  const noStationOnly = list.length===1 && list[0].name===noStationLabel();
+  const noStationOnly = list.length===1 && list[0].name===taktEmptyLabel();
   const hint = noStationOnly
     ? `<div style="color:var(--text3);font-size:11px;padding:8px 2px;">Noch keine Einträge vergeben – Spalte „${escHtml(stLbl)}" über 🔧 Spalten einblenden und befüllen.</div>` : '';
 
@@ -1471,7 +1486,7 @@ function renderTaktabgleich(){
       <td>${e.minD.toFixed(3)}</td>
       <td>${e.min.toFixed(2)}</td>
       <td>${e.share.toFixed(1)}%</td>
-      <td class="${cls}">${e.dev>=0?'+':''}${e.dev.toFixed(2)}</td>
+      <td class="${cls}">${e.dev>=0?'+':''}${e.dev.toFixed(3)}</td>
     </tr>`;
   });
   const totRows=list.reduce((s,e)=>s+e.rows,0);
@@ -1484,22 +1499,22 @@ function renderTaktabgleich(){
     <td></td>
   </tr>`;
   tw.innerHTML=hint+`<table class="takt-tbl">
-    <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. vom Mittel [min]</th></tr></thead>
+    <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. vom Ø [minD]</th></tr></thead>
     <tbody>${rows}</tbody></table>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je ${escHtml(stLbl)}: ${avgMin.toFixed(2)} min · Engpass rot markiert</div>`;
+    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je ${escHtml(stLbl)}: ${avgMinD.toFixed(3)} minD · Engpass rot markiert</div>`;
 
   // Balkendiagramm
-  const max=Math.max(...list.map(e=>e.min),0.0001);
+  const max=Math.max(...list.map(e=>e.minD),0.0001);
   cw.innerHTML='<div class="takt-bars">'+list.map(e=>{
-    const isMax=Math.abs(e.min-max)<1e-9;
-    const avgPct=(avgMin/max*100).toFixed(1);
+    const isMax=Math.abs(e.minD-max)<1e-9;
+    const avgPct=(avgMinD/max*100).toFixed(1);
     return `<div class="takt-bar-row">
       <span class="takt-bar-name" title="${escAttr(e.name)}">${escHtml(e.name)}</span>
       <div class="takt-bar-track">
-        <div class="takt-bar-fill${isMax?' tk-max':''}" style="width:${(e.min/max*100).toFixed(1)}%"></div>
-        <div class="takt-bar-avg" style="left:${avgPct}%" title="Mittelwert ${avgMin.toFixed(2)} min"></div>
+        <div class="takt-bar-fill${isMax?' tk-max':''}" style="width:${(e.minD/max*100).toFixed(1)}%"></div>
+        <div class="takt-bar-avg" style="left:${avgPct}%" title="Mittelwert ${avgMinD.toFixed(3)} minD"></div>
       </div>
-      <span class="takt-bar-val">${e.min.toFixed(2)} min</span>
+      <span class="takt-bar-val">${e.minD.toFixed(3)} minD</span>
     </div>`;
   }).join('')+'</div>';
 }
@@ -2369,7 +2384,7 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -2403,6 +2418,7 @@ function loadState(){
     uiMode = s.uiMode === 'beginner' ? 'beginner' : 'advanced';
     hourlyRate = s.hourlyRate || 0;
     if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
+    if(s.taktGroupKey && OPT_COLS.some(o=>!o.own&&o.key===s.taktGroupKey)) taktGroupKey=s.taktGroupKey;
     if(s.colVis && typeof s.colVis==='object'){ OPT_COLS.forEach(o=>{ if(typeof s.colVis[o.key]==='boolean') colVis[o.key]=s.colVis[o.key]; }); }
     ensureKeys();
     return true;

@@ -484,14 +484,15 @@ body.dark-mode .takt-tbl tr.tk-sum td{background:#233150;}
 .takt-bar-fill.tk-max{background:var(--red);}
 .takt-bar-avg{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--yellow);}
 .takt-bar-val{width:82px;text-align:right;flex-shrink:0;white-space:nowrap;font-family:var(--mono);color:var(--text2);}
-.ana-top-head{margin-top:20px;margin-bottom:8px;}
-.ana-top-cols{display:flex;gap:14px;margin-bottom:4px;}
-.ana-top-col{flex:1;min-width:0;}
-.ana-top-col-title{font-size:10px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;}
-.ana-top-row{display:flex;justify-content:space-between;gap:6px;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border);}
-.ana-top-rank{color:var(--text3);width:16px;flex-shrink:0;}
-.ana-top-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
-.ana-top-val{font-family:var(--mono);color:var(--text2);flex-shrink:0;}
+.ana-top-head{margin-top:20px;margin-bottom:8px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.ana-top-row{display:flex;align-items:center;gap:8px;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);}
+.ana-top-rank{color:var(--text3);width:18px;flex-shrink:0;}
+.ana-top-name{width:150px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
+/* Balken: Länge = Gesamtzeit im Verhältnis zu Platz 1, Segmente = Kategorie-Gruppen */
+.ana-top-track{flex:1;min-width:60px;height:11px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+.ana-top-stack{display:flex;height:100%;border-radius:3px;overflow:hidden;}
+.ana-top-seg{display:block;height:100%;}
+.ana-top-val{font-family:var(--mono);color:var(--text2);flex-shrink:0;width:86px;text-align:right;}
 .ana-kpi-lbl{display:block;font-size:10px;color:var(--text3);margin-bottom:4px;}
 .ana-kpi-val{display:block;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);}
 .ana-kpi-val.over{color:var(--red);}
@@ -564,6 +565,8 @@ body.dark-mode .takt-tbl tr.tk-sum td{background:#233150;}
 .pr-swatch{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;}
 .pr-bar{height:8px;background:#eceff5;border:1px solid #d5daea;position:relative;}
 .pr-bar-fill{height:100%;background:#5c8bd1;}
+.pr-stack{display:flex;height:100%;}
+.pr-seg{display:block;height:100%;}
 .pr-bar-fill.pr-max{background:#b32020;}
 .pr-bar-avg{position:absolute;top:-2px;bottom:-2px;width:1px;background:#b07a00;}
 .pr-hint{font-size:9px;color:#5a6076;margin-top:4px;}
@@ -731,17 +734,11 @@ body.dark-mode .takt-tbl tr.tk-sum td{background:#233150;}
       <div class="ana-chart-wrap" id="anaChartWrap"></div>
       <div class="ana-legend" id="anaLegend"></div>
 
-      <div class="ana-top-head"><span class="ana-chart-title">Top 10 Bauteile (Gesamtzeit)</span></div>
-      <div class="ana-top-cols">
-        <div class="ana-top-col">
-          <div class="ana-top-col-title">Höchste</div>
-          <div id="anaTopHigh"></div>
-        </div>
-        <div class="ana-top-col">
-          <div class="ana-top-col-title">Niedrigste</div>
-          <div id="anaTopLow"></div>
-        </div>
+      <div class="ana-top-head">
+        <span class="ana-chart-title">Top 10 Bauteile (Gesamtzeit)</span>
+        <span class="takt-hint">Balkenlänge = Gesamtzeit · Farben = Kategorie-Gruppen</span>
       </div>
+      <div id="anaTopHigh"></div>
       </div>
 
       <div id="anaPanelTakt" style="display:none;">
@@ -1286,7 +1283,7 @@ function printAnalysis(){
   const pa=document.getElementById('printArea');
   const u=ul();
   const fParts=getFilteredParts();
-  const {high,low}=topParts(fParts);
+  const top=topParts(fParts);
   const takt=taktData();
   const stLbl=taktGroupLabel();
 
@@ -1343,9 +1340,16 @@ function printAnalysis(){
         </tbody></table>
        <p class="pr-hint">Ø je ${escHtml(stLbl)}: ${takt.avgMinD.toFixed(3)} minD · rot = Engpass · senkrechte Linie = Mittelwert</p>`;
 
+  const topMax=Math.max(...top.map(it=>it.value),0.0001);
   const topTbl=list=>`<table class="pr-tbl">
-    <thead><tr><th>#</th><th>Bauteil</th><th>Gesamt [${u}]</th></tr></thead>
-    <tbody>${list.map((it,i)=>`<tr><td class="pr-txt" style="width:18px">${i+1}</td><td class="pr-txt">${escHtml(it.name)}</td><td>${disp(it.value)}</td></tr>`).join('')}</tbody></table>`;
+    <thead><tr><th>#</th><th>Bauteil</th><th>Gesamt [${u}]</th><th>Zusammensetzung nach Kategorie-Gruppe</th></tr></thead>
+    <tbody>${list.map((it,i)=>`<tr>
+      <td class="pr-txt" style="width:18px">${i+1}</td>
+      <td class="pr-txt">${escHtml(it.name)}</td>
+      <td>${disp(it.value)}</td>
+      <td style="width:46%"><div class="pr-bar"><div class="pr-stack" style="width:${(it.value/topMax*100).toFixed(1)}%">${stackSegments(it,'pr-seg')}</div></div></td>
+    </tr>`).join('')}</tbody></table>
+    <p class="pr-hint">${Object.values(GROUPS).map(g=>`<span class="pr-swatch" style="background:${g.color}"></span>${escHtml(g.name)}`).join(' &nbsp; ')}</p>`;
 
   pa.innerHTML=`
     <div class="pr-head">
@@ -1372,11 +1376,8 @@ function printAnalysis(){
     </div>
 
     <div class="pr-sec pr-keep">
-      <h2>Top 10 Bauteile</h2>
-      <div class="pr-cols">
-        <div><div class="pr-hint">Höchste Gesamtzeit</div>${topTbl(high)}</div>
-        <div><div class="pr-hint">Niedrigste Gesamtzeit</div>${topTbl(low)}</div>
-      </div>
+      <h2>Top 10 Bauteile – höchste Gesamtzeit</h2>
+      ${topTbl(top)}
     </div>
 
     <div class="pr-foot">Zeitaufnahme · ${escHtml(currentProject||'')} · minD = Industrieminute (1 minD = ${MIND_FACTOR} min)</div>
@@ -1573,9 +1574,7 @@ function renderAnalysis(){
   renderAnaPie(items,total);
   renderAnaLegend(items,total);
 
-  const {high,low}=topParts(fParts);
-  renderAnaTopList('anaTopHigh',high);
-  renderAnaTopList('anaTopLow',low);
+  renderAnaTopList('anaTopHigh',topParts(fParts));
   if(anaTab==='takt') renderTaktabgleich();
 
 }
@@ -1595,19 +1594,37 @@ function analysisItems(fParts,level){
   }
   return {items, total:items.reduce((s,it)=>s+it.value,0)};
 }
-/* Top 10 nach Gesamtzeit (höchste/niedrigste) */
+/* Top 10 nach Gesamtzeit, je Bauteil aufgeschlüsselt nach Kategorie-Gruppen */
 function topParts(fParts){
-  const partTotals=fParts.map(p=>({name:p.name,value:calcTotal(p.id)}));
-  return {
-    high:partTotals.slice().sort((a,b)=>b.value-a.value).slice(0,10),
-    low :partTotals.slice().sort((a,b)=>a.value-b.value).slice(0,10),
-  };
+  return fParts.map(p=>{
+    const perGroup={};
+    COLS.forEach(c=>{ perGroup[c.group]=(perGroup[c.group]||0)+(data[p.id][c.key]||0)*c.param; });
+    return {
+      name:p.name,
+      value:calcTotal(p.id),
+      segments:Object.entries(GROUPS)
+        .map(([k,g])=>({name:g.name,color:g.color,value:perGroup[k]||0}))
+        .filter(s=>s.value>0),
+    };
+  }).sort((a,b)=>b.value-a.value).slice(0,10);
+}
+/* Segmente eines gestapelten Balkens; Breite je Segment = Anteil an der Bauteilzeit */
+function stackSegments(it,cls){
+  return it.segments.map(s=>
+    `<span class="${cls}" style="width:${(s.value/it.value*100).toFixed(2)}%;background:${s.color}" title="${escAttr(s.name+': '+disp(s.value)+' '+ul())}"></span>`
+  ).join('');
 }
 function renderAnaTopList(elId,list){
   const el=document.getElementById(elId);
   if(!el) return;
   if(list.length===0){ el.innerHTML='<div style="color:var(--text3);font-size:11px;">–</div>'; return; }
-  el.innerHTML=list.map((it,i)=>`<div class="ana-top-row"><span class="ana-top-rank">${i+1}.</span><span class="ana-top-name" title="${escAttr(it.name)}">${escHtml(it.name)}</span><span class="ana-top-val">${disp(it.value)} ${ul()}</span></div>`).join('');
+  const max=Math.max(...list.map(it=>it.value),0.0001);
+  el.innerHTML=list.map((it,i)=>`<div class="ana-top-row">
+    <span class="ana-top-rank">${i+1}.</span>
+    <span class="ana-top-name" title="${escAttr(it.name)}">${escHtml(it.name)}</span>
+    <div class="ana-top-track"><div class="ana-top-stack" style="width:${(it.value/max*100).toFixed(1)}%">${stackSegments(it,'ana-top-seg')}</div></div>
+    <span class="ana-top-val">${disp(it.value)} ${ul()}</span>
+  </div>`).join('');
 }
 /* Kreisdiagramm als SVG-String; stroke trennt die Segmente (Druck braucht Weiß statt Theme-Farbe) */
 function pieSvg(items,total,stroke,size){

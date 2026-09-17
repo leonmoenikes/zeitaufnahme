@@ -1842,6 +1842,7 @@ function handleStartImport(evt){
       verteilzeitFactor=parsed.verteilzeit||0;
       hourlyRate=parsed.stundensatz||0;
       if(parsed.colLabels) colLabels=parsed.colLabels;
+      if(parsed.mtmCustom) mtmCustom=parsed.mtmCustom;
       lastExportTime=null;
       lastActionText='';
       undoStack=[];
@@ -1942,6 +1943,16 @@ function parseImportedCSV(text){
     if(newCols.length>0) colsFromFile=newCols;
     idx++;
   }
+  /* Alle weiteren Metazeilen überspringen und bekannte auswerten. So verschiebt eine
+     künftig ergänzte Zeile die Kopfzeile nicht mehr, und ältere Dateien ohne sie laufen weiter. */
+  let mtmCustomParsed=null;
+  while(lines[idx] && lines[idx].startsWith('__')){
+    if(lines[idx].startsWith('__MTMCUSTOM__')){
+      const p=lines[idx].split(';');
+      try{ const o=JSON.parse(decodeURIComponent(p[1]||'')); if(o&&typeof o==='object') mtmCustomParsed=o; }catch(e){}
+    }
+    idx++;
+  }
   idx++; // Kopfzeile überspringen
   const cols=colsFromFile||COLS;
   const newParts=[];
@@ -1975,7 +1986,7 @@ function parseImportedCSV(text){
       newData[id].__note='';
     }
   }
-  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed};
+  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed, mtmCustom:mtmCustomParsed};
 }
 
 /* ═══════════════════════════════════════
@@ -2530,6 +2541,18 @@ function mtmParam(elems){
 }
 
 let mtmTab='herkunft', mtmOpenBs=null, mtmOpenGe=null;
+/* Zusammensetzung selbst angelegter Bausteine: COLS-Key → [{nr,w}].
+   Nur so lassen sie sich später genauso aufklappen wie die aus dem Katalog. */
+let mtmCustom={};
+/* Katalog-Bausteine + selbst angelegte, beide aufklappbar */
+function mtmEntries(){
+  const list=MTM_BAUSTEINE.map(b=>({key:b.key,label:b.label,group:b.group,elems:b.elems,eigen:false}));
+  COLS.forEach(c=>{
+    if(list.some(x=>x.key===c.key)) return;
+    if(mtmCustom[c.key]) list.push({key:c.key,label:c.label,group:c.group,elems:mtmCustom[c.key],eigen:true});
+  });
+  return list;
+}
 let mtmNew={label:'',group:'process',elems:[]};
 
 function openMtm(){ setMtmTab(mtmTab); document.getElementById('mtmModal').classList.add('open'); }
@@ -2542,7 +2565,7 @@ function setMtmTab(t){
   document.getElementById('mtmPanelNeu').style.display=(t==='neu')?'':'none';
   if(t==='herkunft') renderMtmHerkunft(); else renderMtmNeu();
 }
-function mtmToggleBs(i){ const k=MTM_BAUSTEINE[i].key; mtmOpenBs=mtmOpenBs===k?null:k; mtmOpenGe=null; renderMtmHerkunft(); }
+function mtmToggleBs(i){ const k=mtmEntries()[i].key; mtmOpenBs=mtmOpenBs===k?null:k; mtmOpenGe=null; renderMtmHerkunft(); }
 function mtmToggleGe(nr){ mtmOpenGe=mtmOpenGe===nr?null:nr; renderMtmHerkunft(); }
 function mtmApplyCols(){
   ensureKeys();buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();markDirty();
@@ -2571,11 +2594,11 @@ function renderMtmHerkunft(){
   const el=document.getElementById('mtmPanelHerkunft');
   const inCols=new Map(COLS.map(c=>[c.key,c]));
   let h='<div class="mtm-hint">Jeder Zeitwert entsteht aus Grundelementen, diese wiederum aus MTM-Codes. Zeile antippen zum Aufklappen. Einheit minD (1 minD = 0,6 min = 36 s).</div>';
-  MTM_BAUSTEINE.forEach((b,i)=>{
+  mtmEntries().forEach((b,i)=>{
     const val=mtmParam(b.elems), cur=inCols.get(b.key);
     let state,cls='';
     if(!cur){ state='nicht im Tool'; cls='neu'; }
-    else if(Math.abs(cur.param-val)<1e-9){ state='im Tool: '+mtmFmt(cur.param); }
+    else if(Math.abs(cur.param-val)<1e-9){ state=b.eigen?'selbst angelegt':('im Tool: '+mtmFmt(cur.param)); }
     else { state='im Tool: '+mtmFmt(cur.param); cls='diff'; }
     const col=(GROUPS[b.group]||{}).color||'#ccc';
     const open=mtmOpenBs===b.key;
@@ -2606,10 +2629,10 @@ function renderMtmHerkunft(){
       h+='</div>';
     }
   });
-  const katKeys=new Set(MTM_BAUSTEINE.map(b=>b.key));
-  const eigen=COLS.filter(c=>!katKeys.has(c.key));
+  const bekannt=new Set(mtmEntries().map(b=>b.key));
+  const eigen=COLS.filter(c=>!bekannt.has(c.key));
   if(eigen.length){
-    h+='<div class="mtm-sec-title">Eigene Kategorien (nicht aus dem Katalog)</div>';
+    h+='<div class="mtm-sec-title">Kategorien ohne hinterlegte Herleitung</div>';
     eigen.forEach(c=>{
       h+=`<div class="mtm-row" style="cursor:default">
         <span class="mtm-caret"></span>
@@ -2651,7 +2674,9 @@ function mtmCreate(){
   if(!mtmNew.elems.length){ toast('⚠ Mindestens ein Grundelement wählen'); return; }
   if(mtmNew.elems.reduce((s,e)=>s+e.w,0)<=0){ toast('⚠ Summe der Gewichte muss größer als 0 sein'); return; }
   if(COLS.some(c=>c.label===label)){ toast('⚠ „'+label+'" gibt es schon'); return; }
-  COLS.push({key:'mtm_'+Math.random().toString(36).slice(2,7),label,param:mtmParam(mtmNew.elems),group:mtmNew.group,note:''});
+  const key='mtm_'+Math.random().toString(36).slice(2,7);
+  COLS.push({key,label,param:mtmParam(mtmNew.elems),group:mtmNew.group,note:''});
+  mtmCustom[key]=mtmNew.elems.map(e=>({nr:e.nr,w:e.w}));   // Herleitung merken
   mtmApplyCols();
   mtmNew={label:'',group:mtmNew.group,elems:[]};
   renderMtmNeu();
@@ -2706,7 +2731,7 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -2741,6 +2766,7 @@ function loadState(){
     hourlyRate = s.hourlyRate || 0;
     if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
     if(s.taktGroupKey && OPT_COLS.some(o=>!o.own&&o.key===s.taktGroupKey)) taktGroupKey=s.taktGroupKey;
+    if(s.mtmCustom && typeof s.mtmCustom==='object') mtmCustom=s.mtmCustom;
     if(s.colVis && typeof s.colVis==='object'){ OPT_COLS.forEach(o=>{ if(typeof s.colVis[o.key]==='boolean') colVis[o.key]=s.colVis[o.key]; }); }
     ensureKeys();
     return true;
@@ -3097,7 +3123,9 @@ function doExport(){
   const metaColLabels = ['__COLLABELS__',...OPT_COLS.filter(o=>o.renameable&&colLabels[o.key]).map(o=>o.key+'|'+encodeURIComponent(colLabels[o.key]))].join(sep);
   // Also export column params (inkl. Notiz, URL-kodiert) as a metadata row for re-import
   const metaKeys = ['__COLS__','','','','','','','','','','',...COLS.flatMap(c=>[c.key+'|'+c.label+'|'+c.param+'|'+(c.group||'process')+'|'+encodeURIComponent(c.note||''),'']),''].join(sep);
-  const csv='\uFEFF'+[metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,hdr,...rows].join('\n');
+  // Herleitung selbst angelegter Bausteine, damit sie auch nach einem Re-Import aufklappbar bleibt
+  const metaMtm = ['__MTMCUSTOM__',encodeURIComponent(JSON.stringify(mtmCustom||{}))].join(sep);
+  const csv='\uFEFF'+[metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,hdr,...rows].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();
@@ -3146,6 +3174,7 @@ function handleImport(evt){
       verteilzeitFactor=parsed.verteilzeit||0;
       hourlyRate=parsed.stundensatz||0;
       if(parsed.colLabels) colLabels=parsed.colLabels;
+      if(parsed.mtmCustom) mtmCustom=parsed.mtmCustom;
       undoStack=[];
       rowClipboard=null;
       activePart=parts[0].id;

@@ -65,6 +65,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   über zwei Seiten gerissen.
 
 ### Behoben
+- Selbst angelegte Bausteine ließen sich im Rechner nicht aufklappen: Ihre
+  Zusammensetzung wurde nirgends gemerkt, deshalb standen sie ohne Herleitung am
+  Ende der Liste. Sie wird jetzt mitgespeichert, überlebt Neuladen und CSV-Export/
+  -Import und klappt wie die Katalog-Bausteine auf. Der CSV-Import überspringt
+  unbekannte Metazeilen jetzt generisch, ältere Dateien bleiben lesbar.
 - Umbenannte Spaltenüberschriften gingen beim CSV-Import verloren, weil die
   Kopfzeile nur übersprungen und rein nach Position eingelesen wurde. Der Export
   schreibt sie jetzt in die Metazeile `__COLLABELS__`, der Import stellt sie

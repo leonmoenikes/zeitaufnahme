@@ -13,6 +13,14 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 ## [Unreleased]
 
 ### Hinzugefügt
+- Baustein-Rechner (Toolbar „🧱 Bausteine", nur im Erweitert-Modus): macht sichtbar,
+  wie jeder Zeitwert entsteht — Baustein → Grundelemente (mit Gewicht) → MTM-Codes
+  mit Einzelzeit, Anzahl und Häufigkeit, jeweils mit ausgeschriebener Formel.
+  Aus demselben Fenster lassen sich neue Bausteine anlegen: Grundelemente wählen,
+  Gewichte setzen, Zeitwert wird live berechnet. Die drei im Katalog enthaltenen,
+  bisher nicht genutzten Bausteine (u.a. „Ø Ölen / Fetten") sind per Knopfdruck
+  übernehmbar. Die MTM-Datenbasis (278 Codes, 38 Grundelemente, 24 Bausteine) liegt
+  statisch im Code; geschrieben wird ausschließlich `COLS`.
 - Dunkelmodus: manueller Umschalt-Button (🌙/☀) in der Toolbar, Auswahl wird
   projektübergreifend in `localStorage` gespeichert und beim Start
   wiederhergestellt.

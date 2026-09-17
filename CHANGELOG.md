@@ -25,6 +25,15 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   statt fest nach „Station". Die Auswahl wird im Projekt gespeichert.
 
 ### Geändert
+- „➕ Bauteil" fragt jetzt nach dem Namen (vorbelegt mit dem bisherigen
+  Automatik-Namen); Abbrechen legt nichts an. Die Einfügeposition bleibt
+  unverändert direkt hinter dem aktiven Bauteil.
+- Der Notiz-Button (📝) je Zeile ist jetzt auch im Einfach-Modus sichtbar.
+- Spaltenfilter arbeitet jetzt wie der Excel-Autofilter: Ein Suchbegriff wählt die
+  Treffer direkt vor („Alle Suchergebnisse"), Enter oder OK übernimmt genau diese,
+  Abbrechen verwirft. Bisher blieben beim Suchen auch alle nicht passenden Werte
+  angehakt — man musste erst alles abwählen, dann suchen, dann wieder auswählen.
+  OK ist gesperrt, solange nichts ausgewählt ist.
 - Die Top-10-Bauteile zeigen pro Zeile einen gestapelten Balken: Länge = Gesamtzeit
   im Verhältnis zu Platz 1, Farbsegmente = Zeitanteile der Kategorie-Gruppen. Die
   Liste „niedrigste Gesamtzeit" entfällt dafür — sie enthielt bei wenigen Bauteilen

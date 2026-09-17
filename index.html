@@ -182,6 +182,7 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .col-popup-sep{height:1px;background:var(--border);margin:6px 0;}
 .col-popup-actions{display:flex;gap:6px;margin-top:8px;}
 .col-popup-actions .tbtn{flex:1;font-size:11px;padding:5px 6px;text-align:center;}
+.col-popup-actions .tbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
 .flt-search{
   width:100%;font-size:12px;padding:5px 8px;margin-bottom:6px;box-sizing:border-box;
   border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);
@@ -1180,48 +1181,76 @@ function openColFilter(anchorEl,fk,label,kind){
         if(!isNaN(na)&&!isNaN(nb)) return na-nb;
         return a.localeCompare(b,'de');
       });
-    const sel=colFilters[fk]&&colFilters[fk].type==='set'?colFilters[fk].values:new Set(vals);
+    /* Arbeitskopie: übernommen wird erst mit OK, Abbrechen/Zuklappen verwirft */
+    const sel=new Set(colFilters[fk]&&colFilters[fk].type==='set'?colFilters[fk].values:vals);
+    /* Solange gesucht wird, gelten die Treffer als Auswahl (wie in Excel), ohne sel zu überschreiben */
+    let query='', searchSel=null;
+    const activeSel=()=>query?searchSel:sel;
+    const shownVals=()=>query?vals.filter(v=>v.toLowerCase().includes(query)):vals;
 
     const search=document.createElement('input');
     search.className='flt-search';search.type='text';search.placeholder='🔍 suchen…';
     body.appendChild(search);
     const list=document.createElement('div');
     body.appendChild(list);
+    const actOk=document.createElement('div');actOk.className='col-popup-actions';
+    const bCancel=document.createElement('button');bCancel.className='tbtn';bCancel.textContent='Abbrechen';
+    const bOk=document.createElement('button');bOk.className='tbtn primary';bOk.textContent='OK';
+    actOk.appendChild(bCancel);actOk.appendChild(bOk);
+    body.appendChild(actOk);
 
-    const commit=()=>{
-      const all=vals.every(v=>sel.has(v));
-      if(all||sel.size===0&&false) delete colFilters[fk];
-      else colFilters[fk]={type:'set',values:new Set(sel)};
-      apply();
+    let allBox=null;
+    /* Kopfzeile und OK nachziehen, ohne die Liste neu zu bauen (sonst springt das Scrollen) */
+    const syncState=()=>{
+      const shown=shownVals(), cur=activeSel();
+      if(allBox) allBox.checked=shown.length>0&&shown.every(v=>cur.has(v));
+      bOk.disabled=cur.size===0;   // leere Auswahl würde alle Zeilen ausblenden
+      bOk.style.opacity=cur.size===0?'.5':'';
     };
-    const draw=(q)=>{
+    const draw=()=>{
+      const shown=shownVals(), cur=activeSel();
       list.innerHTML='';
-      const shown=vals.filter(v=>!q||v.toLowerCase().includes(q));
       const labAll=document.createElement('label');
       labAll.className='col-opt';
-      const allChecked=shown.length>0&&shown.every(v=>sel.has(v));
-      labAll.innerHTML=`<input type="checkbox" ${allChecked?'checked':''}/><span><b>(Alle)</b></span>`;
-      labAll.querySelector('input').addEventListener('change',ev=>{
-        shown.forEach(v=>{ if(ev.target.checked) sel.add(v); else sel.delete(v); });
-        draw(q);commit();
+      labAll.innerHTML=`<input type="checkbox"/><span><b>${query?'(Alle Suchergebnisse)':'(Alle auswählen)'}</b></span>`;
+      allBox=labAll.querySelector('input');
+      allBox.addEventListener('change',ev=>{
+        shownVals().forEach(v=>{ if(ev.target.checked) activeSel().add(v); else activeSel().delete(v); });
+        list.querySelectorAll('.flt-val').forEach(b=>{ b.checked=ev.target.checked; });
+        syncState();
       });
       list.appendChild(labAll);
       shown.forEach(v=>{
         const lab=document.createElement('label');
         lab.className='col-opt';
-        lab.innerHTML=`<input type="checkbox" ${sel.has(v)?'checked':''}/><span>${escHtml(v)}</span>`;
+        lab.innerHTML=`<input type="checkbox" class="flt-val" ${cur.has(v)?'checked':''}/><span>${escHtml(v)}</span>`;
         lab.querySelector('input').addEventListener('change',ev=>{
-          if(ev.target.checked) sel.add(v); else sel.delete(v);
-          commit();
-          const a=list.querySelector('label .col-opt, label input');
-          draw(q);
+          if(ev.target.checked) activeSel().add(v); else activeSel().delete(v);
+          syncState();
         });
         list.appendChild(lab);
       });
       if(shown.length===0) list.innerHTML+='<div style="font-size:11px;color:var(--text3);padding:6px;">Keine Treffer</div>';
+      syncState();
     };
-    search.addEventListener('input',()=>draw(search.value.trim().toLowerCase()));
-    draw('');
+    search.addEventListener('input',()=>{
+      query=search.value.trim().toLowerCase();
+      searchSel=query?new Set(shownVals()):null;   // Treffer sind vorausgewählt
+      draw();
+    });
+
+    const ok=()=>{
+      const chosen=activeSel();
+      if(chosen.size===0) return;
+      if(vals.every(v=>chosen.has(v))) delete colFilters[fk];
+      else colFilters[fk]={type:'set',values:new Set(chosen)};
+      closeColPopup();apply();
+    };
+    bCancel.addEventListener('click',closeColPopup);
+    bOk.addEventListener('click',ok);
+    search.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); ok(); } });
+    draw();
+    setTimeout(()=>search.focus(),60);
   }
 
   const sep=document.createElement('div');sep.className='col-popup-sep';body.appendChild(sep);
@@ -2122,7 +2151,7 @@ function renderBody(){
     pasteBtn.addEventListener('click',e=>{e.stopPropagation();pasteRow(id);});
     tdActs.appendChild(pasteBtn);
     const noteBtn=document.createElement('button');
-    noteBtn.type='button';noteBtn.className='row-icon-btn adv-only'+(data[id].__note?' active':'');
+    noteBtn.type='button';noteBtn.className='row-icon-btn'+(data[id].__note?' active':'');
     noteBtn.title='Notiz zum Bauteil';
     noteBtn.textContent='📝';
     noteBtn.addEventListener('click',e=>{
@@ -2304,9 +2333,12 @@ function pasteRow(id){
 ═══════════════════════════════════════ */
 function addPart(){
   let n=parts.length+1;
-  let name='Bauteil '+n;
+  let suggestion='Bauteil '+n;
   const existingNames=parts.map(x=>x.name);
-  while(existingNames.includes(name)){ n++; name='Bauteil '+n; }
+  while(existingNames.includes(suggestion)){ n++; suggestion='Bauteil '+n; }
+  const answer=prompt('Name des neuen Bauteils:',suggestion);
+  if(answer===null) return;   // Abbrechen legt nichts an
+  const name=answer.trim()||suggestion;
   const id=newPartId();
   const newPart={id,name};
   const activeIdx=parts.findIndex(p=>p.id===activePart);
@@ -2318,7 +2350,7 @@ function addPart(){
   initPart(id);
   if(!activePart) activePart=id;
   renderBody();markDirty();
-  toast('✓ "'+name+'" hinzugefügt');
+  toast('✓ "'+name+'" hinzugefügt'+(existingNames.includes(name)?' – Name gibt es bereits':''));
 }
 function delPart(id){
   const name=partName(id);

@@ -978,6 +978,9 @@ function ensureKeys(){
 function calcTotal(p){ if(!p||!data[p]) return 0; return COLS.reduce((s,c)=>s+(data[p][c.key]||0)*c.param,0); }
 function disp(minD){ return unit==='minD' ? minD.toFixed(3) : (minD*MIND_FACTOR).toFixed(3); }
 function dispParam(minD){ return unit==='minD' ? minD.toFixed(3) : (minD*MIND_FACTOR).toFixed(3); }
+/* Anzeige in Tabelle (ab ∑-Spalte) und Auswertung: zwei Nachkommastellen.
+   Gerechnet und exportiert wird unverändert mit voller Genauigkeit. */
+function disp2(minD){ return unit==='minD' ? minD.toFixed(2) : (minD*MIND_FACTOR).toFixed(2); }
 function ul(){ return unit; }
 function updateProjLabel(){
   const el=document.getElementById('projLabel');
@@ -1331,7 +1334,7 @@ function printAnalysis(){
     const rows=items.filter(it=>it.value>0).sort((a,b)=>b.value-a.value).map(it=>`
       <tr>
         <td class="pr-txt"><span class="pr-swatch" style="background:${it.color}"></span>${escHtml(it.name)}</td>
-        <td>${disp(it.value)}</td>
+        <td>${disp2(it.value)}</td>
         <td>${(it.value/total*100).toFixed(1)}%</td>
       </tr>`).join('');
     return `<div class="pr-sec">
@@ -1353,10 +1356,10 @@ function printAnalysis(){
     return `<tr>
       <td class="pr-txt">${escHtml(e.name)}</td>
       <td>${e.rows}</td>
-      <td>${e.minD.toFixed(3)}</td>
+      <td>${e.minD.toFixed(2)}</td>
       <td>${e.min.toFixed(2)}</td>
       <td>${e.share.toFixed(1)}%</td>
-      <td class="${e.dev>0?'pr-pos':(e.dev<0?'pr-neg':'')}">${e.dev>=0?'+':''}${e.dev.toFixed(3)}</td>
+      <td class="${e.dev>0?'pr-pos':(e.dev<0?'pr-neg':'')}">${e.dev>=0?'+':''}${e.dev.toFixed(2)}</td>
       <td style="width:24%"><div class="pr-bar"><div class="pr-bar-fill${isMax?' pr-max':''}" style="width:${(e.minD/taktMax*100).toFixed(1)}%"></div><div class="pr-bar-avg" style="left:${(takt.avgMinD/taktMax*100).toFixed(1)}%"></div></div></td>
     </tr>`;
   }).join('');
@@ -1365,9 +1368,9 @@ function printAnalysis(){
     : `<table class="pr-tbl">
         <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. [minD]</th><th>Verteilung</th></tr></thead>
         <tbody>${taktRows}
-          <tr class="pr-sum"><td class="pr-txt">∑ Gesamt</td><td>${takt.list.reduce((s,e)=>s+e.rows,0)}</td><td>${takt.total.toFixed(3)}</td><td>${(takt.total*MIND_FACTOR).toFixed(2)}</td><td>100,0%</td><td></td><td></td></tr>
+          <tr class="pr-sum"><td class="pr-txt">∑ Gesamt</td><td>${takt.list.reduce((s,e)=>s+e.rows,0)}</td><td>${takt.total.toFixed(2)}</td><td>${(takt.total*MIND_FACTOR).toFixed(2)}</td><td>100,0%</td><td></td><td></td></tr>
         </tbody></table>
-       <p class="pr-hint">Ø je ${escHtml(stLbl)}: ${takt.avgMinD.toFixed(3)} minD · rot = Engpass · senkrechte Linie = Mittelwert</p>`;
+       <p class="pr-hint">Ø je ${escHtml(stLbl)}: ${takt.avgMinD.toFixed(2)} minD · rot = Engpass · senkrechte Linie = Mittelwert</p>`;
 
   const topMax=Math.max(...top.map(it=>it.value),0.0001);
   const topTbl=list=>`<table class="pr-tbl">
@@ -1375,7 +1378,7 @@ function printAnalysis(){
     <tbody>${list.map((it,i)=>`<tr>
       <td class="pr-txt" style="width:18px">${i+1}</td>
       <td class="pr-txt">${escHtml(it.name)}</td>
-      <td>${disp(it.value)}</td>
+      <td>${disp2(it.value)}</td>
       <td style="width:46%"><div class="pr-bar"><div class="pr-stack" style="width:${(it.value/topMax*100).toFixed(1)}%">${stackSegments(it,'pr-seg')}</div></div></td>
     </tr>`).join('')}</tbody></table>
     <p class="pr-hint">${Object.values(GROUPS).map(g=>`<span class="pr-swatch" style="background:${g.color}"></span>${escHtml(g.name)}`).join(' &nbsp; ')}</p>`;
@@ -1517,17 +1520,17 @@ function renderTaktabgleich(){
     rows+=`<tr>
       <td class="tk-name">${escHtml(e.name)}</td>
       <td>${e.rows}</td>
-      <td>${e.minD.toFixed(3)}</td>
+      <td>${e.minD.toFixed(2)}</td>
       <td>${e.min.toFixed(2)}</td>
       <td>${e.share.toFixed(1)}%</td>
-      <td class="${cls}">${e.dev>=0?'+':''}${e.dev.toFixed(3)}</td>
+      <td class="${cls}">${e.dev>=0?'+':''}${e.dev.toFixed(2)}</td>
     </tr>`;
   });
   const totRows=list.reduce((s,e)=>s+e.rows,0);
   rows+=`<tr class="tk-sum">
     <td class="tk-name">∑ Gesamt</td>
     <td>${totRows}</td>
-    <td>${total.toFixed(3)}</td>
+    <td>${total.toFixed(2)}</td>
     <td>${(total*MIND_FACTOR).toFixed(2)}</td>
     <td>100,0%</td>
     <td></td>
@@ -1535,7 +1538,7 @@ function renderTaktabgleich(){
   tw.innerHTML=hint+`<table class="takt-tbl">
     <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. vom Ø [minD]</th></tr></thead>
     <tbody>${rows}</tbody></table>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je ${escHtml(stLbl)}: ${avgMinD.toFixed(3)} minD · Engpass rot markiert</div>`;
+    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je ${escHtml(stLbl)}: ${avgMinD.toFixed(2)} minD · Engpass rot markiert</div>`;
 
   // Balkendiagramm
   const max=Math.max(...list.map(e=>e.minD),0.0001);
@@ -1546,9 +1549,9 @@ function renderTaktabgleich(){
       <span class="takt-bar-name" title="${escAttr(e.name)}">${escHtml(e.name)}</span>
       <div class="takt-bar-track">
         <div class="takt-bar-fill${isMax?' tk-max':''}" style="width:${(e.minD/max*100).toFixed(1)}%"></div>
-        <div class="takt-bar-avg" style="left:${avgPct}%" title="Mittelwert ${avgMinD.toFixed(3)} minD"></div>
+        <div class="takt-bar-avg" style="left:${avgPct}%" title="Mittelwert ${avgMinD.toFixed(2)} minD"></div>
       </div>
-      <span class="takt-bar-val">${e.minD.toFixed(3)} minD</span>
+      <span class="takt-bar-val">${e.minD.toFixed(2)} minD</span>
     </div>`;
   }).join('')+'</div>';
 }
@@ -1568,13 +1571,13 @@ function renderAnalysis(){
   const istVz=ist*(1+(verteilzeitFactor||0)/100);
   const soll=sollzeit;
   const diff=istVz-soll; // Abweichung wird auf Basis von "Ist inkl. Verteilzeit" ermittelt
-  document.getElementById('anaIst').textContent=disp(ist)+' '+ul();
-  document.getElementById('anaIstVz').textContent = verteilzeitFactor ? (disp(istVz)+' '+ul()) : '–';
-  document.getElementById('anaSoll').textContent = soll>0 ? (disp(soll)+' '+ul()) : '–';
+  document.getElementById('anaIst').textContent=disp2(ist)+' '+ul();
+  document.getElementById('anaIstVz').textContent = verteilzeitFactor ? (disp2(istVz)+' '+ul()) : '–';
+  document.getElementById('anaSoll').textContent = soll>0 ? (disp2(soll)+' '+ul()) : '–';
   const diffEl=document.getElementById('anaDiff');
   if(soll>0){
     const pct=diff/soll*100;
-    diffEl.textContent=(diff>=0?'+':'')+disp(diff)+' '+ul()+' ('+(diff>=0?'+':'')+pct.toFixed(1)+'%)';
+    diffEl.textContent=(diff>=0?'+':'')+disp2(diff)+' '+ul()+' ('+(diff>=0?'+':'')+pct.toFixed(1)+'%)';
     diffEl.className='ana-kpi-val '+(diff>0?'over':(diff<0?'under':''));
   } else {
     diffEl.textContent='–';
@@ -1584,8 +1587,8 @@ function renderAnalysis(){
   // Ø Zeit/Stk.: Gesamtzeit ÷ Summe Anzahl (Stückzahl) — berücksichtigt Mehrfachverbau
   const totalQtySum=fParts.reduce((s,p)=>s+(data[p.id].__qty||0),0);
   const avgEl=document.getElementById('anaAvgPiece');
-  avgEl.textContent = totalQtySum>0 ? (disp(ist/totalQtySum)+' '+ul()) : '–';
-  avgEl.title = totalQtySum>0 ? (disp(ist)+' '+ul()+' ÷ '+totalQtySum+' Stk.') : 'Keine Anzahl (Stückzahl) erfasst';
+  avgEl.textContent = totalQtySum>0 ? (disp2(ist/totalQtySum)+' '+ul()) : '–';
+  avgEl.title = totalQtySum>0 ? (disp2(ist)+' '+ul()+' ÷ '+totalQtySum+' Stk.') : 'Keine Anzahl (Stückzahl) erfasst';
   document.getElementById('anaTotalQty').textContent = totalQtySum>0 ? totalQtySum : '–';
 
   // Montagekosten: (Ist-Zeit inkl. Verteilzeit in minD ÷ 100) × Stundensatz (€/hD)
@@ -1593,7 +1596,7 @@ function renderAnalysis(){
   if(hourlyRate>0){
     const cost=(istVz/100)*hourlyRate;
     costEl.textContent=cost.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
-    costEl.title=disp(istVz)+' minD ÷ 100 × '+hourlyRate.toLocaleString('de-DE',{minimumFractionDigits:2})+' €/hD';
+    costEl.title=disp2(istVz)+' minD ÷ 100 × '+hourlyRate.toLocaleString('de-DE',{minimumFractionDigits:2})+' €/hD';
   } else {
     costEl.textContent='–';
     costEl.title='Stundensatz eingeben, um die Montagekosten zu berechnen';
@@ -1640,7 +1643,7 @@ function topParts(fParts){
 /* Segmente eines gestapelten Balkens; Breite je Segment = Anteil an der Bauteilzeit */
 function stackSegments(it,cls){
   return it.segments.map(s=>
-    `<span class="${cls}" style="width:${(s.value/it.value*100).toFixed(2)}%;background:${s.color}" title="${escAttr(s.name+': '+disp(s.value)+' '+ul())}"></span>`
+    `<span class="${cls}" style="width:${(s.value/it.value*100).toFixed(2)}%;background:${s.color}" title="${escAttr(s.name+': '+disp2(s.value)+' '+ul())}"></span>`
   ).join('');
 }
 function renderAnaTopList(elId,list){
@@ -1652,7 +1655,7 @@ function renderAnaTopList(elId,list){
     <span class="ana-top-rank">${i+1}.</span>
     <span class="ana-top-name" title="${escAttr(it.name)}">${escHtml(it.name)}</span>
     <div class="ana-top-track"><div class="ana-top-stack" style="width:${(it.value/max*100).toFixed(1)}%">${stackSegments(it,'ana-top-seg')}</div></div>
-    <span class="ana-top-val">${disp(it.value)} ${ul()}</span>
+    <span class="ana-top-val">${disp2(it.value)} ${ul()}</span>
   </div>`).join('');
 }
 /* Kreisdiagramm als SVG-String; stroke trennt die Segmente (Druck braucht Weiß statt Theme-Farbe) */
@@ -1686,7 +1689,7 @@ function renderAnaLegend(items,total){
       <span class="ana-leg-dot" style="background:${it.color}"></span>
       <span class="ana-leg-name" title="${escAttr(it.name)}">${escHtml(it.name)}</span>
       <div class="ana-bar-track"><div class="ana-bar-fill" style="width:${pct.toFixed(1)}%;background:${it.color}"></div></div>
-      <span class="ana-leg-val">${disp(it.value)} ${ul()} · ${pct.toFixed(1)}%</span>
+      <span class="ana-leg-val">${disp2(it.value)} ${ul()} · ${pct.toFixed(1)}%</span>
     </div>`;
   }).join('');
 }
@@ -1994,7 +1997,7 @@ function updGrid(){
 ═══════════════════════════════════════ */
 function updateActiveBar(){
   document.getElementById('actName').textContent=activePart?partName(activePart):'—';
-  document.getElementById('actTime').textContent=disp(calcTotal(activePart));
+  document.getElementById('actTime').textContent=disp2(calcTotal(activePart));
   document.getElementById('actUnit').textContent=ul();
 }
 
@@ -2207,7 +2210,7 @@ function renderBody(){
     // Summe (jetzt direkt hinter Bauteil/Anzahl)
     const tot=calcTotal(id);
     const tdtot=document.createElement('td');
-    tdtot.className='ct';tdtot.textContent=tot>0?disp(tot):'–';tr.appendChild(tdtot);
+    tdtot.className='ct';tdtot.textContent=tot>0?disp2(tot):'–';tr.appendChild(tdtot);
 
     COLS.forEach(c=>{
       const v=data[id][c.key]||0;
@@ -2215,7 +2218,7 @@ function renderBody(){
       const tdv=document.createElement('td');
       tdv.className=v>0?'vnz':'';tdv.textContent=v>0?v:'–';tr.appendChild(tdv);
       const tdt=document.createElement('td');
-      tdt.className=(t>0?'tnz':'')+' adv-only';tdt.textContent=t>0?disp(t):'–';
+      tdt.className=(t>0?'tnz':'')+' adv-only';tdt.textContent=t>0?disp2(t):'–';
       if(t>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+(darkMode?'40':'59');tdt.style.color=darkMode?'#eef0f6':'#2b3244';}
       tr.appendChild(tdt);
     });
@@ -2244,11 +2247,11 @@ function renderBody(){
   }
   const sQty=document.createElement('td');sQty.className='qty';sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
   const sActs=document.createElement('td');sActs.className='acts';sr.appendChild(sActs);
-  const stot=document.createElement('td');stot.className='ct';stot.textContent=disp(totT);sr.appendChild(stot);
+  const stot=document.createElement('td');stot.className='ct';stot.textContent=disp2(totT);sr.appendChild(stot);
   COLS.forEach(c=>{
     const qt=totQ[c.key],tt=qt*c.param;
     const tdv=document.createElement('td');tdv.className=qt>0?'vnz':'';tdv.textContent=qt>0?qt:'–';sr.appendChild(tdv);
-    const tdt=document.createElement('td');tdt.className=(tt>0?'tnz':'')+' adv-only';tdt.textContent=tt>0?disp(tt):'–';
+    const tdt=document.createElement('td');tdt.className=(tt>0?'tnz':'')+' adv-only';tdt.textContent=tt>0?disp2(tt):'–';
     if(tt>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+(darkMode?'55':'8c');tdt.style.color=darkMode?'#eef0f6':'#2b3244';}
     sr.appendChild(tdt);
   });

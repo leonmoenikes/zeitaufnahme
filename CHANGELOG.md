@@ -25,6 +25,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   statt fest nach „Station". Die Auswahl wird im Projekt gespeichert.
 
 ### Geändert
+- Zeiten werden in der Tabelle ab der ∑-Spalte, in der Aktiv-Leiste und in der
+  gesamten Auswertung (inkl. Taktabgleich und PDF-Bericht) mit zwei statt drei
+  Nachkommastellen angezeigt. Die Kategorie-Buttons bleiben dreistellig.
+  Gerechnet wird unverändert mit voller Genauigkeit, CSV- und Excel-Export
+  liefern weiterhin drei Nachkommastellen.
 - „➕ Bauteil" fragt jetzt nach dem Namen (vorbelegt mit dem bisherigen
   Automatik-Namen); Abbrechen legt nichts an. Die Einfügeposition bleibt
   unverändert direkt hinter dem aktiven Bauteil.

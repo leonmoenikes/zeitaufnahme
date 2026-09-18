@@ -21,6 +21,13 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   bisher nicht genutzten Bausteine (u.a. „Ø Ölen / Fetten") sind per Knopfdruck
   übernehmbar. Die MTM-Datenbasis (278 Codes, 38 Grundelemente, 24 Bausteine) liegt
   statisch im Code; geschrieben wird ausschließlich `COLS`.
+- Dritter Reiter „Grundelemente" im Baustein-Rechner: schlägt alle 38 Grundelemente
+  der Datenbasis nach — aufgeklappt zeigt jedes seine MTM-Codes mit Einzelzeit,
+  Anzahl, Häufigkeit und Anteil sowie die Bezugsmenge, dazu die Gegenrichtung zum
+  ersten Reiter: in welchen Bausteinen das Grundelement mit welchem Gewicht steckt.
+  Ein Tipp auf einen dieser Bausteine springt dorthin. Ein Suchfeld filtert über
+  Name, MTM-Code und Kurztext. Reine Anzeige — Grundelemente und Katalog bleiben
+  unveränderlich.
 - Dunkelmodus: manueller Umschalt-Button (🌙/☀) in der Toolbar, Auswahl wird
   projektübergreifend in `localStorage` gespeichert und beim Start
   wiederhergestellt.

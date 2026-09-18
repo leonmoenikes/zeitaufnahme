@@ -65,6 +65,12 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   über zwei Seiten gerissen.
 
 ### Behoben
+- Der Baustein-Rechner zeigte nach einem Umbenennen unter „⚙ Zeiten" weiter den
+  Katalognamen statt der eigenen Bezeichnung. Steht ein Baustein im Tool, gelten
+  jetzt dessen Name und Gruppe.
+- Ein von Hand geänderter Zeitwert ließ sich nur durch erneutes Eintippen
+  zurückholen. Abweichende Bausteine haben im Rechner jetzt einen Knopf
+  „zurücksetzen", der den errechneten Wert wieder einsetzt.
 - Eine Kategorie unter „⚙ Zeiten" umzubenennen löschte bislang sämtliche dafür
   erfassten Zählwerte: Der Dialog suchte den Schlüssel über den Namen, ein neuer
   Name ergab also einen neuen Schlüssel und die Spalte startete bei null. Die

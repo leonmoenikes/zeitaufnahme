@@ -2546,7 +2546,13 @@ let mtmTab='herkunft', mtmOpenBs=null, mtmOpenGe=null;
 let mtmCustom={};
 /* Katalog-Bausteine + selbst angelegte, beide aufklappbar */
 function mtmEntries(){
-  const list=MTM_BAUSTEINE.map(b=>({key:b.key,label:b.label,group:b.group,elems:b.elems,eigen:false}));
+  const inCols=new Map(COLS.map(c=>[c.key,c]));
+  /* Steht der Baustein im Tool, gilt dessen Bezeichnung und Gruppe — sonst zeigte
+     der Rechner nach einem Umbenennen weiter den Katalognamen an. */
+  const list=MTM_BAUSTEINE.map(b=>{
+    const c=inCols.get(b.key);
+    return {key:b.key,label:c?c.label:b.label,group:c?c.group:b.group,elems:b.elems,eigen:false};
+  });
   COLS.forEach(c=>{
     if(list.some(x=>x.key===c.key)) return;
     if(mtmCustom[c.key]) list.push({key:c.key,label:c.label,group:c.group,elems:mtmCustom[c.key],eigen:true});
@@ -2608,7 +2614,8 @@ function renderMtmHerkunft(){
       <span class="mtm-name">${escHtml(b.label)}</span>
       <span class="mtm-val">${mtmFmt(val)}</span>
       <span class="mtm-state ${cls}">${escHtml(state)}</span>
-      ${cur?'':`<button class="mtm-take" onclick="mtmTake('${escAttr(b.key)}',event)">übernehmen</button>`}
+      ${!cur?`<button class="mtm-take" onclick="mtmTake('${escAttr(b.key)}',event)">übernehmen</button>`
+        :(cls==='diff'?`<button class="mtm-take" onclick="mtmReset('${escAttr(b.key)}',event)" title="Wert im Tool auf den errechneten Wert setzen">zurücksetzen</button>`:'')}
     </div>`;
     if(open){
       const den=b.elems.reduce((s,e)=>s+e.w,0);
@@ -2645,6 +2652,15 @@ function renderMtmHerkunft(){
   el.innerHTML=h;
 }
 
+/* Von Hand geänderten Zeitwert wieder auf den aus den Grundelementen errechneten setzen */
+function mtmReset(key,ev){
+  if(ev) ev.stopPropagation();
+  const b=mtmEntries().find(x=>x.key===key), c=COLS.find(x=>x.key===key);
+  if(!b||!c) return;
+  c.param=mtmParam(b.elems);
+  mtmApplyCols();renderMtmHerkunft();
+  toast('✓ „'+c.label+'" auf '+mtmFmt(c.param)+' minD zurückgesetzt');
+}
 function mtmTake(key,ev){
   if(ev) ev.stopPropagation();
   const b=MTM_BAUSTEINE.find(x=>x.key===key);

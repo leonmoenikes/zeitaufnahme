@@ -28,9 +28,6 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   Ein Tipp auf einen dieser Bausteine springt dorthin. Ein Suchfeld filtert über
   Name, MTM-Code und Kurztext. Reine Anzeige — Grundelemente und Katalog bleiben
   unveränderlich.
-- Dunkelmodus: manueller Umschalt-Button (🌙/☀) in der Toolbar, Auswahl wird
-  projektübergreifend in `localStorage` gespeichert und beim Start
-  wiederhergestellt.
 - Umbenennbare Spaltenüberschriften für Montagestufe, Werkzeug / WT, Quelle und
   Station (Zusatz 2 und Zusatz 3 bereits vorher). Die Bezeichnungen werden im
   Projekt gespeichert und in CSV-/Excel-Export sowie im Taktabgleich mitgeführt.
@@ -70,6 +67,12 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   nebeneinander und eine Fußzeile. Tabellenköpfe
   wiederholen sich auf Folgeseiten, Zeilen und kurze Blöcke werden nicht mehr
   über zwei Seiten gerissen.
+
+### Entfernt
+- Dunkelmodus wieder ausgebaut: Umschalt-Button, dunkle Farbpalette, die
+  zugehörigen `body.dark-mode`-Regeln und die gespeicherte Einstellung sind
+  entfallen. Die Oberfläche ist wieder durchgehend hell. Ein eventuell noch
+  gespeicherter Schlüssel `zeitaufnahme_theme` wird nicht mehr gelesen.
 
 ### Behoben
 - Der Baustein-Rechner zeigte nach einem Umbenennen unter „⚙ Zeiten" weiter den

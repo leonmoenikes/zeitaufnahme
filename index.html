@@ -2477,6 +2477,7 @@ function openCfg(){
   const b=document.getElementById('cfgBody');b.innerHTML='';
   COLS.forEach((c,i)=>{
     const row=document.createElement('div');row.className='prow';
+    row.dataset.key=c.key;   // Identität hängt am Schlüssel, nicht am Namen — sonst verliert Umbenennen die erfassten Werte
     row.innerHTML=`<input class="plbl" type="text" value="${c.label}" placeholder="Bezeichnung"/>`
       +`<input class="pval" type="number" step="0.001" value="${c.param}" placeholder="0.000"/>`
       +`<span class="punit">minD</span>`
@@ -2509,8 +2510,7 @@ function saveCfg(){
     const noteEl=r.querySelector('.pnote');
     const note=noteEl?noteEl.value.trim():'';
     if(!lbl)return;
-    const ex=COLS.find(c=>c.label===lbl);
-    const key=ex?ex.key:'cat_'+Math.random().toString(36).slice(2,7);
+    const key=r.dataset.key||('cat_'+Math.random().toString(36).slice(2,7));
     newCols.push({key,label:lbl,param:val,group:grp,note});
   });
   if(!newCols.length){toast('Mindestens eine Kategorie nötig');return;}

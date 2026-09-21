@@ -21,6 +21,20 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   bisher nicht genutzten Bausteine (u.a. „Ø Ölen / Fetten") sind per Knopfdruck
   übernehmbar. Die MTM-Datenbasis (278 Codes, 38 Grundelemente, 24 Bausteine) liegt
   statisch im Code; geschrieben wird ausschließlich `COLS`.
+- Vierter Reiter „Neues Grundelement" im Baustein-Rechner: baut aus LAMA-Elementen
+  ein eigenes Grundelement. Die Auswahl der 278 LAMA-Elemente läuft über die
+  Katalog-Gliederung — Bereich (13) → Untergruppe → Trefferliste — zusätzlich
+  filtert ein Suchfeld über Code, Kurztext und Bereich. Je Element lassen sich
+  Anzahl und Häufigkeit setzen, dazu eine Bezugsmenge; der Zeitwert wird live nach
+  Σ(Zeit × Anzahl × Häufigkeit) ÷ Bezugsmenge gerechnet. Dasselbe Element darf
+  mehrfach vorkommen (Katalog-Grundelement #32 tut das auch). Fertige eigene
+  Grundelemente stehen sofort im Reiter „Neuer Baustein" zur Auswahl und werden im
+  Projekt sowie in der CSV (`__MTMGE__`) mitgeführt.
+- Selbst angelegte Bausteine lassen sich im Reiter „Bausteine" wieder löschen,
+  selbst angelegte Grundelemente im Reiter „Grundelemente". Beides nur, solange
+  nichts daran hängt: ein Baustein mit erfassten Zählwerten und ein Grundelement,
+  das ein Baustein verwendet, werden mit Hinweis abgelehnt. Der Katalog bleibt
+  unantastbar.
 - Dritter Reiter „Grundelemente" im Baustein-Rechner: schlägt alle 38 Grundelemente
   der Datenbasis nach — aufgeklappt zeigt jedes seine MTM-Codes mit Einzelzeit,
   Anzahl, Häufigkeit und Anteil sowie die Bezugsmenge, dazu die Gegenrichtung zum
@@ -37,6 +51,10 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   statt fest nach „Station". Die Auswahl wird im Projekt gespeichert.
 
 ### Geändert
+- Der erste Reiter des Baustein-Rechners heißt jetzt „Bausteine" statt
+  „Zusammensetzung"; die unterste Ebene heißt durchgängig „LAMA-Elemente" statt
+  „MTM-Codes". Damit tragen alle drei Ebenen die Namen, unter denen sie in der
+  Zeitwirtschaft geführt werden: Baustein → Grundelement → LAMA-Element.
 - Zeiten werden in der Tabelle ab der ∑-Spalte, in der Aktiv-Leiste und in der
   gesamten Auswertung (inkl. Taktabgleich und PDF-Bericht) mit zwei statt drei
   Nachkommastellen angezeigt. Die Kategorie-Buttons bleiben dreistellig.

@@ -2305,7 +2305,7 @@ function handleStartImport(evt){
       updateLastAction();
       buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();updateActiveBar();setUnit(unit);setMode(mode);
       saveState();
-      toast('✓ Projekt "'+currentProject+'" geladen');
+      importHinweis(parsed,'✓ Projekt "'+currentProject+'" geladen');
     }catch(err){
       toast('⚠ Import fehlgeschlagen: '+err.message);
     }
@@ -2323,6 +2323,19 @@ function switchProject(){
   setTimeout(()=>inp.focus(),150);
 }
 
+/* CSV-Format: 3 = Prozessschritte mit Teile-Spalte. Dateien ohne __FORMAT__ stammen aus der
+   Vorversion (eine Zeile = ein Bauteil) und werden beim Einlesen umgewandelt.
+   Feste Spalten vor den Kategorien — in beiden Formaten 11:
+     alt: Level, Sachnummer, Bauteil,        Stufe, Werkzeug, Quelle, Zusatz×3, Anzahl, Gesamt
+     neu: Level, Prozessschritt, Teile,      Stufe, Werkzeug, Quelle, Zusatz×3, Anzahl, Gesamt */
+const CSV_FORMAT=3;
+const CSV_FIX=11;
+/* Import-Meldung: bei alten Dateien auf die Umwandlung hinweisen, bei defekter Teile-Spalte warnen */
+function importHinweis(parsed,ok){
+  if(parsed.teileFehler) toast('⚠ Bei '+parsed.teileFehler+' Prozessschritt(en) war die Teile-Spalte unlesbar – dort ohne Teile übernommen',6000);
+  else if(parsed.format<CSV_FORMAT) toast('ℹ Projekt aus älterem Format übernommen – Bauteile wurden in Prozessschritte umgewandelt',6000);
+  else toast(ok);
+}
 /* Gemeinsamer CSV-Parser für Start-Import und laufenden Import */
 function parseImportedCSV(text){
   const clean=text.replace(/^\uFEFF/,'');
@@ -2334,6 +2347,11 @@ function parseImportedCSV(text){
   const lines=clean.split('\n').map(l=>l.trim()).filter(l=>l);
   if(lines.length<2) return null;
   let idx=0;
+  let format=1;
+  if(lines[idx] && lines[idx].startsWith('__FORMAT__')){
+    format=parseInt(lines[idx].split(';')[1])||1;
+    idx++;
+  }
   let projectName=null;
   if(lines[idx] && lines[idx].startsWith('__PROJECT__')){
     const p=lines[idx].split(';');
@@ -2380,7 +2398,7 @@ function parseImportedCSV(text){
   if(lines[idx] && lines[idx].startsWith('__COLS__')){
     const metaParts=lines[idx].split(';');
     const newCols=[];
-    for(let i=11;i<metaParts.length;i+=2){
+    for(let i=CSV_FIX;i<metaParts.length;i+=2){
       if(!metaParts[i]) continue;
       const segments=metaParts[i].split('|');
       if(segments.length>=3){
@@ -2414,41 +2432,48 @@ function parseImportedCSV(text){
   const cols=colsFromFile||COLS;
   const newParts=[];
   const newData={};
-  const rowIds=[];   // Datenzeile in der Datei → neue Bauteil-ID, für das Szenario
-  let rowNo=-1;
+  const rowIds=[];   // Datenzeile in der Datei → neue Schritt-ID, für das Szenario
+  let rowNo=-1, teileFehler=0;
+  const neu=format>=3;
+  const nameIdx=neu?1:2;   // alt: Spalte 2 = Bauteil, neu: Spalte 1 = Prozessschritt
   for(let i=idx;i<lines.length;i++){
     const cells=lines[i].split(';');
-    if(cells[2]&&cells[2].startsWith('∑')) continue;
+    if(cells[nameIdx]&&cells[nameIdx].startsWith('∑')) continue;
     if(!lines[i].trim()) continue;
     rowNo++;   // auch namenlose Zeilen zählen, sonst verrutscht die Zuordnung
-    if(!cells[2]) continue;
+    if(!cells[nameIdx]) continue;
     const level=parseInt(cells[0])||1;
-    const sachnr=cells[1]||'';
-    const pName=cells[2];
+    const pName=cells[nameIdx];
     const id=newPartId();
     rowIds[rowNo]=id;
     newParts.push({id,name:pName});
     newData[id]={};
     newData[id].__level=(level>=1&&level<=7)?level:1;
-    newData[id].__sachnr=sachnr;
+    if(neu){
+      /* Teile-Spalte: URL-kodiertes JSON [{sachnr,name,menge}] — IDs werden neu vergeben */
+      try{ newData[id].__teile=normTeile(cells[2]?JSON.parse(decodeURIComponent(cells[2])):[]); }
+      catch(e){ newData[id].__teile=[]; teileFehler++; }
+    } else {
+      newData[id].__sachnr=cells[1]||'';
+      newData[id].__qty=parseInt(cells[9])||0;
+    }
     newData[id].__stufe=cells[3]||'';
     newData[id].__werkzeug=cells[4]||'';
     newData[id].__quelle=cells[5]||'';
     newData[id].__extra1=cells[6]||'';
     newData[id].__extra2=cells[7]||'';
     newData[id].__extra3=cells[8]||'';
-    newData[id].__qty=parseInt(cells[9])||0;
+    // Spalte 9 (Anzahl) wird im neuen Format ignoriert — sie ergibt sich aus den Teilen
     cols.forEach((c,ci)=>{
-      const qtyIdx=11+ci*2; // 0:Level 1:Sachnr 2:Bauteil 3-5:Stufe/Werkzeug/Quelle 6-8:Zusatzspalten 9:Anzahl 10:Gesamt 11+:Kategorien
-      newData[id][c.key]=parseInt(cells[qtyIdx])||0;
+      newData[id][c.key]=parseInt(cells[CSV_FIX+ci*2])||0;   // je Kategorie: Anzahl, Zeit
     });
-    const noteIdx=11+cols.length*2; // letzte Spalte: Bauteil-Notiz
+    const noteIdx=CSV_FIX+cols.length*2; // letzte Spalte: Notiz zum Schritt
     if(cells[noteIdx]!==undefined){
       try{ newData[id].__note=decodeURIComponent(cells[noteIdx]); }catch(e){ newData[id].__note=''; }
     } else {
       newData[id].__note='';
     }
-    migrateLegacyStep(newData[id],pName);
+    migrateLegacyStep(newData[id],pName);   // altes Format → höchstens ein Teil; neues nur absichern
   }
   let szenParsed=null;
   const szenGeprueft=taktSzenPruefen(szenRaw);
@@ -2458,7 +2483,7 @@ function parseImportedCSV(text){
     szenGeprueft.moves=m;
     szenParsed=szenGeprueft;
   }
-  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed, mtmCustom:mtmCustomParsed, mtmCustomGE:mtmGeParsed, takt:taktParsed, szenario:szenParsed};
+  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed, mtmCustom:mtmCustomParsed, mtmCustomGE:mtmGeParsed, takt:taktParsed, szenario:szenParsed, format, teileFehler};
 }
 
 /* ═══════════════════════════════════════
@@ -4027,8 +4052,10 @@ function doExport(){
   if(!filename.toLowerCase().endsWith('.csv')) filename+='.csv';
   closeExpModal();
   const sep=';'; const u=ul();
-  const hdr=['Level','Sachnummer','Bauteil',colLabel('stufe'),colLabel('werkzeug'),colLabel('quelle'),colLabel('extra1'),colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
-  const rows=parts.map(p=>[data[p.id].__level||1,(stepTeile(p.id).find(t=>t.sachnr)||{}).sachnr||'',p.name,data[p.id].__stufe||'',data[p.id].__werkzeug||'',data[p.id].__quelle||'',data[p.id].__extra1||'',data[p.id].__extra2||'',data[p.id].__extra3||'',stepQty(p.id),disp(calcTotal(p.id)).replace('.',','),...COLS.flatMap(c=>{const q=data[p.id][c.key]||0;return[q,disp(q*c.param).replace('.',',')];}),encodeURIComponent(data[p.id].__note||'')].join(sep));
+  const hdr=['Level','Prozessschritt','Teile',colLabel('stufe'),colLabel('werkzeug'),colLabel('quelle'),colLabel('extra1'),colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
+  /* Teile als URL-kodiertes JSON ohne interne IDs — so bleibt die Zeile frei von Semikolons */
+  const teileCsv=id=>encodeURIComponent(JSON.stringify(stepTeile(id).map(t=>({sachnr:t.sachnr,name:t.name,menge:t.menge}))));
+  const rows=parts.map(p=>[data[p.id].__level||1,p.name,teileCsv(p.id),data[p.id].__stufe||'',data[p.id].__werkzeug||'',data[p.id].__quelle||'',data[p.id].__extra1||'',data[p.id].__extra2||'',data[p.id].__extra3||'',stepQty(p.id),disp(calcTotal(p.id)).replace('.',','),...COLS.flatMap(c=>{const q=data[p.id][c.key]||0;return[q,disp(q*c.param).replace('.',',')];}),encodeURIComponent(data[p.id].__note||'')].join(sep));
   const metaProject = ['__PROJECT__',currentProject||''].join(sep);
   const metaDesc = ['__DESC__',encodeURIComponent(projectDescription||'')].join(sep);
   const metaSoll = ['__SOLLZEIT__',sollzeit||0].join(sep);
@@ -4037,7 +4064,7 @@ function doExport(){
   // Frei vergebene Spalten\u00FCberschriften (URL-kodiert), damit sie den Re-Import \u00FCberleben
   const metaColLabels = ['__COLLABELS__',...OPT_COLS.filter(o=>o.renameable&&colLabels[o.key]).map(o=>o.key+'|'+encodeURIComponent(colLabels[o.key]))].join(sep);
   // Also export column params (inkl. Notiz, URL-kodiert) as a metadata row for re-import
-  const metaKeys = ['__COLS__','','','','','','','','','','',...COLS.flatMap(c=>[c.key+'|'+c.label+'|'+c.param+'|'+(c.group||'process')+'|'+encodeURIComponent(c.note||''),'']),''].join(sep);
+  const metaKeys = ['__COLS__',...Array(CSV_FIX-1).fill(''),...COLS.flatMap(c=>[c.key+'|'+c.label+'|'+c.param+'|'+(c.group||'process')+'|'+encodeURIComponent(c.note||''),'']),''].join(sep);
   // Herleitung selbst angelegter Bausteine, damit sie auch nach einem Re-Import aufklappbar bleibt
   const metaMtm = ['__MTMCUSTOM__',encodeURIComponent(JSON.stringify(mtmCustom||{}))].join(sep);
   // Selbst angelegte Grundelemente, damit die Herleitung darauf aufbauender Bausteine erhalten bleibt
@@ -4048,7 +4075,8 @@ function doExport(){
   const szenCsv = taktSzenario ? {groupKey:taktSzenario.groupKey, extra:taktSzenario.extra,
     moves:Object.fromEntries(parts.map((pt,i)=>[i,pt.id]).filter(([,id])=>taktHas(taktSzenario.moves,id)).map(([i,id])=>[i,taktSzenario.moves[id]]))} : null;
   const metaSzen = ['__SZENARIO__',encodeURIComponent(JSON.stringify(szenCsv))].join(sep);
-  const csv='\uFEFF'+[metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,metaMtmGe,metaTakt,metaSzen,hdr,...rows].join('\n');
+  const metaFormat = ['__FORMAT__',CSV_FORMAT].join(sep);
+  const csv='\uFEFF'+[metaFormat,metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,metaMtmGe,metaTakt,metaSzen,hdr,...rows].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();
@@ -4113,7 +4141,7 @@ function handleImport(evt){
       updateProjLabel();
       hasUnsavedChanges=false;
       saveState();
-      toast('✓ Importiert: '+file.name);
+      importHinweis(parsed,'✓ Importiert: '+file.name);
     } catch(err){
       toast('⚠ Import fehlgeschlagen: '+err.message);
     }

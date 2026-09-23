@@ -260,7 +260,7 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
   text-align:center;color:#3a3f52;font-weight:600;font-family:var(--mono);font-size:10px;
 }
 .data-tbl thead th.nr{z-index:15;}
-/* sticky Level-Spalte */
+/* sticky Level-Spalte (left wird im Code gesetzt) */
 .data-tbl th.level,.data-tbl td.level{
   position:sticky;left:32px;z-index:5;background:var(--surface);
   border-right:1px solid var(--border);width:38px;min-width:38px;max-width:38px;
@@ -272,34 +272,37 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
   font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text);width:100%;
 }
 .level-select:focus{outline:none;background:var(--surface2);}
-/* sticky Sachnummer-Spalte */
+/* Sachnummer und Bauteilbenennung — zugeklappt Anzeige, in den Unterzeilen Eingabe */
 .data-tbl th.sachnr,.data-tbl td.sachnr{
-  position:sticky;left:70px;z-index:5;background:var(--surface);
-  border-right:1px solid var(--border);width:85px;min-width:85px;max-width:85px;
-  text-align:center;font-family:var(--mono);font-size:10px;
+  border-right:1px solid var(--border);width:88px;min-width:88px;max-width:88px;
+  text-align:center;font-family:var(--mono);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.data-tbl thead th.sachnr{z-index:15;}
+.data-tbl th.teilname,.data-tbl td.teilname{
+  border-right:1px solid var(--border);min-width:150px;max-width:220px;
+  text-align:left;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.data-tbl tbody td.teilname{font-family:var(--sans);color:var(--text2);}
 .sachnr-input{
   background:transparent;border:none;outline:none;text-align:center;
   font-family:var(--mono);font-size:10px;color:var(--text);width:100%;
   border-bottom:1px solid transparent;
 }
 .sachnr-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
-/* sticky name col */
+/* sticky name col (left wird im Code gesetzt — hängt an der Sichtbarkeit von Lvl) */
 .data-tbl th.cn,.data-tbl td.cn{
-  position:sticky;left:155px;z-index:5;background:var(--surface);
+  position:sticky;left:70px;z-index:5;background:var(--surface);
   border-right:1px solid var(--border);min-width:195px;
 }
 .data-tbl thead th.cn{z-index:15;}
 /* Level-Farbcodierung (Struktur-/Hierarchieerkennung) — Aktive-Zeile-Hervorhebung hat via !important weiterhin Vorrang */
 /* Level-Farbcodierung: nur bis einschließlich Spalte "Anzahl" (qty) — danach neutral */
-.data-tbl tbody tr.lvl-1 td.nr,.data-tbl tbody tr.lvl-1 td.level,.data-tbl tbody tr.lvl-1 td.sachnr,.data-tbl tbody tr.lvl-1 td.cn,.data-tbl tbody tr.lvl-1 td.extra,.data-tbl tbody tr.lvl-1 td.qty{background:#ffffff;}
-.data-tbl tbody tr.lvl-2 td.nr,.data-tbl tbody tr.lvl-2 td.level,.data-tbl tbody tr.lvl-2 td.sachnr,.data-tbl tbody tr.lvl-2 td.cn,.data-tbl tbody tr.lvl-2 td.extra,.data-tbl tbody tr.lvl-2 td.qty{background:#eef3fb;}
-.data-tbl tbody tr.lvl-3 td.nr,.data-tbl tbody tr.lvl-3 td.level,.data-tbl tbody tr.lvl-3 td.sachnr,.data-tbl tbody tr.lvl-3 td.cn,.data-tbl tbody tr.lvl-3 td.extra,.data-tbl tbody tr.lvl-3 td.qty{background:#d8e6f7;}
-.data-tbl tbody tr.lvl-4 td.nr,.data-tbl tbody tr.lvl-4 td.level,.data-tbl tbody tr.lvl-4 td.sachnr,.data-tbl tbody tr.lvl-4 td.cn,.data-tbl tbody tr.lvl-4 td.extra,.data-tbl tbody tr.lvl-4 td.qty{background:#b9d0f0;}
-.data-tbl tbody tr.lvl-5 td.nr,.data-tbl tbody tr.lvl-5 td.level,.data-tbl tbody tr.lvl-5 td.sachnr,.data-tbl tbody tr.lvl-5 td.cn,.data-tbl tbody tr.lvl-5 td.extra,.data-tbl tbody tr.lvl-5 td.qty{background:#97b8e8;}
-.data-tbl tbody tr.lvl-6 td.nr,.data-tbl tbody tr.lvl-6 td.level,.data-tbl tbody tr.lvl-6 td.sachnr,.data-tbl tbody tr.lvl-6 td.cn,.data-tbl tbody tr.lvl-6 td.extra,.data-tbl tbody tr.lvl-6 td.qty{background:#7aa3de;}
-.data-tbl tbody tr.lvl-7 td.nr,.data-tbl tbody tr.lvl-7 td.level,.data-tbl tbody tr.lvl-7 td.sachnr,.data-tbl tbody tr.lvl-7 td.cn,.data-tbl tbody tr.lvl-7 td.extra,.data-tbl tbody tr.lvl-7 td.qty{background:#5c8bd1;}
+.data-tbl tbody tr.lvl-1 td.nr,.data-tbl tbody tr.lvl-1 td.level,.data-tbl tbody tr.lvl-1 td.sachnr,.data-tbl tbody tr.lvl-1 td.teilname,.data-tbl tbody tr.lvl-1 td.cn,.data-tbl tbody tr.lvl-1 td.extra,.data-tbl tbody tr.lvl-1 td.qty{background:#ffffff;}
+.data-tbl tbody tr.lvl-2 td.nr,.data-tbl tbody tr.lvl-2 td.level,.data-tbl tbody tr.lvl-2 td.sachnr,.data-tbl tbody tr.lvl-2 td.teilname,.data-tbl tbody tr.lvl-2 td.cn,.data-tbl tbody tr.lvl-2 td.extra,.data-tbl tbody tr.lvl-2 td.qty{background:#eef3fb;}
+.data-tbl tbody tr.lvl-3 td.nr,.data-tbl tbody tr.lvl-3 td.level,.data-tbl tbody tr.lvl-3 td.sachnr,.data-tbl tbody tr.lvl-3 td.teilname,.data-tbl tbody tr.lvl-3 td.cn,.data-tbl tbody tr.lvl-3 td.extra,.data-tbl tbody tr.lvl-3 td.qty{background:#d8e6f7;}
+.data-tbl tbody tr.lvl-4 td.nr,.data-tbl tbody tr.lvl-4 td.level,.data-tbl tbody tr.lvl-4 td.sachnr,.data-tbl tbody tr.lvl-4 td.teilname,.data-tbl tbody tr.lvl-4 td.cn,.data-tbl tbody tr.lvl-4 td.extra,.data-tbl tbody tr.lvl-4 td.qty{background:#b9d0f0;}
+.data-tbl tbody tr.lvl-5 td.nr,.data-tbl tbody tr.lvl-5 td.level,.data-tbl tbody tr.lvl-5 td.sachnr,.data-tbl tbody tr.lvl-5 td.teilname,.data-tbl tbody tr.lvl-5 td.cn,.data-tbl tbody tr.lvl-5 td.extra,.data-tbl tbody tr.lvl-5 td.qty{background:#97b8e8;}
+.data-tbl tbody tr.lvl-6 td.nr,.data-tbl tbody tr.lvl-6 td.level,.data-tbl tbody tr.lvl-6 td.sachnr,.data-tbl tbody tr.lvl-6 td.teilname,.data-tbl tbody tr.lvl-6 td.cn,.data-tbl tbody tr.lvl-6 td.extra,.data-tbl tbody tr.lvl-6 td.qty{background:#7aa3de;}
+.data-tbl tbody tr.lvl-7 td.nr,.data-tbl tbody tr.lvl-7 td.level,.data-tbl tbody tr.lvl-7 td.sachnr,.data-tbl tbody tr.lvl-7 td.teilname,.data-tbl tbody tr.lvl-7 td.cn,.data-tbl tbody tr.lvl-7 td.extra,.data-tbl tbody tr.lvl-7 td.qty{background:#5c8bd1;}
 /* Zusatzspalten (optional ein-/ausblendbar, Inhalte bleiben beim Export erhalten) */
 .data-tbl td.extra{text-align:center;}
 .extra-input{
@@ -309,6 +312,22 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 }
 .extra-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
 .cn-wrap{display:flex;align-items:center;gap:0;}
+/* Aufklapp-Symbol und Unterzeilen (Teile) */
+.teil-caret{flex-shrink:0;width:24px;height:26px;border:none;background:none;padding:0;
+  color:var(--text2);font-size:11px;cursor:pointer;}
+.teil-caret.leer{opacity:.35;}
+td.nr .teil-caret{width:16px;}
+.data-tbl tbody tr.teil td{background:#f7f9fc;border-bottom:1px dashed var(--border);padding-top:2px;padding-bottom:2px;}
+.data-tbl tbody tr.teil.hit td.sachnr,.data-tbl tbody tr.teil.hit td.teilname{background:#fff3cd;}
+.data-tbl tbody tr.teil td.teil-rest{background:var(--surface);border-bottom:none;}
+.teil-mark{display:inline-block;padding-left:26px;color:var(--text3);font-size:12px;}
+.teil-name-in{background:transparent;border:none;outline:none;width:100%;min-width:130px;
+  font-family:var(--sans);font-size:11px;color:var(--text);border-bottom:1px solid var(--border);padding:3px 2px;}
+.teil-name-in:focus,.data-tbl tr.teil .sachnr-input:focus,.data-tbl tr.teil .qi:focus{border-bottom-color:var(--accent);background:#fff;}
+.data-tbl tr.teil .sachnr-input,.data-tbl tr.teil .qi{border-bottom:1px solid var(--border);padding:3px 2px;}
+.teil-add{background:none;border:1px dashed var(--border2);border-radius:6px;color:var(--accent-bright);
+  font-size:11px;padding:4px 10px;cursor:pointer;margin-left:26px;white-space:nowrap;}
+.teil-add:active{background:var(--accent-dim);}
 .cn-wrap .ni{flex:1;min-width:50px;}
 /* Zeilen-Aktionen: eigene Spalte, damit sie auch bei ausgeblendeter Bauteil-Spalte erreichbar bleiben */
 .data-tbl th.acts,.data-tbl td.acts{white-space:nowrap;text-align:center;padding-left:2px;padding-right:2px;}
@@ -329,6 +348,7 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
    der Bildschirm (Einfach-Modus ohne [minD]-Spalten, wenige Kategorien), verteilt der Browser den
    Rest sonst auch auf Bauteil, Station und Anzahl — mit fester Breite geht er nur an die Zählspalten. */
 .data-tbl th.cn,.data-tbl td.cn,
+.data-tbl th.teilname,.data-tbl td.teilname,
 .data-tbl th.extra,.data-tbl td.extra,
 .data-tbl th.th-qty,.data-tbl td.qty,
 .data-tbl th.acts,.data-tbl td.acts,
@@ -733,7 +753,8 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 
 <!-- WERKZEUGE -->
 <div class="filter-bar">
-  <button class="tbtn" onclick="addPart()">➕ Bauteil</button>
+  <button class="tbtn" onclick="addPart()">➕ Schritt</button>
+  <button class="tbtn" id="teileAllBtn" onclick="toggleAlleTeile()">▾ Alle aufklappen</button>
   <button class="tbtn" onclick="openColMenu(this)" id="colMenuBtn">🔧 Spalten</button>
   <button class="tbtn" id="filterClearBtn" onclick="clearAllFilters()" style="display:none;">✕ Filter zurücksetzen</button>
   <div class="sep adv-only"></div>
@@ -1168,8 +1189,10 @@ function updateProjLabel(){
 /* Definition aller optionalen (ein-/ausblendbaren) Spalten */
 /* own:true = Spalte mit eigener Zelle im Zeilenaufbau, nicht Teil der generischen Zusatzspalten */
 const OPT_COLS=[
-  {key:'sachnr',   label:'Sachnummer', own:true},
-  {key:'name',     label:'Bauteil',    own:true},
+  {key:'level',    label:'Lvl',              own:true},
+  {key:'name',     label:'Prozessschritt',   own:true},
+  {key:'sachnr',   label:'Sachnummer',       own:true},
+  {key:'teilname', label:'Bauteilbenennung', own:true},   // Bezeichnung der Teile im Schritt
   {key:'stufe',    label:'Montagestufe',  renameable:true},
   {key:'werkzeug', label:'Werkzeug / WT', renameable:true},
   {key:'quelle',   label:'Quelle',        renameable:true},
@@ -1184,7 +1207,7 @@ function colLabel(k){
   return (oc.renameable && colLabels[k]) ? colLabels[k] : (oc.label||k);
 }
 /* Sichtbarkeit; wird projektbezogen gespeichert */
-let colVis={sachnr:true,name:true,stufe:false,werkzeug:false,quelle:false,extra1:true,extra2:false,extra3:false};
+let colVis={level:true,name:true,sachnr:true,teilname:true,stufe:false,werkzeug:false,quelle:false,extra1:true,extra2:false,extra3:false};
 function isColVisible(k){ return !!colVis[k]; }
 
 /* Aktive Filter:
@@ -2202,7 +2225,8 @@ function startNewProject(){
   if(!name){ toast('⚠ Bitte Projektnamen eingeben'); nameInput.focus(); return; }
   currentProject=name;
   projectDescription=descInput?descInput.value.trim():'';
-  parts = Array.from({length:10},(_,i)=>({id:newPartId(), name:`Bauteil ${i+1}`}));
+  parts = Array.from({length:10},(_,i)=>({id:newPartId(), name:`Schritt ${i+1}`}));
+  teileOffen={};
   data={};
   parts.forEach(p=>initPart(p.id));
   activePart=parts[0].id;
@@ -2258,6 +2282,7 @@ function handleStartImport(evt){
       taktMitVz=parsed.takt?parsed.takt.mitVz:true;
       if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
       taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
+      teileOffen={};
       lastExportTime=null;
       lastActionText='';
       undoStack=[];
@@ -2530,17 +2555,24 @@ function updateActiveBar(){
 /* ═══════════════════════════════════════
    TABLE
 ═══════════════════════════════════════ */
+/* Linke Spalten: # (immer), Lvl, Prozessschritt, Sachnummer, Bauteilbenennung.
+   Festgehalten beim Scrollen werden #, Lvl und Prozessschritt — mit Sachnummer und
+   Benennung wäre auf dem iPad fast die halbe Breite blockiert. */
+function stickyLeft(){ return {level:32, cn:32+(isColVisible('level')?38:0)}; }
+/* Kategoriebereich einer Unterzeile als eine einzige Zelle — statt 22 bzw. 44 leerer Zellen
+   je Teil. Jeder Tipp auf eine Kachel baut die Tabelle neu, da zählt jede Zelle. */
+function kategorieSpan(){ return COLS.length*(uiMode==='beginner'?1:2); }
 function buildHead(){
   const tr=document.getElementById('tblHead');
-  const showSach = isColVisible('sachnr');
-  const showName = isColVisible('name');
-  const cnLeft = showSach ? 155 : 70;
+  const L=stickyLeft();
+  const hide=k=>isColVisible(k)?'':'display:none;';
   let h='<th class="nr">#</th>';
-  h+=`<th class="level">Lvl${fltIco('level','Level','set')}</th>`;
-  h+=`<th class="sachnr"${showSach?'':' style="display:none;"'}>Sachnr.${fltIco('sachnr','Sachnummer','set')}</th>`;
-  h+=`<th class="cn" style="left:${cnLeft}px;${showName?'':'display:none;'}">Bauteil${fltIco('name','Bauteil','set')}</th>`;
+  h+=`<th class="level" style="left:${L.level}px;${hide('level')}">Lvl${fltIco('level','Level','set')}</th>`;
+  h+=`<th class="cn" style="left:${L.cn}px;${hide('name')}">Prozessschritt${fltIco('name','Prozessschritt','set')}</th>`;
+  h+=`<th class="sachnr" style="${hide('sachnr')}">Sachnr.${fltIco('sachnr','Sachnummer','set')}</th>`;
+  h+=`<th class="teilname" style="${hide('teilname')}">Bauteilbenennung${fltIco('teilname','Bauteilbenennung','set')}</th>`;
   OPT_COLS.filter(o=>!o.own).forEach(o=>{
-    if(isColVisible(o.key)){const L=colLabel(o.key);h+=`<th class="extra">${escHtml(L)}${fltIco(o.key,L,'set')}</th>`;}
+    if(isColVisible(o.key)){const Lb=colLabel(o.key);h+=`<th class="extra">${escHtml(Lb)}${fltIco(o.key,Lb,'set')}</th>`;}
   });
   h+=`<th class="th-qty">Anzahl${fltIco('qty','Anzahl','range')}</th>`;
   h+='<th class="acts"></th>';
@@ -2580,26 +2612,40 @@ function renderBody(){
   COLS.forEach(c=>totQ[c.key]=0);
 
   const visibleParts=getFilteredParts();
-  const showSach = isColVisible('sachnr');
-  const showName = isColVisible('name');
-  const cnLeft = showSach ? 155 : 70;
+  const L=stickyLeft();
+  const vis={level:isColVisible('level'),name:isColVisible('name'),sachnr:isColVisible('sachnr'),teilname:isColVisible('teilname')};
+  const extraFlds=OPT_COLS.filter(o=>!o.own&&isColVisible(o.key)).map(o=>'__'+o.key);
+  const td=(cls,show,left)=>{
+    const c=document.createElement('td'); c.className=cls;
+    if(show===false) c.style.display='none';
+    if(left!==undefined) c.style.left=left+'px';
+    return c;
+  };
 
   visibleParts.forEach(part=>{
     const id=part.id, name=part.name;
+    const offen=!!teileOffen[id];
+    const teile=stepTeile(id);
     const tr=document.createElement('tr');
     tr.dataset.id=id;
     const lvl=data[id].__level||1;
     tr.className=(id===activePart?'ar ':'')+'lvl-'+lvl;
 
+    /* Aufklapp-Symbol: vor dem Namen — ist die Spalte ausgeblendet, in der #-Spalte */
+    const caret=document.createElement('button');
+    caret.type='button';caret.className='teil-caret'+(teile.length?'':' leer');
+    caret.textContent=offen?'▾':'▸';
+    caret.title=teile.length?(teile.length+' Teil(e) '+(offen?'zuklappen':'aufklappen')):'Noch keine Teile — aufklappen, um eines anzulegen';
+    caret.addEventListener('click',e=>{e.stopPropagation();toggleTeile(id);});
+
     // Nr. (fortlaufende Position, unabhängig vom Filter)
-    const tdNr=document.createElement('td');
-    tdNr.className='nr';
-    tdNr.textContent=parts.findIndex(x=>x.id===id)+1;
+    const tdNr=td('nr');
+    if(!vis.name) tdNr.appendChild(caret);
+    tdNr.appendChild(document.createTextNode(parts.findIndex(x=>x.id===id)+1));
     tr.appendChild(tdNr);
 
-    // Level (Struktur-/Hierarchieebene, 1-7)
-    const tdLevel=document.createElement('td');
-    tdLevel.className='level';
+    // Level (Gliederung der Prozessschritte, 1-7)
+    const tdLevel=td('level',vis.level,L.level);
     const lvSel=document.createElement('select');
     lvSel.className='level-select';
     for(let n=1;n<=7;n++){
@@ -2618,20 +2664,11 @@ function renderBody(){
     tdLevel.appendChild(lvSel);
     tr.appendChild(tdLevel);
 
-    // Sachnummer (SAP-Materialnummer, i.d.R. 8-stellig)
-    const tdSach=document.createElement('td');
-    tdSach.className='sachnr';
-    if(!showSach) tdSach.style.display='none';
-    tdSach.textContent=stepKurz(id,'sachnr')||'—';
-    tr.appendChild(tdSach);
-
-    // name cell with inline edit
-    const td0=document.createElement('td');
-    td0.className='cn';
-    td0.style.left=cnLeft+'px';
-    if(!showName) td0.style.display='none';
+    // Prozessschritt (Name, direkt editierbar)
+    const td0=td('cn',vis.name,L.cn);
     const wrap=document.createElement('div');
     wrap.className='cn-wrap';
+    if(vis.name) wrap.appendChild(caret);
     const inp=document.createElement('input');
     inp.type='text';inp.value=name;inp.className='ni';
     inp.addEventListener('focus',e=>{e.stopPropagation();selectPart(id);});
@@ -2641,11 +2678,41 @@ function renderBody(){
     td0.appendChild(wrap);
     tr.appendChild(td0);
 
-    // Zeilen-Aktionen (eigene Spalte hinter "Anzahl", damit sie unabhängig von der Bauteil-Spalte erreichbar bleiben)
-    const tdActs=document.createElement('td');
-    tdActs.className='acts';
+    // Sachnummer / Bauteilbenennung: zugeklappt erster Eintrag + „+n", nur Anzeige
+    const tdSach=td('sachnr',vis.sachnr);
+    tdSach.textContent=stepKurz(id,'sachnr')||'—';
+    tdSach.title=teile.map(t=>t.sachnr).filter(Boolean).join(', ');
+    tr.appendChild(tdSach);
+    const tdTn=td('teilname',vis.teilname);
+    tdTn.textContent=stepKurz(id,'name')||'—';
+    tdTn.title=teile.map(t=>t.name).filter(Boolean).join(', ');
+    tr.appendChild(tdTn);
+
+    // Zusatzspalten (optional, Inhalte bleiben unabhängig von der Anzeige erhalten)
+    extraFlds.forEach(fld=>{
+      const tdE=td('extra');
+      const ei=document.createElement('input');
+      ei.type='text';ei.className='extra-input';
+      ei.value=data[id][fld]||'';
+      ei.addEventListener('focus',e=>{e.stopPropagation();selectPart(id);});
+      ei.addEventListener('keydown',e=>{if(e.key==='Enter')ei.blur();});
+      ei.addEventListener('blur',()=>{
+        const val=ei.value;
+        if((data[id][fld]||'')!==val){ data[id][fld]=val; markDirty(); }
+      });
+      tdE.appendChild(ei);
+      tr.appendChild(tdE);
+    });
+
+    // Anzahl = Summe der Teilemengen (abgeleitet, nicht editierbar)
+    const tdQty=td('qty');
+    tdQty.textContent=stepQty(id);
+    tr.appendChild(tdQty);
+
+    // Zeilen-Aktionen (wirken auf den Schritt samt Teilen)
+    const tdActs=td('acts');
     const copyBtn=document.createElement('button');
-    copyBtn.type='button';copyBtn.className='row-icon-btn adv-only';copyBtn.title='Zeile kopieren';copyBtn.textContent='⧉';
+    copyBtn.type='button';copyBtn.className='row-icon-btn adv-only';copyBtn.title='Zeile kopieren (inkl. Teile)';copyBtn.textContent='⧉';
     copyBtn.addEventListener('click',e=>{e.stopPropagation();copyRow(id);});
     tdActs.appendChild(copyBtn);
     const pasteBtn=document.createElement('button');
@@ -2656,7 +2723,7 @@ function renderBody(){
     tdActs.appendChild(pasteBtn);
     const noteBtn=document.createElement('button');
     noteBtn.type='button';noteBtn.className='row-icon-btn'+(data[id].__note?' active':'');
-    noteBtn.title='Notiz zum Bauteil';
+    noteBtn.title='Notiz zum Prozessschritt';
     noteBtn.textContent='📝';
     noteBtn.addEventListener('click',e=>{
       e.stopPropagation();
@@ -2669,40 +2736,15 @@ function renderBody(){
     });
     tdActs.appendChild(noteBtn);
     const delBtn=document.createElement('button');
-    delBtn.type='button';delBtn.className='row-icon-btn danger';delBtn.title='Bauteil löschen';delBtn.textContent='🗑';
+    delBtn.type='button';delBtn.className='row-icon-btn danger';delBtn.title='Prozessschritt löschen';delBtn.textContent='🗑';
     delBtn.addEventListener('click',e=>{e.stopPropagation();delPart(id);});
     tdActs.appendChild(delBtn);
-
-    // Zusatzspalten (optional, Inhalte bleiben unabhängig von der Anzeige erhalten)
-    {
-      OPT_COLS.filter(o=>!o.own&&isColVisible(o.key)).map(o=>'__'+o.key).forEach(fld=>{
-        const tdE=document.createElement('td');
-        tdE.className='extra';
-        const ei=document.createElement('input');
-        ei.type='text';ei.className='extra-input';
-        ei.value=data[id][fld]||'';
-        ei.addEventListener('focus',e=>{e.stopPropagation();selectPart(id);});
-        ei.addEventListener('keydown',e=>{if(e.key==='Enter')ei.blur();});
-        ei.addEventListener('blur',()=>{
-          const val=ei.value;
-          if((data[id][fld]||'')!==val){ data[id][fld]=val; markDirty(); }
-        });
-        tdE.appendChild(ei);
-        tr.appendChild(tdE);
-      });
-    }
-
-    // Anzahl (Stückzahl) - informativ, fließt nicht in Berechnung ein
-    const tdQty=document.createElement('td');
-    tdQty.className='qty';
-    tdQty.textContent=stepQty(id);
-    tr.appendChild(tdQty);
     tr.appendChild(tdActs);
 
-    // Summe (jetzt direkt hinter Bauteil/Anzahl)
+    // Summe
     const tot=calcTotal(id);
-    const tdtot=document.createElement('td');
-    tdtot.className='ct';tdtot.textContent=tot>0?disp2(tot):'–';tr.appendChild(tdtot);
+    const tdtot=td('ct');
+    tdtot.textContent=tot>0?disp2(tot):'–';tr.appendChild(tdtot);
 
     COLS.forEach(c=>{
       const v=data[id][c.key]||0;
@@ -2717,9 +2759,14 @@ function renderBody(){
 
     tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(id); });
     body.appendChild(tr);
+
+    if(offen){
+      teile.forEach(t=>body.appendChild(teilZeile(id,t,vis,extraFlds,L,td)));
+      body.appendChild(teilAddZeile(id,vis,extraFlds,L,td));
+    }
   });
 
-  // Summen werden über ALLE Bauteile berechnet (unabhängig vom Filter)
+  // Summen werden über ALLE Schritte berechnet (unabhängig vom Filter)
   parts.forEach(part=>{
     const id=part.id;
     totQty+=stepQty(id);
@@ -2729,17 +2776,15 @@ function renderBody(){
 
   // summary row
   const sr=document.createElement('tr');sr.className='sum-row';
-  const sNr=document.createElement('td');sNr.className='nr';sNr.textContent='';sr.appendChild(sNr);
-  const sLvl=document.createElement('td');sLvl.className='level';sLvl.textContent='';sr.appendChild(sLvl);
-  const sSach=document.createElement('td');sSach.className='sachnr';sSach.textContent='';if(!showSach)sSach.style.display='none';sr.appendChild(sSach);
-  const s0=document.createElement('td');s0.className='cn';s0.style.left=cnLeft+'px';s0.textContent='∑ Gesamt';if(!showName)s0.style.display='none';sr.appendChild(s0);
-  {
-    const nOpt=OPT_COLS.filter(o=>!o.own&&isColVisible(o.key)).length;
-    for(let i=0;i<nOpt;i++){ const sE=document.createElement('td');sE.className='extra';sE.textContent='';sr.appendChild(sE); }
-  }
-  const sQty=document.createElement('td');sQty.className='qty';sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
-  const sActs=document.createElement('td');sActs.className='acts';sr.appendChild(sActs);
-  const stot=document.createElement('td');stot.className='ct';stot.textContent=disp2(totT);sr.appendChild(stot);
+  sr.appendChild(td('nr'));
+  sr.appendChild(td('level',vis.level,L.level));
+  const s0=td('cn',vis.name,L.cn);s0.textContent='∑ Gesamt';sr.appendChild(s0);
+  sr.appendChild(td('sachnr',vis.sachnr));
+  sr.appendChild(td('teilname',vis.teilname));
+  extraFlds.forEach(()=>sr.appendChild(td('extra')));
+  const sQty=td('qty');sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
+  sr.appendChild(td('acts'));
+  const stot=td('ct');stot.textContent=disp2(totT);sr.appendChild(stot);
   COLS.forEach(c=>{
     const qt=totQ[c.key],tt=qt*c.param;
     const tdv=document.createElement('td');tdv.className=qt>0?'vnz':'';tdv.textContent=qt>0?qt:'–';sr.appendChild(tdv);
@@ -2748,6 +2793,65 @@ function renderBody(){
     sr.appendChild(tdt);
   });
   body.appendChild(sr);
+  updateTeileAllBtn();
+}
+
+/* ── Unterzeilen: Teile eines Schritts ──
+   Gleiche Spaltenfolge wie die Hauptzeile, aber ohne Level-Farbe und ohne Zählwerte. */
+function teilZeile(stepId,t,vis,extraFlds,L,td){
+  const tr=document.createElement('tr');
+  tr.className='teil'+(teilTrifftFilter(t)?' hit':'');
+  tr.dataset.step=stepId; tr.dataset.teil=t.id;
+  tr.appendChild(td('nr'));
+  tr.appendChild(td('level',vis.level,L.level));
+  const tdCn=td('cn',vis.name,L.cn);
+  tdCn.innerHTML='<span class="teil-mark">↳</span>';
+  tr.appendChild(tdCn);
+  const feld=(cls,show,key,attrs)=>{
+    const c=td(cls,show);
+    const i=document.createElement('input');
+    Object.assign(i,attrs);
+    i.value=t[key];
+    i.addEventListener('focus',e=>{e.stopPropagation();selectPart(stepId);});
+    i.addEventListener('keydown',e=>{if(e.key==='Enter')i.blur();});
+    i.addEventListener('input',()=>teilAendern(stepId,t.id,key,i.value));
+    if(key==='menge') i.addEventListener('blur',()=>{ i.value=t.menge; });   // leeres Feld zeigt danach 0
+    c.appendChild(i);
+    tr.appendChild(c);
+  };
+  feld('sachnr',vis.sachnr,'sachnr',{type:'text',maxLength:8,inputMode:'numeric',className:'sachnr-input',placeholder:'Sachnr.'});
+  feld('teilname',vis.teilname,'name',{type:'text',className:'teil-name-in',placeholder:'Bezeichnung'});
+  extraFlds.forEach(()=>tr.appendChild(td('extra')));
+  feld('qty',true,'menge',{type:'number',min:0,step:1,inputMode:'numeric',className:'qi',title:'Menge'});
+  const tdA=td('acts');
+  const del=document.createElement('button');
+  del.type='button';del.className='row-icon-btn danger';del.title='Teil entfernen (↩ Undo holt es zurück)';del.textContent='✕';
+  del.addEventListener('click',e=>{e.stopPropagation();delTeil(stepId,t.id);});
+  tdA.appendChild(del);
+  tr.appendChild(tdA);
+  tr.appendChild(td('ct'));
+  const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest);
+  tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(stepId); });
+  return tr;
+}
+function teilAddZeile(stepId,vis,extraFlds,L,td){
+  const tr=document.createElement('tr');
+  tr.className='teil teil-add-row';
+  tr.dataset.step=stepId;
+  tr.appendChild(td('nr'));
+  tr.appendChild(td('level',vis.level,L.level));
+  const tdCn=td('cn',vis.name,L.cn), tdS=td('sachnr',vis.sachnr), tdT=td('teilname',vis.teilname);
+  tr.appendChild(tdCn); tr.appendChild(tdS); tr.appendChild(tdT);
+  extraFlds.forEach(()=>tr.appendChild(td('extra')));
+  tr.appendChild(td('qty')); tr.appendChild(td('acts')); tr.appendChild(td('ct'));
+  const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest);
+  /* Knopf in die erste sichtbare der linken Spalten, damit er ohne Scrollen erreichbar ist */
+  const host=[[vis.name,tdCn],[vis.sachnr,tdS],[vis.teilname,tdT]].find(x=>x[0]);
+  const btn=document.createElement('button');
+  btn.type='button';btn.className='teil-add';btn.textContent='+ Teil hinzufügen';
+  btn.addEventListener('click',e=>{e.stopPropagation();addTeil(stepId);});
+  (host?host[1]:tr.firstChild).appendChild(btn);
+  return tr;
 }
 
 /* ═══════════════════════════════════════
@@ -2795,6 +2899,76 @@ function selectPart(id){
   const activeTr=document.querySelector('#tblBody tr[data-id="'+id+'"]');
   if(activeTr) activeTr.classList.add('ar');
 }
+/* ── Teile bearbeiten ── */
+/* Aufklappen ist Anzeige, keine Datenänderung: speichern, aber nicht als „ungesichert" markieren */
+function saveSoon(){ clearTimeout(saveTmr); saveTmr=setTimeout(saveState,800); }
+function toggleTeile(id){
+  if(teileOffen[id]) delete teileOffen[id]; else teileOffen[id]=true;
+  selectPart(id);
+  renderBody(); saveSoon();
+}
+function toggleAlleTeile(){
+  const vis=getFilteredParts();
+  const alleOffen=vis.length>0 && vis.every(p=>teileOffen[p.id]);
+  vis.forEach(p=>{ if(alleOffen) delete teileOffen[p.id]; else teileOffen[p.id]=true; });
+  renderBody(); saveSoon();
+}
+function updateTeileAllBtn(){
+  const b=document.getElementById('teileAllBtn'); if(!b) return;
+  const vis=getFilteredParts();
+  b.textContent=(vis.length>0 && vis.every(p=>teileOffen[p.id])) ? '▸ Alle zuklappen' : '▾ Alle aufklappen';
+}
+/* Passt ein Teil zu einem aktiven Teile-Filter (Sachnummer/Bauteilbenennung)? — für die Hervorhebung */
+function teilTrifftFilter(t){ return false; }
+function addTeil(stepId){
+  const d=data[stepId]; if(!d) return;
+  const t={id:newTeilId(),sachnr:'',name:'',menge:1};
+  d.__teile.push(t);
+  teileOffen[stepId]=true;
+  selectPart(stepId);
+  renderBody(); markDirty(); updateActiveBar();
+  /* Fokus ins erste sichtbare Feld des neuen Teils */
+  const tr=document.querySelector('#tblBody tr.teil[data-teil="'+t.id+'"]');
+  if(tr){
+    const ziel=[...tr.querySelectorAll('input')].find(i=>i.closest('td').style.display!=='none');
+    if(ziel) ziel.focus();
+  }
+}
+/* Ohne Rückfrage — der vorige Stand der Teile-Liste liegt auf dem Undo-Stapel */
+function delTeil(stepId,teilId){
+  const d=data[stepId]; if(!d) return;
+  const i=d.__teile.findIndex(t=>t.id===teilId); if(i<0) return;
+  undoStack.push({part:stepId,key:'__teile',prev:JSON.parse(JSON.stringify(d.__teile))});
+  if(undoStack.length>50) undoStack.shift();
+  const t=d.__teile.splice(i,1)[0];
+  renderBody(); markDirty();
+  const bez=t.name||t.sachnr||'ohne Bezeichnung';
+  lastActionText='Teil „'+bez+'" entfernt · '+partName(stepId); updateLastAction();
+  toast('✕ Teil „'+bez+'" entfernt – ↩ Undo holt es zurück');
+}
+/* Eingabe in einer Unterzeile: Daten sofort nachführen, Hauptzeile und Summe gezielt aktualisieren —
+   ein Neuaufbau der Tabelle würde dem Feld unter dem Finger den Fokus nehmen. */
+function teilAendern(stepId,teilId,key,val){
+  const t=stepTeile(stepId).find(x=>x.id===teilId); if(!t) return;
+  if(key==='menge') t.menge=Math.max(0,parseInt(val)||0);
+  else if(key==='sachnr') t.sachnr=String(val).trim();
+  else t.name=val;
+  markDirty();
+  refreshStepSummary(stepId);
+}
+function refreshStepSummary(id){
+  const teile=stepTeile(id);
+  const tr=document.querySelector('#tblBody tr[data-id="'+id+'"]');
+  if(tr){
+    const s=tr.querySelector('td.sachnr'), n=tr.querySelector('td.teilname'), q=tr.querySelector('td.qty');
+    if(s){ s.textContent=stepKurz(id,'sachnr')||'—'; s.title=teile.map(t=>t.sachnr).filter(Boolean).join(', '); }
+    if(n){ n.textContent=stepKurz(id,'name')||'—'; n.title=teile.map(t=>t.name).filter(Boolean).join(', '); }
+    if(q) q.textContent=stepQty(id);
+    const c=tr.querySelector('.teil-caret'); if(c) c.classList.toggle('leer',!teile.length);
+  }
+  const sq=document.querySelector('#tblBody tr.sum-row td.qty');
+  if(sq){ const tot=parts.reduce((s,p)=>s+stepQty(p.id),0); sq.textContent=tot>0?tot:'–'; }
+}
 function renamePart(id,newName,inp){
   const p=parts.find(x=>x.id===id);
   if(!p) return;
@@ -2804,7 +2978,7 @@ function renamePart(id,newName,inp){
   p.name=newName;
   if(rowClipboard && rowClipboard.sourceId===id) rowClipboard.sourceName=newName;
   updGrid();renderBody(); markDirty();
-  if(dup) toast('ℹ „'+newName+'" gibt es schon – beide Bauteile bleiben unabhängig');
+  if(dup) toast('ℹ „'+newName+'" gibt es schon – beide Prozessschritte bleiben unabhängig');
 }
 function copyRow(id){
   const name=partName(id);
@@ -2818,20 +2992,22 @@ function pasteRow(id){
   const targetName=partName(id);
   if(!confirm(`Inhalte von "${rowClipboard.sourceName}" in "${targetName}" einfügen?\n\nBestehende Werte in "${targetName}" werden überschrieben.`))return;
   data[id]=JSON.parse(JSON.stringify(rowClipboard.values));
+  /* Kopierte Teile bekommen eigene IDs — sonst hingen zwei Schritte an denselben Teilen */
+  data[id].__teile=normTeile(data[id].__teile).map(t=>Object.assign(t,{id:newTeilId()}));
   ensureKeys();
   updGrid();renderBody();markDirty();
   toast('📋 Eingefügt in "'+targetName+'"');
 }
 
 /* ═══════════════════════════════════════
-   BAUTEIL HINZUFÜGEN / LÖSCHEN
+   PROZESSSCHRITT HINZUFÜGEN / LÖSCHEN
 ═══════════════════════════════════════ */
 function addPart(){
   let n=parts.length+1;
-  let suggestion='Bauteil '+n;
+  let suggestion='Schritt '+n;
   const existingNames=parts.map(x=>x.name);
-  while(existingNames.includes(suggestion)){ n++; suggestion='Bauteil '+n; }
-  const answer=prompt('Name des neuen Bauteils:',suggestion);
+  while(existingNames.includes(suggestion)){ n++; suggestion='Schritt '+n; }
+  const answer=prompt('Name des neuen Prozessschritts:',suggestion);
   if(answer===null) return;   // Abbrechen legt nichts an
   const name=answer.trim()||suggestion;
   const id=newPartId();
@@ -2851,13 +3027,14 @@ function delPart(id){
   const name=partName(id);
   const hasValues = COLS.some(c=>(data[id][c.key]||0)>0) || stepTeile(id).length>0;
   const msg = hasValues
-    ? `Bauteil "${name}" wirklich löschen?\n\nDieses Bauteil enthält bereits erfasste Werte – diese gehen dabei unwiderruflich verloren!`
-    : `Bauteil "${name}" löschen?`;
+    ? `Prozessschritt "${name}" wirklich löschen?\n\nEr enthält erfasste Werte oder Teile – diese gehen dabei unwiderruflich verloren!`
+    : `Prozessschritt "${name}" löschen?`;
   if(!confirm(msg)) return;
   const idx=parts.findIndex(x=>x.id===id);
   if(idx<0) return;
   parts.splice(idx,1);
   delete data[id];
+  delete teileOffen[id];
   if(activePart===id) activePart=parts[0]?parts[0].id:null;
   if(rowClipboard && rowClipboard.sourceId===id) rowClipboard=null;
   updGrid();renderBody();updateActiveBar();markDirty();
@@ -3484,7 +3661,9 @@ function loadState(){
     if(s.mtmCustom && typeof s.mtmCustom==='object') mtmCustom=s.mtmCustom;
     if(s.mtmCustomGE && typeof s.mtmCustomGE==='object') mtmCustomGE=s.mtmCustomGE;
     if(s.colVis && typeof s.colVis==='object'){ OPT_COLS.forEach(o=>{ if(typeof s.colVis[o.key]==='boolean') colVis[o.key]=s.colVis[o.key]; }); }
-    if(s.teileOffen && typeof s.teileOffen==='object') teileOffen=s.teileOffen;
+    if(s.teileOffen && typeof s.teileOffen==='object'){
+      teileOffen={}; parts.forEach(p=>{ if(s.teileOffen[p.id]) teileOffen[p.id]=true; });
+    }
     ensureKeys();   // wandelt Daten der Vorversion in Prozessschritte mit Teilen um
     if(ausAlt) saveState();   // ab jetzt unter dem neuen Schlüssel; der alte bleibt als Rückfallebene
     return true;
@@ -3906,6 +4085,7 @@ function handleImport(evt){
       taktMitVz=parsed.takt?parsed.takt.mitVz:true;
       if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
       taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
+      teileOffen={};
       undoStack=[];
       rowClipboard=null;
       activePart=parts[0].id;

@@ -13,6 +13,20 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 ## [Unreleased]
 
 ### Hinzugefügt
+- Soll-Taktzeit im Taktabgleich: Eingabefeld (minD, mit Umrechnung in min und s),
+  daraus Auslastung je Station in %, eine gestrichelte Taktlinie im Balkendiagramm
+  (Balken über dem Takt rot) und die Kennzahlen Engpass, Bandwirkungsgrad
+  (Σ Stationszeiten ÷ (Anzahl Stationen × längste Station)) mit Abstimmungsverlust
+  sowie Anzahl Stationen über Takt. Ein Schalter legt fest, ob die Stationszeiten
+  mit oder ohne Verteilzeit gegen den Takt gestellt werden.
+- Was-wäre-wenn-Szenario im Taktabgleich (Umschalter „Ist / 🔀 Szenario"):
+  Bauteile per Auswahlfeld probeweise zwischen Stationen verschieben, neue
+  Stationen anlegen und sofort sehen, wie sich Balken, Auslastung und Kennzahlen
+  ändern — mit Ist-Wert als gestricheltem Rahmen und Δ-Spalte. Die Basisdaten
+  bleiben dabei unberührt. Das Szenario wird im Projekt und in der CSV gespeichert
+  (`__TAKT__`, `__SZENARIO__`), lässt sich verwerfen oder nach Rückfrage in die
+  Tabelle übernehmen (per Undo Bauteil für Bauteil rücknehmbar) und erscheint im
+  PDF-Bericht als eigener Abschnitt mit Vorher/Nachher und Liste der Verschiebungen.
 - Baustein-Rechner (Toolbar „🧱 Bausteine", nur im Erweitert-Modus): macht sichtbar,
   wie jeder Zeitwert entsteht — Baustein → Grundelemente (mit Gewicht) → MTM-Codes
   mit Einzelzeit, Anzahl und Häufigkeit, jeweils mit ausgeschriebener Formel.
@@ -51,6 +65,13 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   statt fest nach „Station". Die Auswahl wird im Projekt gespeichert.
 
 ### Geändert
+- Taktabgleich: Bauteile ohne Stationseintrag („(ohne Station)") zählen nicht mehr
+  als eigene Station — sie gehen weder in den Mittelwert noch in die Abweichung,
+  den Engpass oder den Bandwirkungsgrad ein und stehen grau am Ende der Liste.
+  Bisher verschob diese Pseudo-Station den Mittelwert.
+- Taktabgleich: Stationszeiten werden standardmäßig inklusive Verteilzeit
+  angezeigt (Schalter „mit Verteilzeit"); bei eingestellter Verteilzeit liegen die
+  Werte daher um diesen Faktor höher als bisher. Die Spaltenüberschrift sagt es an.
 - Der erste Reiter des Baustein-Rechners heißt jetzt „Bausteine" statt
   „Zusammensetzung"; die unterste Ebene heißt durchgängig „LAMA-Elemente" statt
   „MTM-Codes". Damit tragen alle drei Ebenen die Namen, unter denen sie in der

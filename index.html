@@ -917,7 +917,7 @@ td.nr .teil-caret{width:16px;}
     <div class="exp-row">
       <label class="exp-label">Dateiname</label>
       <input class="exp-input" id="expFilename" type="text" placeholder="z.B. Linie3_Getriebe_Welle"/>
-      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (3 Blätter)</span>
+      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (4 Blätter)</span>
     </div>
     <div class="exp-btns">
       <button class="exp-cancel" onclick="closeExpModal()">Abbrechen</button>
@@ -3833,11 +3833,15 @@ function xlsxStyles(){
 <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
 </styleSheet>`;
 }
-/* Blatt 1: Stückliste */
-function xlsxSheetStueckliste(){
+/* Teile eines Schritts als lesbare Zusammenfassung: „12345678 Deckel HI (1×); 87654321 Dichtung (1×)" */
+function teileText(id){
+  return stepTeile(id).map(t=>[t.sachnr,t.name].filter(x=>String(x||'').trim()).join(' ')+' ('+t.menge+'×)').join('; ');
+}
+/* Blatt 1: Arbeitsablauf — eine Zeile je Prozessschritt */
+function xlsxSheetArbeitsablauf(){
   const u=ul();
   const nCat=COLS.length;
-  const fixedCols=['Level','Sachnummer','Bauteil',colLabel('stufe'),colLabel('werkzeug'),colLabel('quelle'),colLabel('extra1'),colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u];
+  const fixedCols=['Level','Prozessschritt','Teile',colLabel('stufe'),colLabel('werkzeug'),colLabel('quelle'),colLabel('extra1'),colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u];
   const firstCatCol=fixedCols.length+1;             // 1-basiert
   const noteCol=firstCatCol+nCat*2;
   const lastCol=noteCol;
@@ -3889,8 +3893,8 @@ function xlsxSheetStueckliste(){
     const d=data[p.id], lvl=Math.min(7,Math.max(1,d.__level||1));
     const sT=17+(lvl-1), sN=24+(lvl-1);
     let r=xc(1,rn,lvl,sN===0?0:sT,true);
-    r+=xc(2,rn,stepKurz(p.id,'sachnr'),sT);
-    r+=xc(3,rn,p.name,sT);
+    r+=xc(2,rn,p.name,sT);
+    r+=xc(3,rn,teileText(p.id),sT);
     r+=xc(4,rn,d.__stufe||'',sT);
     r+=xc(5,rn,d.__werkzeug||'',sT);
     r+=xc(6,rn,d.__quelle||'',sT);
@@ -3912,7 +3916,7 @@ function xlsxSheetStueckliste(){
     rn++;
   });
   // Summenzeile
-  let rs=xc(1,rn,'',35)+xc(2,rn,'',35)+xc(3,rn,'∑ Gesamt',35);
+  let rs=xc(1,rn,'',35)+xc(2,rn,'∑ Gesamt',35)+xc(3,rn,'',35);
   for(let i=4;i<=9;i++) rs+=xc(i,rn,'',35);
   const totQty=parts.reduce((s,p)=>s+stepQty(p.id),0);
   rs+=xc(10,rn,totQty,35,true);
@@ -3927,8 +3931,8 @@ function xlsxSheetStueckliste(){
 
   const colsXml='<cols>'
     +'<col min="1" max="1" width="6" customWidth="1"/>'
-    +'<col min="2" max="2" width="13" customWidth="1"/>'
-    +'<col min="3" max="3" width="42" customWidth="1"/>'
+    +'<col min="2" max="2" width="34" customWidth="1"/>'
+    +'<col min="3" max="3" width="56" customWidth="1"/>'
     +'<col min="4" max="4" width="16" customWidth="1"/>'
     +'<col min="5" max="5" width="26" customWidth="1"/>'
     +'<col min="6" max="6" width="10" customWidth="1"/>'
@@ -3937,18 +3941,46 @@ function xlsxSheetStueckliste(){
     +`<col min="${firstCatCol}" max="${noteCol-1}" width="8" customWidth="1"/>`
     +`<col min="${noteCol}" max="${noteCol}" width="60" customWidth="1"/>`
     +'</cols>';
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+  return {filter:`A4:${colLetter(lastCol)}${rn-1}`, xml:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 <dimension ref="A1:${colLetter(lastCol)}${rn}"/>
-<sheetViews><sheetView tabSelected="1" workbookViewId="0"><pane xSplit="3" ySplit="5" topLeftCell="D6" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>
+<sheetViews><sheetView tabSelected="1" workbookViewId="0"><pane xSplit="2" ySplit="5" topLeftCell="C6" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>
 <sheetFormatPr defaultRowHeight="12"/>
 ${colsXml}
 <sheetData>${rows}</sheetData>
 <autoFilter ref="A4:${colLetter(lastCol)}${rn-1}"/>
 ${merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}
-</worksheet>`;
+</worksheet>`};
 }
-/* Blatt 2: Auswertung */
+/* Blatt 2: Teileliste — eine Zeile je Teil, zum Abgleich mit der SAP-Stückliste */
+function xlsxSheetTeileliste(){
+  let rows='',rn=1;
+  rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Teileliste'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Eine Zeile je Teil · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
+  rn++;
+  const kopf=['Schritt-Nr.','Prozessschritt',colLabel('extra1'),'Sachnummer','Bezeichnung','Menge'];
+  const hr=rn;
+  rows+=`<row r="${rn}" ht="18" customHeight="1">${kopf.map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+  parts.forEach((p,i)=>{
+    const d=data[p.id];
+    stepTeile(p.id).forEach(t=>{
+      /* Sachnummer als Text — führende Nullen dürfen nicht verloren gehen */
+      rows+=`<row r="${rn}">${xc(1,rn,i+1,33,true)}${xc(2,rn,p.name,33)}${xc(3,rn,d.__extra1||'',33)}${xc(4,rn,t.sachnr,33)}${xc(5,rn,t.name,33)}${xc(6,rn,t.menge,33,true)}</row>`;
+      rn++;
+    });
+  });
+  const last=Math.max(rn-1,hr);
+  return {filter:`A${hr}:F${last}`, xml:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:F${last}"/>
+<sheetViews><sheetView workbookViewId="0"><pane ySplit="${hr}" topLeftCell="A${hr+1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+<sheetFormatPr defaultRowHeight="12"/>
+<cols><col min="1" max="1" width="11" customWidth="1"/><col min="2" max="2" width="36" customWidth="1"/><col min="3" max="3" width="14" customWidth="1"/><col min="4" max="4" width="14" customWidth="1"/><col min="5" max="5" width="40" customWidth="1"/><col min="6" max="6" width="9" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+<autoFilter ref="A${hr}:F${last}"/>
+</worksheet>`};
+}
+/* Blatt 3: Auswertung */
 function xlsxSheetAuswertung(){
   const u=ul();
   const fParts=parts;
@@ -3966,8 +3998,9 @@ function xlsxSheetAuswertung(){
   kpi('Sollzeit ['+u+']', sollzeit? disp(sollzeit):'–', sollzeit?32:33, !!sollzeit);
   kpi('Abweichung ['+u+']', sollzeit? disp(istVz-sollzeit):'–', sollzeit?32:33, !!sollzeit);
   kpi('Abweichung [%]', sollzeit? ((istVz-sollzeit)/sollzeit*100).toFixed(1):'–', 33, !!sollzeit);
+  kpi('Prozessschritte', fParts.length, 33, true);
   kpi('Anzahl aller Teile', totQty, 33, true);
-  kpi('Ø Zeit je Stück ['+u+']', totQty>0? disp(ist/totQty):'–', totQty>0?32:33, totQty>0);
+  kpi('Ø Zeit je Teil ['+u+']', totQty>0? disp(ist/totQty):'–', totQty>0?32:33, totQty>0);
   kpi('Stundensatz [€/hD]', hourlyRate||0, 34, true);
   kpi('Montagekosten [€]', hourlyRate>0? ((istVz/100)*hourlyRate).toFixed(2):'–', hourlyRate>0?34:33, hourlyRate>0);
   rn++;
@@ -3993,7 +4026,7 @@ function xlsxSheetAuswertung(){
 <sheetData>${rows}</sheetData>
 </worksheet>`;
 }
-/* Blatt 3: Kategorie-Zeitwerte */
+/* Blatt 4: Kategorie-Zeitwerte */
 function xlsxSheetZeitwerte(){
   const u=ul();
   let rows='',rn=1;
@@ -4020,19 +4053,25 @@ function doExportXlsx(){
   if(!filename.toLowerCase().endsWith('.xlsx')) filename+='.xlsx';
   closeExpModal();
   try{
+    const blatt1=xlsxSheetArbeitsablauf(), blatt2=xlsxSheetTeileliste();
+    /* Excel schreibt zu jedem Autofilter den versteckten Namen _xlnm._FilterDatabase;
+       LibreOffice übernimmt den Filter nur mit ihm (ohne ging er beim Öffnen verloren). */
+    const abs=r=>r.replace(/([A-Z]+)(\d+)/g,'$$$1$$$2');
+    const filterNamen=`<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'Arbeitsablauf'!${abs(blatt1.filter)}</definedName><definedName name="_xlnm._FilterDatabase" localSheetId="1" hidden="1">'Teileliste'!${abs(blatt2.filter)}</definedName></definedNames>`;
     const files=[
       {name:'[Content_Types].xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
       {name:'_rels/.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
       {name:'xl/workbook.xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Stückliste" sheetId="1" r:id="rId1"/><sheet name="Auswertung" sheetId="2" r:id="rId2"/><sheet name="Zeitwerte" sheetId="3" r:id="rId3"/></sheets></workbook>`},
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/></sheets>${filterNamen}</workbook>`},
       {name:'xl/_rels/workbook.xml.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
       {name:'xl/styles.xml',content:xlsxStyles()},
-      {name:'xl/worksheets/sheet1.xml',content:xlsxSheetStueckliste()},
-      {name:'xl/worksheets/sheet2.xml',content:xlsxSheetAuswertung()},
-      {name:'xl/worksheets/sheet3.xml',content:xlsxSheetZeitwerte()}
+      {name:'xl/worksheets/sheet1.xml',content:blatt1.xml},
+      {name:'xl/worksheets/sheet2.xml',content:blatt2.xml},
+      {name:'xl/worksheets/sheet3.xml',content:xlsxSheetAuswertung()},
+      {name:'xl/worksheets/sheet4.xml',content:xlsxSheetZeitwerte()}
     ];
     const bytes=zipStore(files);
     const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});

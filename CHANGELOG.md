@@ -12,6 +12,52 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 
 ## [Unreleased]
 
+> **Grundlegende Änderung (für den nächsten Release: 2.0.0).** Eine Tabellenzeile ist
+> jetzt ein Prozessschritt statt eines Bauteils. Das CSV-Arbeitsformat ändert sich
+> (`__FORMAT__;3`); Dateien im neuen Format kann eine ältere App-Version nicht lesen.
+> Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
+> übernommen und umgewandelt.
+
+### Hinzugefügt (Standardkategorien)
+- „Ø Ölen / Fetten" (0,156 minD, Process, Katalog-Grundelement #36) gehört jetzt fest zu
+  den Kategorien eines neuen Projekts, am Ende der Process-Gruppe. Die Tastenkürzel der
+  nachfolgenden Kategorien rücken dadurch um eine Taste weiter (Ø Code scan: U → I,
+  Screw lock glue: I → O, Screw lock mech.: O → P, Quality gate: P → A, Ø QS check: A → S).
+  Bestehende Projekte behalten ihre eigene Kategorienliste.
+
+### Prozessschritte statt Bauteile
+- Jede Zeile ist ein Prozessschritt, dem beliebig viele Teile (Sachnummer,
+  Bezeichnung, Menge) zugeordnet sind. „Anzahl" ist die Summe der Teilemengen und
+  wird berechnet, nicht mehr eingetippt.
+- Tabelle: Spalten # · Lvl · Prozessschritt · Sachnummer · Bauteilbenennung. Zugeklappt
+  zeigen Sachnummer und Benennung den ersten Eintrag plus „+n". Das Symbol ▸/▾ vor dem
+  Namen klappt die Teile als Unterzeilen auf; dort werden Sachnummer, Bezeichnung und
+  Menge direkt bearbeitet, „+ Teil hinzufügen" legt ein Teil an, ✕ entfernt es
+  (per ↩ Undo rücknehmbar). Fokus in einer Unterzeile aktiviert den Schritt, gezählt
+  wird wie bisher immer auf den aktiven Schritt.
+- „➕ Schritt" statt „➕ Bauteil"; neuer Knopf „Alle auf-/zuklappen". Der
+  Aufklapp-Zustand wird mitgespeichert. Kopieren/Einfügen einer Zeile übernimmt die
+  Teile mit eigenen IDs.
+- Lvl, Prozessschritt, Sachnummer und Bauteilbenennung lassen sich über
+  „🔧 Spalten" ausblenden; ist „Prozessschritt" ausgeblendet, sitzt ▸/▾ in der
+  #-Spalte. Beim seitlichen Scrollen bleiben #, Lvl und Prozessschritt stehen.
+- Filter auf Sachnummer bzw. Bauteilbenennung zeigen jeden Schritt, bei dem mindestens
+  ein Teil passt; aufgeklappt werden die passenden Teile hervorgehoben. Der
+  Anzahl-Filter arbeitet auf der berechneten Anzahl.
+- Auswertung und Druck sprechen von Prozessschritten; „Anzahl aller Teile" und
+  „Ø Zeit/Stk." beruhen auf der Summe der Teilemengen. Der Taktabgleich zeigt je
+  Station „Schritte" und „Teile".
+- CSV-Format 3: erste Zeile `__FORMAT__;3`, Spalte „Teile" (URL-kodiertes JSON) statt
+  „Sachnummer". Export → Import → Export ergibt dieselbe Datei.
+- Excel-Report mit vier Blättern: „Arbeitsablauf" (Teile als Zusammenfassung mit
+  Sachnummer), neu „Teileliste" (eine Zeile je Teil mit Autofilter, zum Abgleich mit
+  der SAP-Stückliste), „Auswertung", „Zeitwerte".
+- Speicherstand unter neuem Schlüssel `zeitaufnahme_v21`; der Stand der Vorversion
+  (`zeitaufnahme_v20`) wird beim ersten Start übernommen und bleibt unverändert liegen.
+- „↺ Alle Zähler zurücksetzen" setzt nur noch Zählwerte zurück, Teile bleiben.
+- Behoben: LibreOffice übernahm den Autofilter des Excel-Exports nicht, weil der
+  zugehörige versteckte Name `_xlnm._FilterDatabase` fehlte.
+
 ### Hinzugefügt
 - Soll-Taktzeit im Taktabgleich: Eingabefeld (minD, mit Umrechnung in min und s),
   daraus Auslastung je Station in %, eine gestrichelte Taktlinie im Balkendiagramm

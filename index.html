@@ -1214,7 +1214,7 @@ function isColVisible(k){ return !!colVis[k]; }
    - Textspalten:  {type:'set', values:Set(...)}
    - Zahlenspalten:{type:'range', min:Number|null, max:Number|null}
    - Kategorien:   {type:'nonzero'}
-   Schlüssel: 'level','sachnr','name','stufe','werkzeug','quelle',
+   Schlüssel: 'level','name','sachnr','teilname','stufe','werkzeug','quelle',
               'extra1','extra2','extra3','qty','total', 'cat:<key>'   */
 let colFilters={};
 function hasAnyFilter(){ return Object.keys(colFilters).length>0; }
@@ -1235,23 +1235,29 @@ function refreshAnalysisIfOpen(){
   }
 }
 
-/* Wert einer Spalte für ein Bauteil (für Filterung und Werteliste) */
+/* Wert einer Spalte für einen Prozessschritt (für Filterung und Werteliste).
+   Sachnummer und Bauteilbenennung liefern eine Liste — ein Wert je Teil. */
 function colValue(part,fk){
   const d=data[part.id]||{};
   if(fk==='name') return part.name||'';
+  if(fk==='sachnr') return stepTeile(part.id).map(t=>t.sachnr);
+  if(fk==='teilname') return stepTeile(part.id).map(t=>t.name);
   if(fk==='level') return String(d.__level||1);
   if(fk==='qty') return stepQty(part.id);
   if(fk==='total') return calcTotal(part.id);
   if(fk.startsWith('cat:')) return d[fk.slice(4)]||0;
   return d['__'+fk]||'';
 }
+/* Anzeigewert in der Filterliste; ein Schritt ohne Teile zählt bei den Teile-Spalten als „(leer)" */
+function fltWert(x){ return (x===''||x===null||x===undefined)?'(leer)':String(x); }
+function fltWerte(v){ return Array.isArray(v) ? (v.length?v.map(fltWert):['(leer)']) : [fltWert(v)]; }
 function partPassesFilters(part){
   for(const fk in colFilters){
     const f=colFilters[fk];
     const v=colValue(part,fk);
     if(f.type==='set'){
-      const sv=(v===''||v===null||v===undefined)?'(leer)':String(v);
-      if(!f.values.has(sv)) return false;
+      /* bei Teile-Spalten genügt ein passendes Teil */
+      if(!fltWerte(v).some(w=>f.values.has(w))) return false;
     } else if(f.type==='range'){
       const n=parseFloat(v)||0;
       if(f.min!==null && n<f.min) return false;
@@ -1367,7 +1373,7 @@ function openColFilter(anchorEl,fk,label,kind){
     const saved=colFilters[fk];delete colFilters[fk];
     const base=parts.filter(partPassesFilters);
     if(saved) colFilters[fk]=saved;
-    const vals=[...new Set(base.map(p=>{const v=colValue(p,fk);return (v===''||v===null||v===undefined)?'(leer)':String(v);}))]
+    const vals=[...new Set(base.flatMap(p=>fltWerte(colValue(p,fk))))]
       .sort((a,b)=>{
         const na=parseFloat(a),nb=parseFloat(b);
         if(!isNaN(na)&&!isNaN(nb)) return na-nb;
@@ -2919,7 +2925,16 @@ function updateTeileAllBtn(){
   b.textContent=(vis.length>0 && vis.every(p=>teileOffen[p.id])) ? '▸ Alle zuklappen' : '▾ Alle aufklappen';
 }
 /* Passt ein Teil zu einem aktiven Teile-Filter (Sachnummer/Bauteilbenennung)? — für die Hervorhebung */
-function teilTrifftFilter(t){ return false; }
+function teilTrifftFilter(t){
+  let aktiv=false;
+  for(const [fk,feld] of [['sachnr','sachnr'],['teilname','name']]){
+    const f=colFilters[fk];
+    if(!f || f.type!=='set') continue;
+    aktiv=true;
+    if(!f.values.has(fltWert(t[feld]))) return false;
+  }
+  return aktiv;
+}
 function addTeil(stepId){
   const d=data[stepId]; if(!d) return;
   const t={id:newTeilId(),sachnr:'',name:'',menge:1};

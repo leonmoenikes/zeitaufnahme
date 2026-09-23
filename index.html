@@ -507,9 +507,10 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 }
 .takt-tbl{border-collapse:collapse;width:100%;font-size:11px;}
 .takt-tbl th{
-  background:#44506b;color:#fff;font-weight:600;padding:6px 7px;text-align:center;
-  border:1px solid #333d54;white-space:nowrap;
+  background:#44506b;color:#fff;font-weight:600;padding:6px 5px;text-align:center;
+  border:1px solid #333d54;vertical-align:bottom;   /* Köpfe dürfen umbrechen — das Fenster ist schmal */
 }
+#taktTableWrap{overflow-x:auto;}
 .takt-tbl td{padding:5px 7px;border:1px solid var(--border);text-align:right;font-family:var(--mono);}
 .takt-tbl td.tk-name{text-align:left;font-family:var(--sans);font-weight:600;color:var(--text);}
 .takt-tbl tr:nth-child(even) td{background:var(--surface2);}
@@ -524,6 +525,41 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .takt-bar-fill.tk-max{background:var(--red);}
 .takt-bar-avg{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--yellow);}
 .takt-bar-val{width:82px;text-align:right;flex-shrink:0;white-space:nowrap;font-family:var(--mono);color:var(--text2);}
+/* feste Breite: sonst sind die Bahnen unterschiedlich lang und Takt-/Ø-Linie stehen versetzt */
+.takt-bars.mit-takt .takt-bar-val{width:132px;}
+.takt-bar-fill.tk-over{background:var(--red);}
+.takt-bar-fill.tk-ohne{background:var(--border2);}
+.takt-bar-takt{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--red);pointer-events:none;}
+.takt-bar-ghost{position:absolute;top:0;left:0;height:100%;border:1.5px dashed var(--text2);border-radius:4px;box-sizing:border-box;pointer-events:none;}
+.takt-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:10px;color:var(--text3);margin-top:8px;}
+.takt-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:4px 0 12px;padding:8px 10px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);}
+.takt-ctl-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);}
+.takt-in{width:88px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:8px;
+  color:var(--text);font-family:var(--mono);font-size:13px;text-align:right;}
+.takt-in:focus{outline:none;border-color:var(--accent);}
+.takt-chk{cursor:pointer;}
+.takt-chk input{width:18px;height:18px;margin:0;}
+.takt-view{margin-left:auto;}
+.ana-kpi-sub{display:block;font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--mono);}
+.takt-note{font-size:11px;padding:8px 10px;border:1px solid #c9b878;background:#fdf6df;border-radius:6px;margin:8px 0;color:#5a4a10;}
+.takt-szen{margin-top:20px;}
+.takt-szen-btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 10px;}
+.takt-st-row{display:flex;align-items:center;gap:8px;min-height:42px;padding:4px 6px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;}
+.takt-st-row:active{background:var(--surface2);}
+.takt-st-row.leer{cursor:default;color:var(--text3);}
+.takt-st-name{flex:1;min-width:0;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.takt-st-row.leer .takt-st-name{color:var(--text3);font-weight:500;}
+.takt-st-meta{font-family:var(--mono);font-size:11px;color:var(--text2);white-space:nowrap;}
+.takt-st-meta.over{color:var(--red);font-weight:700;}
+.takt-parts{padding:2px 0 8px 24px;border-bottom:1px solid var(--border);}
+.takt-part{display:flex;align-items:center;gap:8px;min-height:42px;font-size:11px;border-bottom:1px dashed var(--border);padding:0 4px;}
+.takt-part.moved{background:var(--accent-dim);}
+.takt-part-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
+.takt-part-from{font-size:10px;color:var(--accent-bright);white-space:nowrap;}
+.takt-part-t{font-family:var(--mono);color:var(--text2);width:84px;text-align:right;flex-shrink:0;}
+.takt-part select{max-width:190px;min-height:36px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;
+  padding:4px 6px;font-size:11px;color:var(--text);}
 .ana-top-head{margin-top:20px;margin-bottom:8px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .ana-top-row{display:flex;align-items:center;gap:8px;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);}
 .ana-top-rank{color:var(--text3);width:18px;flex-shrink:0;}
@@ -607,7 +643,10 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .pr-bar-fill{height:100%;background:#5c8bd1;}
 .pr-stack{display:flex;height:100%;}
 .pr-seg{display:block;height:100%;}
-.pr-bar-fill.pr-max{background:#b32020;}
+.pr-bar-fill.pr-max,.pr-bar-fill.pr-over{background:#b32020;}
+.pr-bar-fill.pr-ohne{background:#c5cbe0;}
+.pr-bar-takt{position:absolute;top:-3px;bottom:-3px;width:0;border-left:1.5px dashed #b32020;}
+.pr-bar-ghost{position:absolute;top:0;left:0;height:100%;border:1px dashed #1a1e2e;box-sizing:border-box;}
 .pr-bar-avg{position:absolute;top:-2px;bottom:-2px;width:1px;background:#b07a00;}
 .pr-hint{font-size:9px;color:#5a6076;margin-top:4px;}
 .pr-empty{font-size:10px;color:#666;font-style:italic;}
@@ -785,11 +824,25 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
           <span class="ana-chart-title" id="taktTitle">Zeit je Station – Taktabgleich</span>
           <span class="takt-hint">Gruppiert nach Spalte <select class="takt-sel" id="taktGroupSel" onchange="setTaktGroup(this.value)"></select></span>
         </div>
+        <!-- statisch, damit ein Neuzeichnen die Eingabe nicht unter dem Finger austauscht -->
+        <div class="takt-ctl">
+          <label class="takt-ctl-item">Soll-Taktzeit
+            <input type="number" step="any" min="0" inputmode="decimal" class="takt-in" id="taktSollInput" placeholder="–" onchange="setTaktSoll(this.value)"/>
+            <span class="punit">minD</span><span class="punit" id="taktSollSek"></span>
+          </label>
+          <label class="takt-ctl-item takt-chk"><input type="checkbox" id="taktVzChk" onchange="setTaktMitVz(this.checked)"/><span id="taktVzLbl">mit Verteilzeit</span></label>
+          <div class="toggle-group takt-view">
+            <button class="tg-btn" id="taktViewIst" onclick="setTaktAnsicht('ist')">Ist</button>
+            <button class="tg-btn" id="taktViewSzen" onclick="setTaktAnsicht('szenario')">🔀 Szenario</button>
+          </div>
+        </div>
+        <div id="taktKpiWrap"></div>
         <div id="taktTableWrap"></div>
         <div class="ana-chart-head" style="margin-top:18px;">
           <span class="ana-chart-title" id="taktChartTitle">Zeit je Station [min]</span>
         </div>
         <div id="taktChartWrap"></div>
+        <div id="taktSzenWrap"></div>
       </div>
 
     </div>
@@ -1422,28 +1475,93 @@ function printAnalysis(){
   };
 
   /* Taktabgleich: Balken direkt in der Tabelle, das spart auf Papier eine zweite Grafik */
-  const noStations = takt.list.length===0 || (takt.list.length===1 && takt.list[0].name===taktEmptyLabel());
-  const taktMax=Math.max(...takt.list.map(e=>e.minD),0.0001);
-  const taktRows=takt.list.slice().sort((a,b)=>b.minD-a.minD).map(e=>{
-    const isMax=Math.abs(e.minD-taktMax)<1e-9;
-    return `<tr>
+  const mitT=taktSoll>0;
+  const vzTxt=(taktMitVz&&verteilzeitFactor)?' inkl. '+verteilzeitFactor+' % Verteilzeit':'';
+  const noStations = takt.n===0;
+  const prBar=(e,d,scale,ghost)=>{
+    const cls=e.ohne?' pr-ohne':(mitT?(e.minD>taktSoll+1e-9?' pr-over':''):(e===d.engpass?' pr-max':''));
+    const pc=v=>(v/scale*100).toFixed(1);
+    return `<div class="pr-bar"><div class="pr-bar-fill${cls}" style="width:${pc(e.minD)}%"></div>`
+      +(ghost!=null?`<div class="pr-bar-ghost" style="width:${pc(ghost)}%"></div>`:'')
+      +(d.n&&!e.ohne?`<div class="pr-bar-avg" style="left:${pc(d.avgMinD)}%"></div>`:'')
+      +(mitT&&!e.ohne?`<div class="pr-bar-takt" style="left:${pc(taktSoll)}%"></div>`:'')+'</div>';
+  };
+  const prSort=d=>d.stations.slice().sort((a,b)=>b.minD-a.minD).concat(d.ohne?[d.ohne]:[]);
+  const taktScale=Math.max(takt.maxMinD, takt.ohne?takt.ohne.minD:0, taktSoll, 0.0001);
+  const taktRows=prSort(takt).map(e=>`<tr>
       <td class="pr-txt">${escHtml(e.name)}</td>
       <td>${e.rows}</td>
       <td>${e.minD.toFixed(2)}</td>
       <td>${e.min.toFixed(2)}</td>
       <td>${e.share.toFixed(1)}%</td>
-      <td class="${e.dev>0?'pr-pos':(e.dev<0?'pr-neg':'')}">${e.dev>=0?'+':''}${e.dev.toFixed(2)}</td>
-      <td style="width:24%"><div class="pr-bar"><div class="pr-bar-fill${isMax?' pr-max':''}" style="width:${(e.minD/taktMax*100).toFixed(1)}%"></div><div class="pr-bar-avg" style="left:${(takt.avgMinD/taktMax*100).toFixed(1)}%"></div></div></td>
-    </tr>`;
-  }).join('');
+      <td class="${e.dev==null?'':(e.dev>0?'pr-pos':(e.dev<0?'pr-neg':''))}">${e.dev==null?'–':(e.dev>=0?'+':'')+e.dev.toFixed(2)}</td>
+      ${mitT?`<td class="${e.ausl!=null&&e.ausl>100+1e-9?'pr-pos':''}">${taktPct(e.ausl)}</td>`:''}
+      <td style="width:22%">${prBar(e,takt,taktScale,null)}</td>
+    </tr>`).join('');
+  const prKpis=d=>`<div class="pr-kpis" style="margin-bottom:7px">
+      ${mitT?`<div class="pr-kpi"><span class="pr-kpi-lbl">Soll-Taktzeit</span><span class="pr-kpi-val">${taktSoll.toFixed(2)} minD</span></div>`:''}
+      <div class="pr-kpi"><span class="pr-kpi-lbl">Engpass [minD]</span><span class="pr-kpi-val${mitT&&d.maxMinD>taktSoll+1e-9?' over':''}">${d.engpass?escHtml(d.engpass.name)+' · '+d.maxMinD.toFixed(2):'–'}</span></div>
+      <div class="pr-kpi"><span class="pr-kpi-lbl">Bandwirkungsgrad</span><span class="pr-kpi-val">${d.bwg==null?'–':(d.bwg*100).toFixed(1)+'%'}</span></div>
+      <div class="pr-kpi"><span class="pr-kpi-lbl">Abstimmungsverlust</span><span class="pr-kpi-val">${d.bwg==null?'–':((1-d.bwg)*100).toFixed(1)+'%'}</span></div>
+      <div class="pr-kpi"><span class="pr-kpi-lbl">${escHtml(taktMehrzahl())}${mitT?' · über Takt':''}</span><span class="pr-kpi-val${d.ueberTakt?' over':''}">${d.n}${mitT?' · '+d.ueberTakt:''}</span></div>
+    </div>`;
   const taktBody = noStations
     ? `<p class="pr-empty">Keine ${escHtml(stLbl)}-Zuordnung vorhanden – Spalte „${escHtml(stLbl)}" befüllen, um den Taktabgleich auszuwerten.</p>`
-    : `<table class="pr-tbl">
-        <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. [minD]</th><th>Verteilung</th></tr></thead>
+    : `${prKpis(takt)}<table class="pr-tbl">
+        <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. [minD]</th>${mitT?'<th>Auslastung</th>':''}<th>Verteilung</th></tr></thead>
         <tbody>${taktRows}
-          <tr class="pr-sum"><td class="pr-txt">∑ Gesamt</td><td>${takt.list.reduce((s,e)=>s+e.rows,0)}</td><td>${takt.total.toFixed(2)}</td><td>${(takt.total*MIND_FACTOR).toFixed(2)}</td><td>100,0%</td><td></td><td></td></tr>
+          <tr class="pr-sum"><td class="pr-txt">∑ Gesamt</td><td>${takt.list.reduce((s,e)=>s+e.rows,0)}</td><td>${takt.total.toFixed(2)}</td><td>${(takt.total*MIND_FACTOR).toFixed(2)}</td><td>100,0%</td><td></td>${mitT?'<td></td>':''}<td></td></tr>
         </tbody></table>
-       <p class="pr-hint">Ø je ${escHtml(stLbl)}: ${takt.avgMinD.toFixed(2)} minD · rot = Engpass · senkrechte Linie = Mittelwert</p>`;
+       <p class="pr-hint">Zeiten${vzTxt}. Ø je ${escHtml(stLbl)}: ${takt.avgMinD.toFixed(2)} minD${takt.ohne?' („'+escHtml(takt.ohne.name)+'" zählt nicht mit)':''} · Bandwirkungsgrad = Σ Zeiten ÷ (Anzahl × längste ${escHtml(stLbl)})
+         · ${mitT?'rot = über der Soll-Taktzeit · gestrichelt = Takt':'rot = Engpass'} · senkrechte Linie = Mittelwert</p>`;
+
+  /* Szenario: nur wenn es eines für diese Gruppierung gibt und es etwas verändert */
+  const szenP=taktSzenAktiv();
+  const fIds=new Set(fParts.map(pt=>pt.id));
+  const szenMoves=taktMoves(szenP).filter(pt=>fIds.has(pt.id));
+  let szenSec='';
+  if(szenP && (szenMoves.length || szenP.extra.length)){
+    const sd=taktData(szenP);
+    const istBy=new Map(takt.list.map(e=>[e.ohne?'':e.name,e]));
+    const liste=taktVergleichsListe(sd,takt);
+    const sc=Math.max(sd.maxMinD, takt.maxMinD, sd.ohne?sd.ohne.minD:0, takt.ohne?takt.ohne.minD:0, taktSoll, 0.0001);
+    const vgl=(lbl,a,b)=>`<tr><td class="pr-txt">${lbl}</td><td>${a}</td><td>${b}</td></tr>`;
+    const bwgT=d=>d.bwg==null?'–':(d.bwg*100).toFixed(1)+'%';
+    const engT=d=>d.engpass?escHtml(d.engpass.name)+' · '+d.maxMinD.toFixed(2):'–';
+    const f=taktFaktor();
+    szenSec=`<div class="pr-sec">
+      <h2>Szenario – Umverteilung (nicht in den Basisdaten)</h2>
+      <div class="pr-cols">
+        <table class="pr-tbl" style="flex:0 0 46%">
+          <thead><tr><th>Kennzahl</th><th>Ist</th><th>Szenario</th></tr></thead>
+          <tbody>${vgl('Engpass [minD]',engT(takt),engT(sd))}${vgl('Bandwirkungsgrad',bwgT(takt),bwgT(sd))}
+            ${vgl('Abstimmungsverlust',takt.bwg==null?'–':((1-takt.bwg)*100).toFixed(1)+'%',sd.bwg==null?'–':((1-sd.bwg)*100).toFixed(1)+'%')}
+            ${vgl(escHtml(taktMehrzahl()),takt.n,sd.n)}${mitT?vgl('über Takt',takt.ueberTakt,sd.ueberTakt):''}</tbody>
+        </table>
+        <table class="pr-tbl">
+          <thead><tr><th>Verschobenes Bauteil</th><th>von</th><th>nach</th><th>Zeit [minD]</th></tr></thead>
+          <tbody>${szenMoves.length?szenMoves.map(pt=>`<tr><td class="pr-txt">${escHtml(pt.name)}</td>
+            <td class="pr-txt">${escHtml(taktBasis(pt)||taktEmptyLabel())}</td><td class="pr-txt">${escHtml(szenP.moves[pt.id]||taktEmptyLabel())}</td>
+            <td>${(calcTotal(pt.id)*f).toFixed(2)}</td></tr>`).join(''):'<tr><td class="pr-txt" colspan="4">keine</td></tr>'}</tbody>
+        </table>
+      </div>
+      <table class="pr-tbl" style="margin-top:7px">
+        <thead><tr><th>${escHtml(stLbl)}</th><th>Ist [minD]</th><th>Szenario [minD]</th><th>Δ [minD]</th>${mitT?'<th>Auslastung Ist</th><th>Auslastung Szen.</th>':''}<th>Verteilung</th></tr></thead>
+        <tbody>${liste.map(e=>{
+          const ie=istBy.get(e.ohne?'':e.name);
+          const d=e.minD-(ie?ie.minD:0);
+          return `<tr>
+            <td class="pr-txt">${escHtml(e.name)}${e.entfaellt?' (entfällt)':''}${!ie&&!e.ohne?' (neu)':''}</td>
+            <td>${ie?ie.minD.toFixed(2):'–'}</td>
+            <td>${e.entfaellt?'–':e.minD.toFixed(2)}</td>
+            <td class="${d>1e-9?'pr-pos':(d<-1e-9?'pr-neg':'')}">${Math.abs(d)<1e-9?'':(d>0?'+':'')+d.toFixed(2)}</td>
+            ${mitT?`<td>${taktPct(ie?ie.ausl:null)}</td><td class="${e.ausl!=null&&e.ausl>100+1e-9?'pr-pos':''}">${taktPct(e.ausl)}</td>`:''}
+            <td style="width:22%">${prBar(e,sd,sc,ie?ie.minD:null)}</td>
+          </tr>`;}).join('')}</tbody>
+      </table>
+      <p class="pr-hint">Gestrichelter Rahmen = Ist vor der Umverteilung. Das Szenario ist ein Planstand; die Tabelle der Zeitaufnahme ist davon unberührt.</p>
+    </div>`;
+  }
 
   const topMax=Math.max(...top.map(it=>it.value),0.0001);
   const topTbl=list=>`<table class="pr-tbl">
@@ -1479,6 +1597,7 @@ function printAnalysis(){
       <h2>Taktabgleich – Zeit je ${escHtml(stLbl)}</h2>
       ${taktBody}
     </div>
+    ${szenSec}
 
     <div class="pr-sec pr-keep">
       <h2>Top 10 Bauteile – höchste Gesamtzeit</h2>
@@ -1525,8 +1644,9 @@ function toggleAnaDrill(){
 
 /* ═══════════════════════════════════════
    AUSWERTUNGS-REITER & TAKTABGLEICH
-   Gruppiert die Bauteile nach der Spalte "Station"
-   und zeigt Zeitverteilung + Abweichung vom Mittel.
+   Gruppiert die Bauteile nach einer Zusatzspalte (Standard „Station"),
+   zeigt Zeitverteilung, Abweichung vom Mittel und — mit Soll-Taktzeit —
+   Auslastung und Bandwirkungsgrad. Ein Szenario verschiebt Bauteile probeweise.
 ═══════════════════════════════════════ */
 let anaTab='ueberblick';
 let taktGroupKey='extra1';   // Spalte, nach der der Taktabgleich gruppiert (projektbezogen gespeichert)
@@ -1541,94 +1661,347 @@ function setAnaTab(t){
 /* Zeiten je Gruppe ermitteln — durchgängig minD, unabhängig von der Anzeigeeinheit */
 function taktGroupLabel(){ return colLabel(taktGroupKey); }
 function taktEmptyLabel(){ return '(ohne '+taktGroupLabel()+')'; }
+/* Mehrzahl für Kennzahl-Beschriftungen — die Spalte kann umbenannt sein, „+en" ergäbe „Quelleen" */
+function taktMehrzahl(){
+  const l=taktGroupLabel();
+  if(/e$/i.test(l)) return l+'n';           // Quelle → Quellen, Montagestufe → Montagestufen
+  if(/ion$/i.test(l)) return l+'en';        // Station → Stationen
+  return 'Anzahl '+l;                       // Werkzeug / WT → Anzahl Werkzeug / WT
+}
 function setTaktGroup(k){
   if(!OPT_COLS.some(o=>!o.own&&o.key===k)) return;
   taktGroupKey=k;
+  taktOffen=null;
   markDirty();
   renderTaktabgleich();
 }
-function taktData(){
-  const fParts=getFilteredParts();
-  const fld='__'+taktGroupKey;
-  const map=new Map();
-  fParts.forEach(p=>{
-    const st=(data[p.id][fld]||'').trim() || taktEmptyLabel();
-    if(!map.has(st)) map.set(st,{name:st,rows:0,minD:0});
-    const e=map.get(st);
-    e.rows++;
-    e.minD+=calcTotal(p.id);   // kanonisch in minD
+
+/* ── Soll-Taktzeit und Was-wäre-wenn-Szenario ──
+   taktSoll    Bezugsgröße für Auslastung und Taktlinie, kanonisch in minD (0 = keine).
+   taktSzenario liegt über den Basisdaten und ändert sie nicht:
+               {groupKey, moves:{Bauteil-ID: Zielstation ('' = ohne)}, extra:[neu angelegte Stationen]}
+   Beides wird im Projekt und in der CSV mitgeführt. */
+let taktSoll=0;
+let taktMitVz=true;        // Stationszeiten mit Verteilzeit-Zuschlag gegen den Takt stellen
+let taktSzenario=null;
+let taktAnsicht='ist';     // 'ist' | 'szenario' — reine Anzeige
+let taktOffen=null;        // aufgeklappte Station in der Szenario-Liste
+let taktListe=[];          // zuletzt gezeigte Stationen, damit onclick einen Index statt eines Namens trägt
+
+const taktHas=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+function taktFaktor(){ return taktMitVz ? 1+(verteilzeitFactor||0)/100 : 1; }
+function taktBasis(p){ return ((data[p.id]||{})['__'+taktGroupKey]||'').trim(); }
+/* Ein Szenario gehört zu der Spalte, in der es angelegt wurde */
+function taktSzenAktiv(){ return taktSzenario && taktSzenario.groupKey===taktGroupKey ? taktSzenario : null; }
+function taktStation(p,szen){ return (szen && taktHas(szen.moves,p.id)) ? szen.moves[p.id] : taktBasis(p); }
+/* Tatsächlich verschobene Bauteile: Ziel weicht von der Basis ab und das Bauteil gibt es noch */
+function taktMoves(szen){
+  if(!szen) return [];
+  return parts.filter(p=>taktHas(szen.moves,p.id) && szen.moves[p.id]!==taktBasis(p));
+}
+function taktSzenPruefen(o){
+  if(!o||typeof o!=='object'||typeof o.groupKey!=='string') return null;
+  if(!OPT_COLS.some(c=>!c.own&&c.key===o.groupKey)) return null;
+  const moves={};
+  if(o.moves&&typeof o.moves==='object') Object.keys(o.moves).forEach(k=>{
+    if(typeof o.moves[k]==='string') moves[k]=o.moves[k].trim();
   });
-  const list=[...map.values()];
-  const total=list.reduce((s,e)=>s+e.minD,0);
-  const avgMinD=list.length? total/list.length : 0;
+  const extra=Array.isArray(o.extra) ? [...new Set(o.extra.filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()))] : [];
+  return {groupKey:o.groupKey,moves,extra};
+}
+
+function taktData(szen){
+  const f=taktFaktor();
+  const map=new Map();
+  let ohne=null;
+  const station=name=>{ if(!map.has(name)) map.set(name,{name,rows:0,minD:0,parts:[]}); return map.get(name); };
+  getFilteredParts().forEach(p=>{
+    const st=taktStation(p,szen);
+    const e=st ? station(st) : (ohne||(ohne={name:taktEmptyLabel(),rows:0,minD:0,parts:[],ohne:true}));
+    e.rows++;
+    e.minD+=calcTotal(p.id)*f;   // kanonisch in minD
+    e.parts.push(p);
+  });
+  if(szen) szen.extra.forEach(n=>station(n));   // neu angelegte Stationen auch leer zeigen
+  /* Feste Reihenfolge wie in der Tabelle, neue Stationen hinten — sonst springen die Zeilen,
+     sobald im Szenario das erste Bauteil einer Station woanders hin wandert. */
+  const reihe=taktStationNamen(szen);
+  const pos=nm=>{ const i=reihe.indexOf(nm); return i<0?1e9:i; };
+  const stations=[...map.values()].sort((a,b)=>pos(a.name)-pos(b.name));
+  const n=stations.length;
+  const stTotal=stations.reduce((s,e)=>s+e.minD,0);
+  const total=stTotal+(ohne?ohne.minD:0);
+  /* „ohne Station" ist keine Station: zählt weder für Ø, Engpass noch Bandwirkungsgrad */
+  const avgMinD=n ? stTotal/n : 0;
+  const maxMinD=n ? Math.max(...stations.map(e=>e.minD)) : 0;
+  const engpass=n ? stations.find(e=>e.minD===maxMinD) : null;
+  /* Bandwirkungsgrad = Σ Stationszeiten ÷ (Anzahl Stationen × längste Station) */
+  const bwg=(n && maxMinD>0) ? stTotal/(n*maxMinD) : null;
+  const ueberTakt=taktSoll>0 ? stations.filter(e=>e.minD>taktSoll+1e-9).length : 0;
+  const list=ohne ? stations.concat([ohne]) : stations;
   list.forEach(e=>{
     e.min=e.minD*MIND_FACTOR;   // nur als Umrechnungsspalte
-    e.share=total>0? e.minD/total*100 : 0;
-    e.dev=e.minD-avgMinD;
+    e.share=total>0 ? e.minD/total*100 : 0;
+    e.dev=e.ohne ? null : e.minD-avgMinD;
+    e.ausl=(taktSoll>0 && !e.ohne) ? e.minD/taktSoll*100 : null;
   });
-  return {list,total,avgMinD};
+  return {list,stations,ohne,n,total,stTotal,avgMinD,maxMinD,engpass,bwg,ueberTakt};
 }
+/* Im Szenario verschwindet eine Station, aus der alles wegverschoben wurde. Damit der Vergleich
+   sie trotzdem zeigt, wird sie als „entfällt" eingereiht; „ohne" bleibt am Ende. */
+function taktVergleichsListe(cur,ist){
+  const da=new Set(cur.stations.map(e=>e.name));
+  const weg=ist.stations.filter(e=>!da.has(e.name))
+    .map(e=>({name:e.name,rows:0,minD:0,min:0,share:0,dev:null,ausl:null,parts:[],entfaellt:true}));
+  return cur.stations.concat(weg, cur.ohne?[cur.ohne]:[]);
+}
+/* Alle Stationen, auf die sich verschieben lässt — auch solche, deren Bauteile gerade ausgefiltert sind */
+function taktStationNamen(szen){
+  const s=new Set();
+  parts.forEach(p=>{ const b=taktBasis(p); if(b) s.add(b); });
+  if(szen){ Object.values(szen.moves).forEach(v=>{ if(v) s.add(v); }); szen.extra.forEach(n=>s.add(n)); }
+  return [...s];
+}
+
+/* ── Eingaben ── */
+function setTaktSoll(v){
+  const n=parseFloat(String(v).replace(',','.'));
+  taktSoll=(isNaN(n)||n<0) ? 0 : n;
+  markDirty(); renderTaktabgleich();
+}
+function setTaktMitVz(on){ taktMitVz=!!on; markDirty(); renderTaktabgleich(); }
+function setTaktAnsicht(a){ taktAnsicht=a==='szenario'?'szenario':'ist'; renderTaktabgleich(); }
+
+/* ── Szenario bearbeiten ── */
+function taktSzenStart(){
+  if(!taktSzenAktiv()) taktSzenario={groupKey:taktGroupKey,moves:{},extra:[]};
+  return taktSzenario;
+}
+function taktMove(pid,ziel){
+  const p=parts.find(x=>x.id===pid); if(!p) return;
+  const szen=taktSzenStart();
+  if(ziel===taktBasis(p)) delete szen.moves[pid]; else szen.moves[pid]=ziel;
+  markDirty(); renderTaktabgleich();
+}
+function taktToggle(i){
+  const e=taktListe[i]; if(!e) return;
+  const k=e.ohne?'':e.name;
+  taktOffen=taktOffen===k?null:k;
+  renderTaktabgleich();
+}
+function taktNeueStation(){
+  const name=(prompt('Name der neuen '+taktGroupLabel()+' im Szenario:')||'').trim();
+  if(!name) return;
+  const szen=taktSzenStart();
+  if(taktStationNamen(szen).includes(name)){ toast('⚠ „'+name+'" gibt es schon'); return; }
+  szen.extra.push(name);
+  taktOffen=name;
+  markDirty(); renderTaktabgleich();
+  toast('✓ „'+name+'" angelegt — Bauteile über das Auswahlfeld hierher verschieben');
+}
+function taktStationEntfernen(i,ev){
+  if(ev) ev.stopPropagation();
+  const szen=taktSzenAktiv(); if(!szen) return;
+  const name=szen.extra[i]; if(name===undefined) return;
+  if(parts.some(p=>taktStation(p,szen)===name)){ toast('⚠ „'+name+'" ist noch belegt — erst die Bauteile wegverschieben'); return; }
+  szen.extra.splice(i,1);
+  if(taktOffen===name) taktOffen=null;
+  markDirty(); renderTaktabgleich();
+}
+function taktSzenUebernehmen(){
+  const szen=taktSzenAktiv(); if(!szen) return;
+  const mv=taktMoves(szen);
+  if(!mv.length){ toast('Im Szenario ist nichts verschoben'); return; }
+  const fld='__'+taktGroupKey;
+  if(!confirm(mv.length+' Bauteil(e) in der Spalte „'+taktGroupLabel()+'" umtragen?\n\n'
+    +'Damit ändern sich die Basisdaten. Mit ↩ Undo lässt es sich Bauteil für Bauteil zurücknehmen.')) return;
+  mv.forEach(p=>{
+    undoStack.push({part:p.id,key:fld,prev:data[p.id][fld]||''});
+    data[p.id][fld]=szen.moves[p.id];
+  });
+  while(undoStack.length>50) undoStack.shift();
+  taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
+  renderBody(); markDirty(); renderTaktabgleich();
+  toast('✓ '+mv.length+' Bauteil(e) umgetragen');
+}
+function taktSzenVerwerfen(){
+  if(!taktSzenario) return;
+  if(!confirm('Szenario verwerfen?\n\nDie Verschiebungen gehen verloren, die Basisdaten bleiben unverändert.')) return;
+  taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
+  markDirty(); renderTaktabgleich();
+}
+function taktSzenWechseln(){
+  if(!taktSzenario) return;
+  taktGroupKey=taktSzenario.groupKey; taktOffen=null;
+  markDirty(); renderTaktabgleich();
+}
+
+/* ── Anzeige ── */
+const taktPct=v=>v==null?'–':v.toFixed(1)+'%';
 function renderTaktabgleich(){
-  const {list,total,avgMinD}=taktData();
   const stLbl=taktGroupLabel();
+  const vz=verteilzeitFactor||0;
+  const mitVz=taktMitVz&&vz>0;
   document.getElementById('taktTitle').textContent='Zeit je '+stLbl+' – Taktabgleich';
-  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [minD]';
+  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [minD]'+(mitVz?' inkl. '+vz+' % Verteilzeit':'');
   const sel=document.getElementById('taktGroupSel');
   sel.innerHTML=OPT_COLS.filter(o=>!o.own).map(o=>
     `<option value="${o.key}"${o.key===taktGroupKey?' selected':''}>${escHtml(colLabel(o.key))}</option>`).join('');
+
+  /* Steuerleiste nur befüllen, nicht neu bauen */
+  const si=document.getElementById('taktSollInput');
+  if(document.activeElement!==si) si.value=taktSoll>0?String(mtmR6(taktSoll)):'';
+  document.getElementById('taktSollSek').textContent=taktSoll>0
+    ? '= '+(taktSoll*MIND_FACTOR).toFixed(2)+' min = '+(taktSoll*MIND_FACTOR*60).toFixed(1)+' s' : '';
+  document.getElementById('taktVzChk').checked=taktMitVz;
+  document.getElementById('taktVzLbl').textContent='mit Verteilzeit ('+vz+' %'+(vz?'':' – in der Übersicht einstellen')+')';
+
+  const szen=taktSzenAktiv();
+  const inSzen=taktAnsicht==='szenario';
+  const nMoves=taktMoves(szen).length;
+  document.getElementById('taktViewIst').className='tg-btn'+(inSzen?'':' on-mode');
+  document.getElementById('taktViewSzen').className='tg-btn'+(inSzen?' on-mode':'');
+  document.getElementById('taktViewSzen').textContent='🔀 Szenario'+(nMoves?' ('+nMoves+')':(szen&&szen.extra.length?' •':''));
+
+  const kw=document.getElementById('taktKpiWrap');
   const tw=document.getElementById('taktTableWrap');
   const cw=document.getElementById('taktChartWrap');
-  if(list.length===0){
+  const sw=document.getElementById('taktSzenWrap');
+  const ist=taktData(null);
+  if(ist.list.length===0){
+    kw.innerHTML=''; cw.innerHTML=''; sw.innerHTML='';
     tw.innerHTML='<div style="color:var(--text3);font-size:12px;padding:14px;">Keine Bauteile vorhanden.</div>';
-    cw.innerHTML='';
     return;
   }
-  const noStationOnly = list.length===1 && list[0].name===taktEmptyLabel();
-  const hint = noStationOnly
-    ? `<div style="color:var(--text3);font-size:11px;padding:8px 2px;">Noch keine Einträge vergeben – Spalte „${escHtml(stLbl)}" über 🔧 Spalten einblenden und befüllen.</div>` : '';
+  const cur=inSzen ? taktData(szen) : ist;
+  const vergleich=inSzen && !!szen;   // Ist-Werte nur daneben zeigen, wenn es ein Szenario gibt
+  const rowsList=inSzen ? taktVergleichsListe(cur,ist) : cur.list;
+  const istBy=new Map(ist.list.map(e=>[e.ohne?'':e.name,e]));
 
+  /* Kennzahlen */
+  const istSub=txt=>vergleich?`<span class="ana-kpi-sub">Ist: ${txt}</span>`:'';
+  const engTxt=d=>d.engpass?escHtml(d.engpass.name)+' · '+d.maxMinD.toFixed(2):'–';
+  const bwgTxt=d=>d.bwg==null?'–':(d.bwg*100).toFixed(1)+'%';
+  const over=taktSoll>0 && cur.maxMinD>taktSoll+1e-9;
+  kw.innerHTML=`<div class="ana-kpi-row">
+    <div class="ana-kpi" title="Station mit der längsten Zeit${taktSoll>0?' — rot, wenn über der Soll-Taktzeit':''}">
+      <span class="ana-kpi-lbl">Engpass [minD]</span><span class="ana-kpi-val${over?' over':''}">${engTxt(cur)}</span>${istSub(engTxt(ist))}</div>
+    <div class="ana-kpi" title="Σ Stationszeiten ÷ (Anzahl Stationen × längste Station)">
+      <span class="ana-kpi-lbl">Bandwirkungsgrad</span><span class="ana-kpi-val">${bwgTxt(cur)}</span>
+      <span class="ana-kpi-sub">Abstimmungsverlust ${cur.bwg==null?'–':((1-cur.bwg)*100).toFixed(1)+'%'}</span>${istSub(bwgTxt(ist))}</div>
+    <div class="ana-kpi">
+      <span class="ana-kpi-lbl">${escHtml(taktMehrzahl())}${taktSoll>0?' · über Takt':''}</span>
+      <span class="ana-kpi-val${cur.ueberTakt?' over':''}">${cur.n}${taktSoll>0?' · '+cur.ueberTakt:''}</span>${istSub(ist.n+(taktSoll>0?' · '+ist.ueberTakt:''))}</div>
+  </div>`;
+
+  /* Tabelle */
+  const noStationOnly=ist.n===0 && !inSzen;
+  const hint=noStationOnly
+    ? `<div style="color:var(--text3);font-size:11px;padding:8px 2px;">Noch keine Einträge vergeben – Spalte „${escHtml(stLbl)}" über 🔧 Spalten einblenden und befüllen, oder im 🔀 Szenario über „＋ ${escHtml(stLbl)}" anlegen.</div>` : '';
+  const mitT=taktSoll>0;
   let rows='';
-  list.forEach(e=>{
-    const cls=e.dev>0?'tk-pos':(e.dev<0?'tk-neg':'');
+  rowsList.forEach(e=>{
+    const ie=istBy.get(e.ohne?'':e.name);
+    const d=vergleich ? e.minD-(ie?ie.minD:0) : 0;
+    const devCls=e.dev==null?'':(e.dev>0?'tk-pos':(e.dev<0?'tk-neg':''));
+    const auslCls=e.ausl!=null&&e.ausl>100+1e-9?'tk-pos':'';
     rows+=`<tr>
-      <td class="tk-name">${escHtml(e.name)}</td>
+      <td class="tk-name">${escHtml(e.name)}${e.entfaellt?' <span class="takt-hint">entfällt</span>':''}</td>
       <td>${e.rows}</td>
-      <td>${e.minD.toFixed(2)}</td>
-      <td>${e.min.toFixed(2)}</td>
-      <td>${e.share.toFixed(1)}%</td>
-      <td class="${cls}">${e.dev>=0?'+':''}${e.dev.toFixed(2)}</td>
+      ${vergleich?`<td>${ie?ie.minD.toFixed(2):'–'}</td>`:''}
+      <td>${e.entfaellt?'–':e.minD.toFixed(2)}</td>
+      ${vergleich?`<td class="${d>1e-9?'tk-pos':(d<-1e-9?'tk-neg':'')}">${Math.abs(d)<1e-9?'':(d>0?'+':'')+d.toFixed(2)}</td>`:`<td>${e.min.toFixed(2)}</td>`}
+      ${vergleich?'':`<td>${e.share.toFixed(1)}%</td>`}
+      <td class="${devCls}">${e.dev==null?'–':(e.dev>=0?'+':'')+e.dev.toFixed(2)}</td>
+      ${mitT?`<td class="${auslCls}">${taktPct(e.ausl)}</td>`:''}
     </tr>`;
   });
-  const totRows=list.reduce((s,e)=>s+e.rows,0);
   rows+=`<tr class="tk-sum">
     <td class="tk-name">∑ Gesamt</td>
-    <td>${totRows}</td>
-    <td>${total.toFixed(2)}</td>
-    <td>${(total*MIND_FACTOR).toFixed(2)}</td>
-    <td>100,0%</td>
-    <td></td>
+    <td>${cur.list.reduce((s,e)=>s+e.rows,0)}</td>
+    ${vergleich?`<td>${ist.total.toFixed(2)}</td>`:''}
+    <td>${cur.total.toFixed(2)}</td>
+    ${vergleich?'<td></td>':`<td>${(cur.total*MIND_FACTOR).toFixed(2)}</td>`}
+    ${vergleich?'':'<td>100,0%</td>'}<td></td>${mitT?'<td></td>':''}
   </tr>`;
+  const zeitKopf=mitVz?'Zeit inkl. VZ [minD]':'Zeit [minD]';
   tw.innerHTML=hint+`<table class="takt-tbl">
-    <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. vom Ø [minD]</th></tr></thead>
+    <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th>
+      ${vergleich?`<th>Ist [minD]</th><th>Szenario [minD]</th><th>Δ [minD]</th>`:`<th>${zeitKopf}</th><th>Zeit [min]</th>`}
+      ${vergleich?'':'<th>Anteil</th>'}<th>Abw. vom Ø [minD]</th>${mitT?'<th>Auslastung</th>':''}</tr></thead>
     <tbody>${rows}</tbody></table>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je ${escHtml(stLbl)}: ${avgMinD.toFixed(2)} minD · Engpass rot markiert</div>`;
+    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je ${escHtml(stLbl)}: ${cur.avgMinD.toFixed(2)} minD${cur.ohne?' · „'+escHtml(cur.ohne.name)+'" zählt nicht als '+escHtml(stLbl):''}${mitT?' · Auslastung = Zeit ÷ Soll-Taktzeit':''}</div>`;
 
-  // Balkendiagramm
-  const max=Math.max(...list.map(e=>e.minD),0.0001);
-  cw.innerHTML='<div class="takt-bars">'+list.map(e=>{
-    const isMax=Math.abs(e.minD-max)<1e-9;
-    const avgPct=(avgMinD/max*100).toFixed(1);
+  /* Balken: Maßstab reicht bis zur längsten Station, zum Takt oder zum Ist-Wert im Vergleich */
+  const scale=Math.max(cur.maxMinD, cur.ohne?cur.ohne.minD:0, vergleich?ist.maxMinD:0, taktSoll, 0.0001);
+  const pct=v=>(v/scale*100).toFixed(1);
+  cw.innerHTML='<div class="takt-bars'+(mitT?' mit-takt':'')+'">'+rowsList.map(e=>{
+    const ie=istBy.get(e.ohne?'':e.name);
+    const cls=e.ohne?' tk-ohne':(mitT ? (e.minD>taktSoll+1e-9?' tk-over':'') : (e===cur.engpass?' tk-max':''));
     return `<div class="takt-bar-row">
       <span class="takt-bar-name" title="${escAttr(e.name)}">${escHtml(e.name)}</span>
       <div class="takt-bar-track">
-        <div class="takt-bar-fill${isMax?' tk-max':''}" style="width:${(e.minD/max*100).toFixed(1)}%"></div>
-        <div class="takt-bar-avg" style="left:${avgPct}%" title="Mittelwert ${avgMinD.toFixed(2)} minD"></div>
+        <div class="takt-bar-fill${cls}" style="width:${pct(e.minD)}%"></div>
+        ${vergleich&&ie?`<div class="takt-bar-ghost" style="width:${pct(ie.minD)}%" title="Ist ${ie.minD.toFixed(2)} minD"></div>`:''}
+        ${cur.n&&!e.ohne?`<div class="takt-bar-avg" style="left:${pct(cur.avgMinD)}%" title="Mittelwert ${cur.avgMinD.toFixed(2)} minD"></div>`:''}
+        ${mitT&&!e.ohne?`<div class="takt-bar-takt" style="left:calc(${pct(taktSoll)}% - 1px)" title="Soll-Taktzeit ${taktSoll.toFixed(2)} minD"></div>`:''}
       </div>
-      <span class="takt-bar-val">${e.minD.toFixed(2)} minD</span>
+      <span class="takt-bar-val">${e.entfaellt?'entfällt':e.minD.toFixed(2)+' minD'}${mitT&&e.ausl!=null?' · '+taktPct(e.ausl):''}</span>
     </div>`;
-  }).join('')+'</div>';
-}
+  }).join('')+'</div>'
+  +`<div class="takt-legend"><span>gelb │ Ø je ${escHtml(stLbl)}</span>${mitT?'<span>rot ┆ Soll-Taktzeit · rote Balken liegen über dem Takt</span>':'<span>roter Balken = Engpass</span>'}${vergleich?'<span>gestrichelter Rahmen = Ist vor der Umverteilung</span>':''}</div>`;
 
+  /* Szenario-Bearbeitung */
+  if(!inSzen){ sw.innerHTML=''; taktListe=[]; return; }
+  if(taktSzenario && !szen){
+    sw.innerHTML=`<div class="takt-note">Es gibt bereits ein Szenario für die Gruppierung „${escHtml(colLabel(taktSzenario.groupKey))}".
+      <div class="takt-szen-btns" style="margin-bottom:0">
+        <button class="tbtn" onclick="taktSzenWechseln()">Zu „${escHtml(colLabel(taktSzenario.groupKey))}" wechseln</button>
+        <button class="tbtn danger" onclick="taktSzenVerwerfen()">Szenario verwerfen</button>
+      </div></div>`;
+    taktListe=[];
+    return;
+  }
+  const namen=taktStationNamen(szen);
+  const optionen=cur=>`<option value=""${cur===''?' selected':''}>${escHtml(taktEmptyLabel())}</option>`
+    +namen.map(n=>`<option value="${escAttr(n)}"${n===cur?' selected':''}>${escHtml(n)}</option>`).join('');
+  taktListe=rowsList;
+  let h=`<div class="takt-szen">
+    <div class="ana-chart-head"><span class="ana-chart-title">Szenario – Bauteile verschieben</span></div>
+    <div class="takt-hint">Die Basisdaten bleiben unverändert, bis du übernimmst. ${nMoves?nMoves+' Bauteil(e) verschoben.':'Noch nichts verschoben.'}${hasAnyFilter()?' Gezeigt werden nur die gefilterten Bauteile.':''}</div>
+    <div class="takt-szen-btns">
+      <button class="tbtn" onclick="taktNeueStation()">＋ ${escHtml(stLbl)}</button>
+      <button class="tbtn" onclick="taktSzenUebernehmen()"${nMoves?'':' disabled'}>✓ In Tabelle übernehmen</button>
+      <button class="tbtn danger" onclick="taktSzenVerwerfen()"${szen?'':' disabled'}>✕ Szenario verwerfen</button>
+    </div>`;
+  rowsList.forEach((e,i)=>{
+    const k=e.ohne?'':e.name;
+    const offen=taktOffen===k && e.rows>0;
+    const extraIdx=szen&&!e.ohne ? szen.extra.indexOf(e.name) : -1;
+    const leer=e.rows===0;
+    const ueber=e.ausl!=null&&e.ausl>100+1e-9;
+    h+=`<div class="takt-st-row${leer?' leer':''}"${leer?'':` onclick="taktToggle(${i})"`}>
+      <span class="mtm-caret">${leer?'':(offen?'▾':'▸')}</span>
+      <span class="takt-st-name">${escHtml(e.name)}${extraIdx>=0?' <span class="mtm-tag">neu</span>':''}</span>
+      <span class="takt-st-meta">${e.rows} Bauteil(e)</span>
+      <span class="takt-st-meta${ueber?' over':''}">${e.entfaellt?'entfällt':e.minD.toFixed(2)+' minD'}${e.ausl!=null?' · '+taktPct(e.ausl):''}</span>
+      ${extraIdx>=0&&leer?`<button class="pdel" onclick="taktStationEntfernen(${extraIdx},event)" title="Neue ${escAttr(stLbl)} wieder entfernen">🗑</button>`:''}
+    </div>`;
+    if(offen){
+      const f=taktFaktor();
+      h+='<div class="takt-parts">'+e.parts.map(p=>{
+        const basis=taktBasis(p), ziel=taktStation(p,szen), moved=ziel!==basis;
+        return `<div class="takt-part${moved?' moved':''}">
+          <span class="takt-part-name" title="${escAttr(p.name)}">${escHtml(p.name)}</span>
+          ${moved?`<span class="takt-part-from">↪ aus ${escHtml(basis||taktEmptyLabel())}</span>`:''}
+          <span class="takt-part-t">${(calcTotal(p.id)*f).toFixed(2)} minD</span>
+          <select onchange="taktMove('${escAttr(p.id)}',this.value)" title="Ziel-${escAttr(stLbl)}">${optionen(ziel)}</select>
+        </div>`;
+      }).join('')+'</div>';
+    }
+  });
+  sw.innerHTML=h+'</div>';
+}
 function renderAnalysis(){
   const fParts=getFilteredParts();
 
@@ -1796,6 +2169,7 @@ function startNewProject(){
   sollzeit=0;
   verteilzeitFactor=0;
   hourlyRate=0;
+  taktSoll=0; taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
   lastExportTime=null;
   lastActionText='';
   undoStack=[];
@@ -1840,6 +2214,10 @@ function handleStartImport(evt){
       if(parsed.colLabels) colLabels=parsed.colLabels;
       if(parsed.mtmCustom) mtmCustom=parsed.mtmCustom;
       if(parsed.mtmCustomGE) mtmCustomGE=parsed.mtmCustomGE;
+      taktSoll=parsed.takt?parsed.takt.soll:0;
+      taktMitVz=parsed.takt?parsed.takt.mitVz:true;
+      if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
+      taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
       lastExportTime=null;
       lastActionText='';
       undoStack=[];
@@ -1942,7 +2320,7 @@ function parseImportedCSV(text){
   }
   /* Alle weiteren Metazeilen überspringen und bekannte auswerten. So verschiebt eine
      künftig ergänzte Zeile die Kopfzeile nicht mehr, und ältere Dateien ohne sie laufen weiter. */
-  let mtmCustomParsed=null, mtmGeParsed=null;
+  let mtmCustomParsed=null, mtmGeParsed=null, taktParsed=null, szenRaw=null;
   const metaJson=(zeile)=>{
     try{ const o=JSON.parse(decodeURIComponent(zeile.split(';')[1]||'')); return (o&&typeof o==='object')?o:null; }
     catch(e){ return null; }
@@ -1950,19 +2328,31 @@ function parseImportedCSV(text){
   while(lines[idx] && lines[idx].startsWith('__')){
     if(lines[idx].startsWith('__MTMCUSTOM__')) mtmCustomParsed=metaJson(lines[idx]);
     else if(lines[idx].startsWith('__MTMGE__')) mtmGeParsed=metaJson(lines[idx]);
+    else if(lines[idx].startsWith('__TAKT__')){
+      const q=lines[idx].split(';');
+      const soll=parseFloat(q[1]);
+      taktParsed={soll:(isNaN(soll)||soll<0)?0:soll, mitVz:q[2]!=='0', groupKey:(q[3]||'').trim()};
+    }
+    else if(lines[idx].startsWith('__SZENARIO__')) szenRaw=metaJson(lines[idx]);
     idx++;
   }
   idx++; // Kopfzeile überspringen
   const cols=colsFromFile||COLS;
   const newParts=[];
   const newData={};
+  const rowIds=[];   // Datenzeile in der Datei → neue Bauteil-ID, für das Szenario
+  let rowNo=-1;
   for(let i=idx;i<lines.length;i++){
     const cells=lines[i].split(';');
-    if(!cells[2]||cells[2].startsWith('∑')) continue;
+    if(cells[2]&&cells[2].startsWith('∑')) continue;
+    if(!lines[i].trim()) continue;
+    rowNo++;   // auch namenlose Zeilen zählen, sonst verrutscht die Zuordnung
+    if(!cells[2]) continue;
     const level=parseInt(cells[0])||1;
     const sachnr=cells[1]||'';
     const pName=cells[2];
     const id=newPartId();
+    rowIds[rowNo]=id;
     newParts.push({id,name:pName});
     newData[id]={};
     newData[id].__level=(level>=1&&level<=7)?level:1;
@@ -1985,7 +2375,15 @@ function parseImportedCSV(text){
       newData[id].__note='';
     }
   }
-  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed, mtmCustom:mtmCustomParsed, mtmCustomGE:mtmGeParsed};
+  let szenParsed=null;
+  const szenGeprueft=taktSzenPruefen(szenRaw);
+  if(szenGeprueft){
+    const m={};
+    Object.keys(szenGeprueft.moves).forEach(i=>{ const id=rowIds[+i]; if(id) m[id]=szenGeprueft.moves[i]; });
+    szenGeprueft.moves=m;
+    szenParsed=szenGeprueft;
+  }
+  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed, mtmCustom:mtmCustomParsed, mtmCustomGE:mtmGeParsed, takt:taktParsed, szenario:szenParsed};
 }
 
 /* ═══════════════════════════════════════
@@ -3018,7 +3416,7 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -3053,6 +3451,9 @@ function loadState(){
     hourlyRate = s.hourlyRate || 0;
     if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
     if(s.taktGroupKey && OPT_COLS.some(o=>!o.own&&o.key===s.taktGroupKey)) taktGroupKey=s.taktGroupKey;
+    if(typeof s.taktSoll==='number' && s.taktSoll>=0) taktSoll=s.taktSoll;
+    if(typeof s.taktMitVz==='boolean') taktMitVz=s.taktMitVz;
+    taktSzenario=taktSzenPruefen(s.taktSzenario);
     if(s.mtmCustom && typeof s.mtmCustom==='object') mtmCustom=s.mtmCustom;
     if(s.mtmCustomGE && typeof s.mtmCustomGE==='object') mtmCustomGE=s.mtmCustomGE;
     if(s.colVis && typeof s.colVis==='object'){ OPT_COLS.forEach(o=>{ if(typeof s.colVis[o.key]==='boolean') colVis[o.key]=s.colVis[o.key]; }); }
@@ -3415,7 +3816,13 @@ function doExport(){
   const metaMtm = ['__MTMCUSTOM__',encodeURIComponent(JSON.stringify(mtmCustom||{}))].join(sep);
   // Selbst angelegte Grundelemente, damit die Herleitung darauf aufbauender Bausteine erhalten bleibt
   const metaMtmGe = ['__MTMGE__',encodeURIComponent(JSON.stringify(mtmCustomGE||{}))].join(sep);
-  const csv='\uFEFF'+[metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,metaMtmGe,hdr,...rows].join('\n');
+  // Taktabgleich: Soll-Taktzeit, Verteilzeit-Schalter, Gruppierung
+  const metaTakt = ['__TAKT__',taktSoll||0,taktMitVz?1:0,taktGroupKey].join(sep);
+  // Szenario mit Zeilennummern statt Bauteil-IDs — der Import vergibt neue IDs
+  const szenCsv = taktSzenario ? {groupKey:taktSzenario.groupKey, extra:taktSzenario.extra,
+    moves:Object.fromEntries(parts.map((pt,i)=>[i,pt.id]).filter(([,id])=>taktHas(taktSzenario.moves,id)).map(([i,id])=>[i,taktSzenario.moves[id]]))} : null;
+  const metaSzen = ['__SZENARIO__',encodeURIComponent(JSON.stringify(szenCsv))].join(sep);
+  const csv='\uFEFF'+[metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,metaMtmGe,metaTakt,metaSzen,hdr,...rows].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();
@@ -3466,6 +3873,10 @@ function handleImport(evt){
       if(parsed.colLabels) colLabels=parsed.colLabels;
       if(parsed.mtmCustom) mtmCustom=parsed.mtmCustom;
       if(parsed.mtmCustomGE) mtmCustomGE=parsed.mtmCustomGE;
+      taktSoll=parsed.takt?parsed.takt.soll:0;
+      taktMitVz=parsed.takt?parsed.takt.mitVz:true;
+      if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
+      taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
       undoStack=[];
       rowClipboard=null;
       activePart=parts[0].id;

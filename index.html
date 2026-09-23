@@ -1028,6 +1028,48 @@ function partName(id){
   return p?p.name:'';
 }
 
+/* ── Teile je Prozessschritt ──
+   Eine Zeile ist ein Prozessschritt; die angepackten Teile hängen als Liste daran:
+   data[id].__teile = [{id, sachnr, name, menge}]. Die Anzahl wird daraus abgeleitet. */
+function newTeilId(){
+  return 't_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+}
+function stepTeile(id){
+  const d=data[id];
+  return (d && Array.isArray(d.__teile)) ? d.__teile : [];
+}
+/* Anzahl = Summe der Mengen aller Teile des Schritts */
+function stepQty(id){ return stepTeile(id).reduce((s,t)=>s+(t.menge||0),0); }
+/* Zugeklappte Anzeige einer Teile-Spalte: erster Eintrag plus „+n" für die übrigen Teile */
+function stepKurz(id,feld){
+  const t=stepTeile(id);
+  if(!t.length) return '';
+  const erst=t.find(x=>String(x[feld]||'').trim());
+  if(!erst) return t.length>1 ? '+'+t.length : '';
+  return String(erst[feld]).trim()+(t.length>1 ? ' +'+(t.length-1) : '');
+}
+/* Teile-Liste aus Speicher oder Datei absichern: fehlende IDs ergänzen, Menge ganzzahlig ≥ 0 */
+function normTeile(arr){
+  if(!Array.isArray(arr)) return [];
+  return arr.filter(t=>t && typeof t==='object').map(t=>({
+    id: (typeof t.id==='string' && t.id) ? t.id : newTeilId(),
+    sachnr: String(t.sachnr==null?'':t.sachnr).trim(),
+    name: String(t.name==null?'':t.name),
+    menge: Math.max(0, parseInt(t.menge)||0),
+  }));
+}
+/* Vorversion (eine Zeile = ein Bauteil): __sachnr/__qty werden zu genau einem Teil — aber nur,
+   wenn es eine Sachnummer oder eine Anzahl gab. Leere Platzhalterzeilen bleiben Schritte ohne Teile. */
+function migrateLegacyStep(d,stepName){
+  if(!Array.isArray(d.__teile)){
+    const sachnr=String(d.__sachnr||'').trim(), qty=parseInt(d.__qty)||0;
+    d.__teile=(sachnr||qty>0) ? [{id:newTeilId(), sachnr, name:stepName||'', menge:qty>0?qty:1}] : [];
+  } else {
+    d.__teile=normTeile(d.__teile);
+  }
+  delete d.__sachnr; delete d.__qty;
+}
+
 /* ═══════════════════════════════════════
    NOTIZ-POPUP (Excel-Kommentar-Stil)
    Wiederverwendbar für Kategorie- und Bauteil-Notizen
@@ -1074,9 +1116,8 @@ document.addEventListener('click', e=>{
 function initPart(p){
   if(!data[p]) data[p]={};
   COLS.forEach(c=>{ if(data[p][c.key]===undefined) data[p][c.key]=0; });
-  if(data[p].__qty===undefined) data[p].__qty=0;
+  if(!Array.isArray(data[p].__teile)) data[p].__teile=[];
   if(data[p].__note===undefined) data[p].__note='';
-  if(data[p].__sachnr===undefined) data[p].__sachnr='';
   if(data[p].__extra1===undefined) data[p].__extra1='';
   if(data[p].__extra2===undefined) data[p].__extra2='';
   if(data[p].__extra3===undefined) data[p].__extra3='';
@@ -1089,9 +1130,8 @@ function ensureKeys(){
   parts.forEach(part=>{
     const p=part.id;
     COLS.forEach(c=>{ if(!data[p]) data[p]={}; if(data[p][c.key]===undefined) data[p][c.key]=0; });
-    if(data[p].__qty===undefined) data[p].__qty=0;
+    migrateLegacyStep(data[p],part.name);   // Vorversion umwandeln bzw. Teile-Liste absichern
     if(data[p].__note===undefined) data[p].__note='';
-    if(data[p].__sachnr===undefined) data[p].__sachnr='';
     if(data[p].__extra1===undefined) data[p].__extra1='';
     if(data[p].__extra2===undefined) data[p].__extra2='';
     if(data[p].__extra3===undefined) data[p].__extra3='';
@@ -1177,7 +1217,7 @@ function colValue(part,fk){
   const d=data[part.id]||{};
   if(fk==='name') return part.name||'';
   if(fk==='level') return String(d.__level||1);
-  if(fk==='qty') return d.__qty||0;
+  if(fk==='qty') return stepQty(part.id);
   if(fk==='total') return calcTotal(part.id);
   if(fk.startsWith('cat:')) return d[fk.slice(4)]||0;
   return d['__'+fk]||'';
@@ -2031,7 +2071,7 @@ function renderAnalysis(){
   }
 
   // Ø Zeit/Stk.: Gesamtzeit ÷ Summe Anzahl (Stückzahl) — berücksichtigt Mehrfachverbau
-  const totalQtySum=fParts.reduce((s,p)=>s+(data[p.id].__qty||0),0);
+  const totalQtySum=fParts.reduce((s,p)=>s+stepQty(p.id),0);
   const avgEl=document.getElementById('anaAvgPiece');
   avgEl.textContent = totalQtySum>0 ? (disp2(ist/totalQtySum)+' '+ul()) : '–';
   avgEl.title = totalQtySum>0 ? (disp2(ist)+' '+ul()+' ÷ '+totalQtySum+' Stk.') : 'Keine Anzahl (Stückzahl) erfasst';
@@ -2147,7 +2187,7 @@ function copyAnzahlToCategory(){
   if(targets.length===0){ toast('⚠ Keine (gefilterten) Bauteile gefunden'); return; }
   const catLabel=(COLS.find(c=>c.key===key)||{}).label||key;
   if(!confirm(`Anzahl-Werte in "${catLabel}" für ${targets.length} Bauteil(e) übernehmen?\n\nBestehende Werte in dieser Kategorie werden dabei überschrieben.`)) return;
-  targets.forEach(p=>{ data[p.id][key]=data[p.id].__qty||0; });
+  targets.forEach(p=>{ data[p.id][key]=stepQty(p.id); });
   updGrid();renderBody();markDirty();
   toast(`✓ Anzahl → "${catLabel}" für ${targets.length} Bauteil(e) übernommen`);
 }
@@ -2374,6 +2414,7 @@ function parseImportedCSV(text){
     } else {
       newData[id].__note='';
     }
+    migrateLegacyStep(newData[id],pName);
   }
   let szenParsed=null;
   const szenGeprueft=taktSzenPruefen(szenRaw);
@@ -2581,16 +2622,7 @@ function renderBody(){
     const tdSach=document.createElement('td');
     tdSach.className='sachnr';
     if(!showSach) tdSach.style.display='none';
-    const si=document.createElement('input');
-    si.type='text';si.maxLength=8;si.inputMode='numeric';si.className='sachnr-input';
-    si.value=data[id].__sachnr||'';si.placeholder='—';
-    si.addEventListener('focus',e=>{e.stopPropagation();selectPart(id);});
-    si.addEventListener('keydown',e=>{if(e.key==='Enter')si.blur();});
-    si.addEventListener('blur',()=>{
-      const val=si.value.trim();
-      if((data[id].__sachnr||'')!==val){ data[id].__sachnr=val; markDirty(); }
-    });
-    tdSach.appendChild(si);
+    tdSach.textContent=stepKurz(id,'sachnr')||'—';
     tr.appendChild(tdSach);
 
     // name cell with inline edit
@@ -2663,16 +2695,7 @@ function renderBody(){
     // Anzahl (Stückzahl) - informativ, fließt nicht in Berechnung ein
     const tdQty=document.createElement('td');
     tdQty.className='qty';
-    const qi=document.createElement('input');
-    qi.type='number';qi.step='1';qi.inputMode='numeric';qi.className='qi';
-    qi.value=data[id].__qty||0;
-    qi.addEventListener('focus',e=>{e.stopPropagation();selectPart(id);});
-    qi.addEventListener('keydown',e=>{if(e.key==='Enter')qi.blur();});
-    qi.addEventListener('blur',()=>{
-      const val=parseInt(qi.value)||0;
-      if(data[id].__qty!==val){ data[id].__qty=val; markDirty(); renderBody(); }
-    });
-    tdQty.appendChild(qi);
+    tdQty.textContent=stepQty(id);
     tr.appendChild(tdQty);
     tr.appendChild(tdActs);
 
@@ -2699,7 +2722,7 @@ function renderBody(){
   // Summen werden über ALLE Bauteile berechnet (unabhängig vom Filter)
   parts.forEach(part=>{
     const id=part.id;
-    totQty+=data[id].__qty||0;
+    totQty+=stepQty(id);
     totT+=calcTotal(id);
     COLS.forEach(c=>{ totQ[c.key]+=data[id][c.key]||0; });
   });
@@ -2826,7 +2849,7 @@ function addPart(){
 }
 function delPart(id){
   const name=partName(id);
-  const hasValues = COLS.some(c=>(data[id][c.key]||0)>0) || (data[id].__qty||0)>0;
+  const hasValues = COLS.some(c=>(data[id][c.key]||0)>0) || stepTeile(id).length>0;
   const msg = hasValues
     ? `Bauteil "${name}" wirklich löschen?\n\nDieses Bauteil enthält bereits erfasste Werte – diese gehen dabei unwiderruflich verloren!`
     : `Bauteil "${name}" löschen?`;
@@ -2842,7 +2865,7 @@ function delPart(id){
 }
 function resetAll(){
   if(!confirm('Alle Zähler zurücksetzen?'))return;
-  parts.forEach(p=>{COLS.forEach(c=>data[p.id][c.key]=0);data[p.id].__qty=0;});
+  parts.forEach(p=>{COLS.forEach(c=>data[p.id][c.key]=0);});   // Teile und Mengen bleiben
   updGrid();renderBody();markDirty();toast('Alle Zähler zurückgesetzt');
 }
 
@@ -3409,14 +3432,17 @@ function renderMtmNeu(){
 /* ═══════════════════════════════════════
    AUTOSAVE (localStorage)
 ═══════════════════════════════════════ */
-const LS_KEY = 'zeitaufnahme_v20';
+const LS_KEY = 'zeitaufnahme_v21';
+const LS_KEY_ALT = 'zeitaufnahme_v20';   // Vorversion — wird gelesen und migriert, aber nie überschrieben
+/* Aufgeklappte Prozessschritte (id → true); gehört zum Autosave, nicht in die CSV */
+let teileOffen={};
 let saveTmr;
 const dot = ()=>document.getElementById('saveDot');
 
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -3432,7 +3458,8 @@ function markDirty(){
 
 function loadState(){
   try{
-    const raw=localStorage.getItem(LS_KEY);
+    let raw=localStorage.getItem(LS_KEY), ausAlt=false;
+    if(!raw){ raw=localStorage.getItem(LS_KEY_ALT); ausAlt=!!raw; }
     if(!raw) return false;
     const s=JSON.parse(raw);
     if(!s.parts || s.parts.length===0) return false;
@@ -3457,7 +3484,9 @@ function loadState(){
     if(s.mtmCustom && typeof s.mtmCustom==='object') mtmCustom=s.mtmCustom;
     if(s.mtmCustomGE && typeof s.mtmCustomGE==='object') mtmCustomGE=s.mtmCustomGE;
     if(s.colVis && typeof s.colVis==='object'){ OPT_COLS.forEach(o=>{ if(typeof s.colVis[o.key]==='boolean') colVis[o.key]=s.colVis[o.key]; }); }
-    ensureKeys();
+    if(s.teileOffen && typeof s.teileOffen==='object') teileOffen=s.teileOffen;
+    ensureKeys();   // wandelt Daten der Vorversion in Prozessschritte mit Teilen um
+    if(ausAlt) saveState();   // ab jetzt unter dem neuen Schlüssel; der alte bleibt als Rückfallebene
     return true;
   } catch(e){ return false; }
 }
@@ -3638,7 +3667,7 @@ function xlsxSheetStueckliste(){
     const d=data[p.id], lvl=Math.min(7,Math.max(1,d.__level||1));
     const sT=17+(lvl-1), sN=24+(lvl-1);
     let r=xc(1,rn,lvl,sN===0?0:sT,true);
-    r+=xc(2,rn,d.__sachnr||'',sT);
+    r+=xc(2,rn,stepKurz(p.id,'sachnr'),sT);
     r+=xc(3,rn,p.name,sT);
     r+=xc(4,rn,d.__stufe||'',sT);
     r+=xc(5,rn,d.__werkzeug||'',sT);
@@ -3646,7 +3675,7 @@ function xlsxSheetStueckliste(){
     r+=xc(7,rn,d.__extra1||'',sT);
     r+=xc(8,rn,d.__extra2||'',sT);
     r+=xc(9,rn,d.__extra3||'',sT);
-    r+=xc(10,rn,d.__qty||0,sT,true);
+    r+=xc(10,rn,stepQty(p.id),sT,true);
     // Gesamt als Formel-freie Zahl (Zwischenwerte stehen daneben)
     r+=xc(11,rn,disp(calcTotal(p.id)),sN,true);
     c=firstCatCol;
@@ -3663,7 +3692,7 @@ function xlsxSheetStueckliste(){
   // Summenzeile
   let rs=xc(1,rn,'',35)+xc(2,rn,'',35)+xc(3,rn,'∑ Gesamt',35);
   for(let i=4;i<=9;i++) rs+=xc(i,rn,'',35);
-  const totQty=parts.reduce((s,p)=>s+(data[p.id].__qty||0),0);
+  const totQty=parts.reduce((s,p)=>s+stepQty(p.id),0);
   rs+=xc(10,rn,totQty,35,true);
   rs+=xc(11,rn,disp(parts.reduce((s,p)=>s+calcTotal(p.id),0)),36,true);
   c=firstCatCol;
@@ -3703,7 +3732,7 @@ function xlsxSheetAuswertung(){
   const fParts=parts;
   const ist=fParts.reduce((s,p)=>s+calcTotal(p.id),0);
   const istVz=ist*(1+(verteilzeitFactor||0)/100);
-  const totQty=fParts.reduce((s,p)=>s+(data[p.id].__qty||0),0);
+  const totQty=fParts.reduce((s,p)=>s+stepQty(p.id),0);
   let rows='',rn=1;
   rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Auswertung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Export: '+new Date().toLocaleString('de-DE')+(projectDescription?'  ·  '+projectDescription:''),2)}</row>`;rn++;
@@ -3802,7 +3831,7 @@ function doExport(){
   closeExpModal();
   const sep=';'; const u=ul();
   const hdr=['Level','Sachnummer','Bauteil',colLabel('stufe'),colLabel('werkzeug'),colLabel('quelle'),colLabel('extra1'),colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
-  const rows=parts.map(p=>[data[p.id].__level||1,data[p.id].__sachnr||'',p.name,data[p.id].__stufe||'',data[p.id].__werkzeug||'',data[p.id].__quelle||'',data[p.id].__extra1||'',data[p.id].__extra2||'',data[p.id].__extra3||'',data[p.id].__qty||0,disp(calcTotal(p.id)).replace('.',','),...COLS.flatMap(c=>{const q=data[p.id][c.key]||0;return[q,disp(q*c.param).replace('.',',')];}),encodeURIComponent(data[p.id].__note||'')].join(sep));
+  const rows=parts.map(p=>[data[p.id].__level||1,(stepTeile(p.id).find(t=>t.sachnr)||{}).sachnr||'',p.name,data[p.id].__stufe||'',data[p.id].__werkzeug||'',data[p.id].__quelle||'',data[p.id].__extra1||'',data[p.id].__extra2||'',data[p.id].__extra3||'',stepQty(p.id),disp(calcTotal(p.id)).replace('.',','),...COLS.flatMap(c=>{const q=data[p.id][c.key]||0;return[q,disp(q*c.param).replace('.',',')];}),encodeURIComponent(data[p.id].__note||'')].join(sep));
   const metaProject = ['__PROJECT__',currentProject||''].join(sep);
   const metaDesc = ['__DESC__',encodeURIComponent(projectDescription||'')].join(sep);
   const metaSoll = ['__SOLLZEIT__',sollzeit||0].join(sep);

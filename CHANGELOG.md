@@ -18,6 +18,13 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Hinzugefügt (Standardkategorien)
+- „Ø Ölen / Fetten" (0,156 minD, Process, Katalog-Grundelement #36) gehört jetzt fest zu
+  den Kategorien eines neuen Projekts, am Ende der Process-Gruppe. Die Tastenkürzel der
+  nachfolgenden Kategorien rücken dadurch um eine Taste weiter (Ø Code scan: U → I,
+  Screw lock glue: I → O, Screw lock mech.: O → P, Quality gate: P → A, Ø QS check: A → S).
+  Bestehende Projekte behalten ihre eigene Kategorienliste.
+
 ### Prozessschritte statt Bauteile
 - Jede Zeile ist ein Prozessschritt, dem beliebig viele Teile (Sachnummer,
   Bezeichnung, Menge) zugeordnet sind. „Anzahl" ist die Summe der Teilemengen und

@@ -93,6 +93,13 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   gespeicherter Schlüssel `zeitaufnahme_theme` wird nicht mehr gelesen.
 
 ### Behoben
+- Im Einfach-Modus wurden die linken Spalten (vor allem Station und Anzahl)
+  deutlich breiter als im Erweitert-Modus, sobald die Tabelle ohne die
+  [minD]-Spalten schmaler war als der Bildschirm — gemessen bei sechs Kategorien
+  auf iPad-Breite: Station 80 → 146 px, Anzahl 60 → 169 px. Die Tabelle wird auf
+  Bildschirmbreite gestreckt, und der Browser verteilte den Rest auch auf diese
+  Spalten. Bauteil, Zusatzspalten, Anzahl, Aktionen und ∑ sind jetzt nur so breit
+  wie ihr Inhalt; übriger Platz geht ausschließlich an die Zählspalten.
 - Der Baustein-Rechner zeigte nach einem Umbenennen unter „⚙ Zeiten" weiter den
   Katalognamen statt der eigenen Bezeichnung. Steht ein Baustein im Tool, gelten
   jetzt dessen Name und Gruppe.

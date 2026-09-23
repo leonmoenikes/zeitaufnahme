@@ -325,6 +325,14 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 /* qty (Stückzahl) col - informativ, fließt nicht in Berechnung ein */
 .data-tbl th.th-qty{color:var(--text2);}
 .data-tbl td.qty{text-align:center;}
+/* Linker Block bis einschließlich ∑ nur so breit wie sein Inhalt. Ist die Tabelle schmaler als
+   der Bildschirm (Einfach-Modus ohne [minD]-Spalten, wenige Kategorien), verteilt der Browser den
+   Rest sonst auch auf Bauteil, Station und Anzahl — mit fester Breite geht er nur an die Zählspalten. */
+.data-tbl th.cn,.data-tbl td.cn,
+.data-tbl th.extra,.data-tbl td.extra,
+.data-tbl th.th-qty,.data-tbl td.qty,
+.data-tbl th.acts,.data-tbl td.acts,
+.data-tbl th.ct,.data-tbl td.ct{width:1px;}
 .qi{
   background:transparent;border:none;outline:none;text-align:center;
   font-family:var(--mono);font-size:11px;color:var(--text);

@@ -153,7 +153,7 @@ body.sub .cat-btn.has-v{border-color:var(--red);background:var(--red-dim);}
 body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .cb-note-panel{display:none;}
 
-/* ── NOTIZ-POPUP (Excel-Kommentar-Stil, für Kategorie- und Bauteil-Notizen) ── */
+/* ── NOTIZ-POPUP (Excel-Kommentar-Stil, für Kategorie- und Schritt-Notizen) ── */
 /* ── SPALTEN-MENÜ & SPALTENFILTER ── */
 .col-popup{
   display:none;position:fixed;z-index:650;width:230px;max-height:60vh;overflow-y:auto;
@@ -329,7 +329,7 @@ td.nr .teil-caret{width:16px;}
   font-size:11px;padding:4px 10px;cursor:pointer;margin-left:26px;white-space:nowrap;}
 .teil-add:active{background:var(--accent-dim);}
 .cn-wrap .ni{flex:1;min-width:50px;}
-/* Zeilen-Aktionen: eigene Spalte, damit sie auch bei ausgeblendeter Bauteil-Spalte erreichbar bleiben */
+/* Zeilen-Aktionen: eigene Spalte, damit sie auch bei ausgeblendeter Prozessschritt-Spalte erreichbar bleiben */
 .data-tbl th.acts,.data-tbl td.acts{white-space:nowrap;text-align:center;padding-left:2px;padding-right:2px;}
 .row-icon-btn{
   flex-shrink:0;width:20px;height:20px;line-height:20px;border:none;background:transparent;
@@ -346,7 +346,7 @@ td.nr .teil-caret{width:16px;}
 .data-tbl td.qty{text-align:center;}
 /* Linker Block bis einschließlich ∑ nur so breit wie sein Inhalt. Ist die Tabelle schmaler als
    der Bildschirm (Einfach-Modus ohne [minD]-Spalten, wenige Kategorien), verteilt der Browser den
-   Rest sonst auch auf Bauteil, Station und Anzahl — mit fester Breite geht er nur an die Zählspalten. */
+   Rest sonst auch auf Prozessschritt, Station und Anzahl — mit fester Breite geht er nur an die Zählspalten. */
 .data-tbl th.cn,.data-tbl td.cn,
 .data-tbl th.teilname,.data-tbl td.teilname,
 .data-tbl th.extra,.data-tbl td.extra,
@@ -818,7 +818,7 @@ td.nr .teil-caret{width:16px;}
         </div>
         <div class="ana-kpi"><span class="ana-kpi-lbl">Soll</span><span class="ana-kpi-val" id="anaSoll">–</span></div>
         <div class="ana-kpi"><span class="ana-kpi-lbl">Abweichung</span><span class="ana-kpi-val" id="anaDiff">–</span></div>
-        <div class="ana-kpi" title="Gesamtzeit ÷ Summe Anzahl (Stückzahl) — berücksichtigt Bauteile, die mehrfach verbaut werden">
+        <div class="ana-kpi" title="Gesamtzeit ÷ Summe der angepackten Teile (Summe aller Teilemengen)">
           <span class="ana-kpi-lbl">Ø Zeit/Stk.</span><span class="ana-kpi-val" id="anaAvgPiece">–</span>
         </div>
         <div class="ana-kpi"><span class="ana-kpi-lbl">Anzahl aller Teile</span><span class="ana-kpi-val" id="anaTotalQty">–</span></div>
@@ -834,7 +834,7 @@ td.nr .teil-caret{width:16px;}
       <div class="ana-legend" id="anaLegend"></div>
 
       <div class="ana-top-head">
-        <span class="ana-chart-title">Top 10 Bauteile (Gesamtzeit)</span>
+        <span class="ana-chart-title">Top 10 Prozessschritte (Gesamtzeit)</span>
         <span class="takt-hint">Balkenlänge = Gesamtzeit · Farben = Kategorie-Gruppen</span>
       </div>
       <div id="anaTopHigh"></div>
@@ -1040,7 +1040,8 @@ function escAttr(s){
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 }
 
-/* Interne, unsichtbare Bauteil-ID — unabhängig vom (mehrfach vergebbaren) Anzeigenamen */
+/* Interne, unsichtbare ID eines Prozessschritts — unabhängig vom (mehrfach vergebbaren) Namen.
+   Die Variablennamen parts/partName/activePart stammen aus der Zeit, als eine Zeile ein Bauteil war. */
 function newPartId(){
   return 'p_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 }
@@ -1093,7 +1094,7 @@ function migrateLegacyStep(d,stepName){
 
 /* ═══════════════════════════════════════
    NOTIZ-POPUP (Excel-Kommentar-Stil)
-   Wiederverwendbar für Kategorie- und Bauteil-Notizen
+   Wiederverwendbar für Kategorie- und Schritt-Notizen
 ═══════════════════════════════════════ */
 let notePopupTarget=null;
 function openNotePopup(anchorEl,title,value,onSave){
@@ -1177,7 +1178,7 @@ function updateProjLabel(){
 }
 
 /* ═══════════════════════════════════════
-   FILTER (Spalte "Bauteil")
+   FILTER
 ═══════════════════════════════════════ */
 /* ═══════════════════════════════════════
    SPALTEN-SICHTBARKEIT & SPALTENFILTER
@@ -1491,7 +1492,7 @@ function buildCopySelect(){
 
 /* ═══════════════════════════════════════
    AUSWERTUNG (Soll/Ist, Diagramm, Top-10, Vergleich)
-   Bezieht sich immer nur auf die aktuell gefilterten Bauteile.
+   Bezieht sich immer nur auf die aktuell gefilterten Prozessschritte.
 ═══════════════════════════════════════ */
 let anaDrillLevel='group'; // 'group' | 'category'
 function grandTotal(list){ return (list||parts).reduce((s,p)=>s+calcTotal(p.id),0); }
@@ -1522,7 +1523,7 @@ function printAnalysis(){
   const meta=['Einheit: '+u];
   if(verteilzeitFactor) meta.push('Verteilzeit: '+verteilzeitFactor+'%');
   if(hourlyRate) meta.push('Stundensatz: '+hourlyRate.toLocaleString('de-DE',{minimumFractionDigits:2})+' €/hD');
-  meta.push('Bauteile: '+fParts.length);
+  meta.push('Prozessschritte: '+fParts.length);
 
   /* Beide Detailstufen drucken, unabhängig davon, welche gerade am Bildschirm gewählt ist */
   const chartSec=(title,{items,total})=>{
@@ -1560,6 +1561,7 @@ function printAnalysis(){
   const taktRows=prSort(takt).map(e=>`<tr>
       <td class="pr-txt">${escHtml(e.name)}</td>
       <td>${e.rows}</td>
+      <td>${e.teile}</td>
       <td>${e.minD.toFixed(2)}</td>
       <td>${e.min.toFixed(2)}</td>
       <td>${e.share.toFixed(1)}%</td>
@@ -1577,9 +1579,9 @@ function printAnalysis(){
   const taktBody = noStations
     ? `<p class="pr-empty">Keine ${escHtml(stLbl)}-Zuordnung vorhanden – Spalte „${escHtml(stLbl)}" befüllen, um den Taktabgleich auszuwerten.</p>`
     : `${prKpis(takt)}<table class="pr-tbl">
-        <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. [minD]</th>${mitT?'<th>Auslastung</th>':''}<th>Verteilung</th></tr></thead>
+        <thead><tr><th>${escHtml(stLbl)}</th><th>Schritte</th><th>Teile</th><th>Zeit [minD]</th><th>Zeit [min]</th><th>Anteil</th><th>Abw. [minD]</th>${mitT?'<th>Auslastung</th>':''}<th>Verteilung</th></tr></thead>
         <tbody>${taktRows}
-          <tr class="pr-sum"><td class="pr-txt">∑ Gesamt</td><td>${takt.list.reduce((s,e)=>s+e.rows,0)}</td><td>${takt.total.toFixed(2)}</td><td>${(takt.total*MIND_FACTOR).toFixed(2)}</td><td>100,0%</td><td></td>${mitT?'<td></td>':''}<td></td></tr>
+          <tr class="pr-sum"><td class="pr-txt">∑ Gesamt</td><td>${takt.list.reduce((s,e)=>s+e.rows,0)}</td><td>${takt.list.reduce((s,e)=>s+e.teile,0)}</td><td>${takt.total.toFixed(2)}</td><td>${(takt.total*MIND_FACTOR).toFixed(2)}</td><td>100,0%</td><td></td>${mitT?'<td></td>':''}<td></td></tr>
         </tbody></table>
        <p class="pr-hint">Zeiten${vzTxt}. Ø je ${escHtml(stLbl)}: ${takt.avgMinD.toFixed(2)} minD${takt.ohne?' („'+escHtml(takt.ohne.name)+'" zählt nicht mit)':''} · Bandwirkungsgrad = Σ Zeiten ÷ (Anzahl × längste ${escHtml(stLbl)})
          · ${mitT?'rot = über der Soll-Taktzeit · gestrichelt = Takt':'rot = Engpass'} · senkrechte Linie = Mittelwert</p>`;
@@ -1608,7 +1610,7 @@ function printAnalysis(){
             ${vgl(escHtml(taktMehrzahl()),takt.n,sd.n)}${mitT?vgl('über Takt',takt.ueberTakt,sd.ueberTakt):''}</tbody>
         </table>
         <table class="pr-tbl">
-          <thead><tr><th>Verschobenes Bauteil</th><th>von</th><th>nach</th><th>Zeit [minD]</th></tr></thead>
+          <thead><tr><th>Verschobener Prozessschritt</th><th>von</th><th>nach</th><th>Zeit [minD]</th></tr></thead>
           <tbody>${szenMoves.length?szenMoves.map(pt=>`<tr><td class="pr-txt">${escHtml(pt.name)}</td>
             <td class="pr-txt">${escHtml(taktBasis(pt)||taktEmptyLabel())}</td><td class="pr-txt">${escHtml(szenP.moves[pt.id]||taktEmptyLabel())}</td>
             <td>${(calcTotal(pt.id)*f).toFixed(2)}</td></tr>`).join(''):'<tr><td class="pr-txt" colspan="4">keine</td></tr>'}</tbody>
@@ -1634,7 +1636,7 @@ function printAnalysis(){
 
   const topMax=Math.max(...top.map(it=>it.value),0.0001);
   const topTbl=list=>`<table class="pr-tbl">
-    <thead><tr><th>#</th><th>Bauteil</th><th>Gesamt [${u}]</th><th>Zusammensetzung nach Kategorie-Gruppe</th></tr></thead>
+    <thead><tr><th>#</th><th>Prozessschritt</th><th>Gesamt [${u}]</th><th>Zusammensetzung nach Kategorie-Gruppe</th></tr></thead>
     <tbody>${list.map((it,i)=>`<tr>
       <td class="pr-txt" style="width:18px">${i+1}</td>
       <td class="pr-txt">${escHtml(it.name)}</td>
@@ -1649,7 +1651,7 @@ function printAnalysis(){
       ${projectDescription?`<p class="pr-desc">${escHtml(projectDescription)}</p>`:''}
       <div class="pr-meta">${new Date().toLocaleString('de-DE')} · ${meta.join(' · ')}</div>
     </div>
-    ${hasAnyFilter()?`<div class="pr-scope">🔍 Ausgewertet wurden nur die ${fParts.length} gefilterten Bauteile.</div>`:''}
+    ${hasAnyFilter()?`<div class="pr-scope">🔍 Ausgewertet wurden nur die ${fParts.length} gefilterten Prozessschritte.</div>`:''}
 
     <div class="pr-sec">
       <h2>Kennzahlen</h2>
@@ -1669,7 +1671,7 @@ function printAnalysis(){
     ${szenSec}
 
     <div class="pr-sec pr-keep">
-      <h2>Top 10 Bauteile – höchste Gesamtzeit</h2>
+      <h2>Top 10 Prozessschritte – höchste Gesamtzeit</h2>
       ${topTbl(top)}
     </div>
 
@@ -1713,9 +1715,9 @@ function toggleAnaDrill(){
 
 /* ═══════════════════════════════════════
    AUSWERTUNGS-REITER & TAKTABGLEICH
-   Gruppiert die Bauteile nach einer Zusatzspalte (Standard „Station"),
+   Gruppiert die Prozessschritte nach einer Zusatzspalte (Standard „Station"),
    zeigt Zeitverteilung, Abweichung vom Mittel und — mit Soll-Taktzeit —
-   Auslastung und Bandwirkungsgrad. Ein Szenario verschiebt Bauteile probeweise.
+   Auslastung und Bandwirkungsgrad. Ein Szenario verschiebt Prozessschritte probeweise.
 ═══════════════════════════════════════ */
 let anaTab='ueberblick';
 let taktGroupKey='extra1';   // Spalte, nach der der Taktabgleich gruppiert (projektbezogen gespeichert)
@@ -1748,7 +1750,7 @@ function setTaktGroup(k){
 /* ── Soll-Taktzeit und Was-wäre-wenn-Szenario ──
    taktSoll    Bezugsgröße für Auslastung und Taktlinie, kanonisch in minD (0 = keine).
    taktSzenario liegt über den Basisdaten und ändert sie nicht:
-               {groupKey, moves:{Bauteil-ID: Zielstation ('' = ohne)}, extra:[neu angelegte Stationen]}
+               {groupKey, moves:{Schritt-ID: Zielstation ('' = ohne)}, extra:[neu angelegte Stationen]}
    Beides wird im Projekt und in der CSV mitgeführt. */
 let taktSoll=0;
 let taktMitVz=true;        // Stationszeiten mit Verteilzeit-Zuschlag gegen den Takt stellen
@@ -1763,7 +1765,7 @@ function taktBasis(p){ return ((data[p.id]||{})['__'+taktGroupKey]||'').trim(); 
 /* Ein Szenario gehört zu der Spalte, in der es angelegt wurde */
 function taktSzenAktiv(){ return taktSzenario && taktSzenario.groupKey===taktGroupKey ? taktSzenario : null; }
 function taktStation(p,szen){ return (szen && taktHas(szen.moves,p.id)) ? szen.moves[p.id] : taktBasis(p); }
-/* Tatsächlich verschobene Bauteile: Ziel weicht von der Basis ab und das Bauteil gibt es noch */
+/* Tatsächlich verschobene Schritte: Ziel weicht von der Basis ab und den Schritt gibt es noch */
 function taktMoves(szen){
   if(!szen) return [];
   return parts.filter(p=>taktHas(szen.moves,p.id) && szen.moves[p.id]!==taktBasis(p));
@@ -1783,17 +1785,18 @@ function taktData(szen){
   const f=taktFaktor();
   const map=new Map();
   let ohne=null;
-  const station=name=>{ if(!map.has(name)) map.set(name,{name,rows:0,minD:0,parts:[]}); return map.get(name); };
+  const station=name=>{ if(!map.has(name)) map.set(name,{name,rows:0,teile:0,minD:0,parts:[]}); return map.get(name); };
   getFilteredParts().forEach(p=>{
     const st=taktStation(p,szen);
-    const e=st ? station(st) : (ohne||(ohne={name:taktEmptyLabel(),rows:0,minD:0,parts:[],ohne:true}));
-    e.rows++;
+    const e=st ? station(st) : (ohne||(ohne={name:taktEmptyLabel(),rows:0,teile:0,minD:0,parts:[],ohne:true}));
+    e.rows++;                 // Prozessschritte
+    e.teile+=stepQty(p.id);   // angepackte Teile (Summe der Mengen)
     e.minD+=calcTotal(p.id)*f;   // kanonisch in minD
     e.parts.push(p);
   });
   if(szen) szen.extra.forEach(n=>station(n));   // neu angelegte Stationen auch leer zeigen
   /* Feste Reihenfolge wie in der Tabelle, neue Stationen hinten — sonst springen die Zeilen,
-     sobald im Szenario das erste Bauteil einer Station woanders hin wandert. */
+     sobald im Szenario der erste Schritt einer Station woanders hin wandert. */
   const reihe=taktStationNamen(szen);
   const pos=nm=>{ const i=reihe.indexOf(nm); return i<0?1e9:i; };
   const stations=[...map.values()].sort((a,b)=>pos(a.name)-pos(b.name));
@@ -1821,10 +1824,10 @@ function taktData(szen){
 function taktVergleichsListe(cur,ist){
   const da=new Set(cur.stations.map(e=>e.name));
   const weg=ist.stations.filter(e=>!da.has(e.name))
-    .map(e=>({name:e.name,rows:0,minD:0,min:0,share:0,dev:null,ausl:null,parts:[],entfaellt:true}));
+    .map(e=>({name:e.name,rows:0,teile:0,minD:0,min:0,share:0,dev:null,ausl:null,parts:[],entfaellt:true}));
   return cur.stations.concat(weg, cur.ohne?[cur.ohne]:[]);
 }
-/* Alle Stationen, auf die sich verschieben lässt — auch solche, deren Bauteile gerade ausgefiltert sind */
+/* Alle Stationen, auf die sich verschieben lässt — auch solche, deren Schritte gerade ausgefiltert sind */
 function taktStationNamen(szen){
   const s=new Set();
   parts.forEach(p=>{ const b=taktBasis(p); if(b) s.add(b); });
@@ -1866,13 +1869,13 @@ function taktNeueStation(){
   szen.extra.push(name);
   taktOffen=name;
   markDirty(); renderTaktabgleich();
-  toast('✓ „'+name+'" angelegt — Bauteile über das Auswahlfeld hierher verschieben');
+  toast('✓ „'+name+'" angelegt — Prozessschritte über das Auswahlfeld hierher verschieben');
 }
 function taktStationEntfernen(i,ev){
   if(ev) ev.stopPropagation();
   const szen=taktSzenAktiv(); if(!szen) return;
   const name=szen.extra[i]; if(name===undefined) return;
-  if(parts.some(p=>taktStation(p,szen)===name)){ toast('⚠ „'+name+'" ist noch belegt — erst die Bauteile wegverschieben'); return; }
+  if(parts.some(p=>taktStation(p,szen)===name)){ toast('⚠ „'+name+'" ist noch belegt — erst die Prozessschritte wegverschieben'); return; }
   szen.extra.splice(i,1);
   if(taktOffen===name) taktOffen=null;
   markDirty(); renderTaktabgleich();
@@ -1882,8 +1885,8 @@ function taktSzenUebernehmen(){
   const mv=taktMoves(szen);
   if(!mv.length){ toast('Im Szenario ist nichts verschoben'); return; }
   const fld='__'+taktGroupKey;
-  if(!confirm(mv.length+' Bauteil(e) in der Spalte „'+taktGroupLabel()+'" umtragen?\n\n'
-    +'Damit ändern sich die Basisdaten. Mit ↩ Undo lässt es sich Bauteil für Bauteil zurücknehmen.')) return;
+  if(!confirm(mv.length+' Prozessschritt(e) in der Spalte „'+taktGroupLabel()+'" umtragen?\n\n'
+    +'Damit ändern sich die Basisdaten. Mit ↩ Undo lässt es sich Schritt für Schritt zurücknehmen.')) return;
   mv.forEach(p=>{
     undoStack.push({part:p.id,key:fld,prev:data[p.id][fld]||''});
     data[p.id][fld]=szen.moves[p.id];
@@ -1891,7 +1894,7 @@ function taktSzenUebernehmen(){
   while(undoStack.length>50) undoStack.shift();
   taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
   renderBody(); markDirty(); renderTaktabgleich();
-  toast('✓ '+mv.length+' Bauteil(e) umgetragen');
+  toast('✓ '+mv.length+' Prozessschritt(e) umgetragen');
 }
 function taktSzenVerwerfen(){
   if(!taktSzenario) return;
@@ -1939,7 +1942,7 @@ function renderTaktabgleich(){
   const ist=taktData(null);
   if(ist.list.length===0){
     kw.innerHTML=''; cw.innerHTML=''; sw.innerHTML='';
-    tw.innerHTML='<div style="color:var(--text3);font-size:12px;padding:14px;">Keine Bauteile vorhanden.</div>';
+    tw.innerHTML='<div style="color:var(--text3);font-size:12px;padding:14px;">Keine Prozessschritte vorhanden.</div>';
     return;
   }
   const cur=inSzen ? taktData(szen) : ist;
@@ -1977,7 +1980,7 @@ function renderTaktabgleich(){
     rows+=`<tr>
       <td class="tk-name">${escHtml(e.name)}${e.entfaellt?' <span class="takt-hint">entfällt</span>':''}</td>
       <td>${e.rows}</td>
-      ${vergleich?`<td>${ie?ie.minD.toFixed(2):'–'}</td>`:''}
+      ${vergleich?`<td>${ie?ie.minD.toFixed(2):'–'}</td>`:`<td>${e.teile}</td>`}
       <td>${e.entfaellt?'–':e.minD.toFixed(2)}</td>
       ${vergleich?`<td class="${d>1e-9?'tk-pos':(d<-1e-9?'tk-neg':'')}">${Math.abs(d)<1e-9?'':(d>0?'+':'')+d.toFixed(2)}</td>`:`<td>${e.min.toFixed(2)}</td>`}
       ${vergleich?'':`<td>${e.share.toFixed(1)}%</td>`}
@@ -1988,15 +1991,15 @@ function renderTaktabgleich(){
   rows+=`<tr class="tk-sum">
     <td class="tk-name">∑ Gesamt</td>
     <td>${cur.list.reduce((s,e)=>s+e.rows,0)}</td>
-    ${vergleich?`<td>${ist.total.toFixed(2)}</td>`:''}
+    ${vergleich?`<td>${ist.total.toFixed(2)}</td>`:`<td>${cur.list.reduce((s,e)=>s+e.teile,0)}</td>`}
     <td>${cur.total.toFixed(2)}</td>
     ${vergleich?'<td></td>':`<td>${(cur.total*MIND_FACTOR).toFixed(2)}</td>`}
     ${vergleich?'':'<td>100,0%</td>'}<td></td>${mitT?'<td></td>':''}
   </tr>`;
   const zeitKopf=mitVz?'Zeit inkl. VZ [minD]':'Zeit [minD]';
   tw.innerHTML=hint+`<table class="takt-tbl">
-    <thead><tr><th>${escHtml(stLbl)}</th><th>Zeilen</th>
-      ${vergleich?`<th>Ist [minD]</th><th>Szenario [minD]</th><th>Δ [minD]</th>`:`<th>${zeitKopf}</th><th>Zeit [min]</th>`}
+    <thead><tr><th>${escHtml(stLbl)}</th><th>Schritte</th>
+      ${vergleich?`<th>Ist [minD]</th><th>Szenario [minD]</th><th>Δ [minD]</th>`:`<th>Teile</th><th>${zeitKopf}</th><th>Zeit [min]</th>`}
       ${vergleich?'':'<th>Anteil</th>'}<th>Abw. vom Ø [minD]</th>${mitT?'<th>Auslastung</th>':''}</tr></thead>
     <tbody>${rows}</tbody></table>
     <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je ${escHtml(stLbl)}: ${cur.avgMinD.toFixed(2)} minD${cur.ohne?' · „'+escHtml(cur.ohne.name)+'" zählt nicht als '+escHtml(stLbl):''}${mitT?' · Auslastung = Zeit ÷ Soll-Taktzeit':''}</div>`;
@@ -2036,8 +2039,8 @@ function renderTaktabgleich(){
     +namen.map(n=>`<option value="${escAttr(n)}"${n===cur?' selected':''}>${escHtml(n)}</option>`).join('');
   taktListe=rowsList;
   let h=`<div class="takt-szen">
-    <div class="ana-chart-head"><span class="ana-chart-title">Szenario – Bauteile verschieben</span></div>
-    <div class="takt-hint">Die Basisdaten bleiben unverändert, bis du übernimmst. ${nMoves?nMoves+' Bauteil(e) verschoben.':'Noch nichts verschoben.'}${hasAnyFilter()?' Gezeigt werden nur die gefilterten Bauteile.':''}</div>
+    <div class="ana-chart-head"><span class="ana-chart-title">Szenario – Prozessschritte verschieben</span></div>
+    <div class="takt-hint">Die Basisdaten bleiben unverändert, bis du übernimmst. ${nMoves?nMoves+' Prozessschritt(e) verschoben.':'Noch nichts verschoben.'}${hasAnyFilter()?' Gezeigt werden nur die gefilterten Prozessschritte.':''}</div>
     <div class="takt-szen-btns">
       <button class="tbtn" onclick="taktNeueStation()">＋ ${escHtml(stLbl)}</button>
       <button class="tbtn" onclick="taktSzenUebernehmen()"${nMoves?'':' disabled'}>✓ In Tabelle übernehmen</button>
@@ -2052,7 +2055,7 @@ function renderTaktabgleich(){
     h+=`<div class="takt-st-row${leer?' leer':''}"${leer?'':` onclick="taktToggle(${i})"`}>
       <span class="mtm-caret">${leer?'':(offen?'▾':'▸')}</span>
       <span class="takt-st-name">${escHtml(e.name)}${extraIdx>=0?' <span class="mtm-tag">neu</span>':''}</span>
-      <span class="takt-st-meta">${e.rows} Bauteil(e)</span>
+      <span class="takt-st-meta">${e.rows} Schritt(e) · ${e.teile} Teil${e.teile===1?'':'e'}</span>
       <span class="takt-st-meta${ueber?' over':''}">${e.entfaellt?'entfällt':e.minD.toFixed(2)+' minD'}${e.ausl!=null?' · '+taktPct(e.ausl):''}</span>
       ${extraIdx>=0&&leer?`<button class="pdel" onclick="taktStationEntfernen(${extraIdx},event)" title="Neue ${escAttr(stLbl)} wieder entfernen">🗑</button>`:''}
     </div>`;
@@ -2076,7 +2079,7 @@ function renderAnalysis(){
 
   const scopeNote=document.getElementById('anaScopeNote');
   if(hasAnyFilter()){
-    scopeNote.textContent='🔍 Bezieht sich nur auf die '+fParts.length+' gefilterten Bauteile';
+    scopeNote.textContent='🔍 Bezieht sich nur auf die '+fParts.length+' gefilterten Prozessschritte';
     scopeNote.classList.add('show');
   } else {
     scopeNote.classList.remove('show');
@@ -2141,7 +2144,7 @@ function analysisItems(fParts,level){
   }
   return {items, total:items.reduce((s,it)=>s+it.value,0)};
 }
-/* Top 10 nach Gesamtzeit, je Bauteil aufgeschlüsselt nach Kategorie-Gruppen */
+/* Top 10 nach Gesamtzeit, je Prozessschritt aufgeschlüsselt nach Kategorie-Gruppen */
 function topParts(fParts){
   return fParts.map(p=>{
     const perGroup={};
@@ -2155,7 +2158,7 @@ function topParts(fParts){
     };
   }).sort((a,b)=>b.value-a.value).slice(0,10);
 }
-/* Segmente eines gestapelten Balkens; Breite je Segment = Anteil an der Bauteilzeit */
+/* Segmente eines gestapelten Balkens; Breite je Segment = Anteil an der Schrittzeit */
 function stackSegments(it,cls){
   return it.segments.map(s=>
     `<span class="${cls}" style="width:${(s.value/it.value*100).toFixed(2)}%;background:${s.color}" title="${escAttr(s.name+': '+disp2(s.value)+' '+ul())}"></span>`
@@ -2213,12 +2216,12 @@ function copyAnzahlToCategory(){
   const key=sel.value;
   if(!key){ toast('⚠ Keine Kategorie ausgewählt'); return; }
   const targets=getFilteredParts();
-  if(targets.length===0){ toast('⚠ Keine (gefilterten) Bauteile gefunden'); return; }
+  if(targets.length===0){ toast('⚠ Keine (gefilterten) Prozessschritte gefunden'); return; }
   const catLabel=(COLS.find(c=>c.key===key)||{}).label||key;
-  if(!confirm(`Anzahl-Werte in "${catLabel}" für ${targets.length} Bauteil(e) übernehmen?\n\nBestehende Werte in dieser Kategorie werden dabei überschrieben.`)) return;
+  if(!confirm(`Anzahl-Werte in "${catLabel}" für ${targets.length} Prozessschritt(e) übernehmen?\n\nBestehende Werte in dieser Kategorie werden dabei überschrieben.`)) return;
   targets.forEach(p=>{ data[p.id][key]=stepQty(p.id); });
   updGrid();renderBody();markDirty();
-  toast(`✓ Anzahl → "${catLabel}" für ${targets.length} Bauteil(e) übernommen`);
+  toast(`✓ Anzahl → "${catLabel}" für ${targets.length} Prozessschritt(e) übernommen`);
 }
 
 /* ═══════════════════════════════════════
@@ -2272,7 +2275,7 @@ function handleStartImport(evt){
   reader.onload=e=>{
     try{
       const parsed=parseImportedCSV(e.target.result);
-      if(!parsed||parsed.parts.length===0){ toast('⚠ Keine Bauteile gefunden oder CSV ungültig'); return; }
+      if(!parsed||parsed.parts.length===0){ toast('⚠ Keine Prozessschritte gefunden oder CSV ungültig'); return; }
       COLS=parsed.cols;
       parts=parsed.parts;
       data=parsed.data;
@@ -2886,10 +2889,10 @@ function updateLastAction(){
 function undoLast(){
   const last=undoStack.pop();
   if(!last){toast('Nichts rückgängig zu machen');return;}
-  if(!data[last.part]){toast('⚠ Bauteil nicht mehr vorhanden');return;}
+  if(!data[last.part]){toast('⚠ Prozessschritt nicht mehr vorhanden');return;}
   data[last.part][last.key]=last.prev;
   updGrid(); renderBody(); markDirty();
-  const nm=partName(last.part)||'(gelöschtes Bauteil)';
+  const nm=partName(last.part)||'(gelöschter Prozessschritt)';
   toast('↩ Rückgängig: '+nm);
   lastActionText='↩ Rückgängig: '+nm;
   updateLastAction();
@@ -3361,7 +3364,7 @@ function mtmDeleteBs(key,ev){
   if(!c) return;
   const benutzt=parts.filter(pt=>(data[pt.id][key]||0)>0);
   if(benutzt.length){
-    toast('⚠ „'+c.label+'" ist auf '+benutzt.length+' Bauteil(en) erfasst — dort erst auf 0 setzen');
+    toast('⚠ „'+c.label+'" ist in '+benutzt.length+' Prozessschritt(en) erfasst — dort erst auf 0 setzen');
     return;
   }
   if(!confirm('Baustein „'+c.label+'" löschen?\n\nEs sind keine Zeiten darauf erfasst. Die hinterlegte Herleitung geht verloren.')) return;
@@ -4082,7 +4085,7 @@ function handleImport(evt){
   reader.onload=e=>{
     try{
       const parsed=parseImportedCSV(e.target.result);
-      if(!parsed||parsed.parts.length===0){ toast('⚠ CSV leer, ungültig oder keine Bauteile gefunden'); return; }
+      if(!parsed||parsed.parts.length===0){ toast('⚠ CSV leer, ungültig oder keine Prozessschritte gefunden'); return; }
 
       if(!confirm(`CSV importieren?\n„${file.name}"\n\nAchtung: Aktuelle Daten werden überschrieben.`)) return;
 

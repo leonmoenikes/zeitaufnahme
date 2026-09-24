@@ -59,13 +59,15 @@ document.currentScript.parentNode.appendChild(link);
   --sh-pop:0 12px 40px rgba(0,0,0,.28); --sh-modal:0 24px 80px rgba(0,0,0,.45);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{-webkit-tap-highlight-color:transparent;height:100%;}
 body{
   font-family:var(--sans);background:var(--bg);color:var(--text);
   height:100%;display:flex;flex-direction:column;overflow:hidden;
-  padding-top:var(--safe-top);padding-bottom:var(--safe-bot);
+  padding:var(--safe-top) var(--safe-r) var(--safe-bot) var(--safe-l);
   font-size:var(--fs-m);font-variant-numeric:tabular-nums;
 }
 
@@ -124,19 +126,11 @@ button:focus-visible,[tabindex]:focus-visible,select:focus-visible{outline:2px s
 /* Beginner-Modus: Advanced-Elemente ausblenden (nur Anzeige, keine Daten betroffen) */
 body.beginner-mode .adv-only{display:none!important;}
 body:not(.beginner-mode) .simple-only{display:none!important;}
-@media (max-width: 700px){
-  .mode-toggle .tg-label{display:none;}
-}
 /* Platz in der Topbar: Schriftzug nur auf breiten Bildschirmen; am Laptop darunter Projekt/Import und
    Moduswahl nur als Symbol (mit Tooltip — dort gibt es Hover). Im Einfach-Modus bleiben alle Beschriftungen. */
 @media (max-width:1799px){ body:not(.beginner-mode) .tb-titel{display:none;} }
 @media (max-width:1679px){ body:not(.beginner-mode) :is(.mode-toggle .tg-label,.tb-lbl){display:none;} }
 @media (max-width:1279px){ body.beginner-mode .tb-titel{display:none;} }
-@media (max-width:900px){
-  .topbar{gap:6px;padding:var(--sp2) 10px;}
-  body.beginner-mode .tb-addsub .tg-btn{min-width:76px;}
-  body.beginner-mode .proj-label{max-width:110px;}
-}
 .spacer{flex:1;}
 
 /* ── START SCREEN (Projekt-Auswahl) ── */
@@ -490,14 +484,16 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
 .modal-bg{
   display:none;position:fixed;inset:0;z-index:200;
   background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
-  align-items:flex-start;justify-content:center;padding:env(safe-area-inset-top,16px) 12px 12px;
+  align-items:flex-start;justify-content:center;
+  padding:calc(var(--safe-top) + 16px) calc(var(--safe-r) + 12px) calc(var(--safe-bot) + 12px) calc(var(--safe-l) + 12px);
   overflow-y:auto;
 }
 .modal-bg.open{display:flex;}
 .modal{
   background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-l);
   width:100%;max-width:580px;display:flex;flex-direction:column;
-  box-shadow:var(--sh-modal);max-height:calc(100vh - 40px);overflow:hidden;
+  box-shadow:var(--sh-modal);max-height:calc(100vh - 40px);
+  max-height:calc(100dvh - 28px - var(--safe-top) - var(--safe-bot));overflow:hidden;
   margin:auto;
 }
 .mh{display:flex;align-items:center;padding:var(--sp2) var(--sp2) var(--sp2) var(--sp4);border-bottom:1px solid var(--border);gap:var(--sp2);min-height:60px;flex-shrink:0;}
@@ -829,6 +825,34 @@ body.beginner-mode .col-rename{min-width:44px;min-height:44px;}
 body.beginner-mode :is(.flt-search,.flt-range input){min-height:44px;font-size:var(--fs-m);}
 body.beginner-mode .col-popup-actions .tbtn{font-size:var(--fs-m);}
 body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
+
+/* ── BREAKPOINTS ──
+   Drei Stufen: ≤ 900 px (iPad hoch), 901–1279 px (iPad quer), ≥ 1280 px (Laptop).
+   Topbar-Stufen für Schriftzug und Beschriftungen stehen oben bei der Topbar. */
+@media (max-width:900px){
+  .topbar{gap:6px;padding:var(--sp2) 10px;}
+  body.beginner-mode .tb-addsub .tg-btn{min-width:76px;}
+  body.beginner-mode .proj-label{max-width:92px;}
+  .modal-bg{padding:calc(var(--safe-top) + 8px) calc(var(--safe-r) + 8px) calc(var(--safe-bot) + 8px) calc(var(--safe-l) + 8px);}
+  .modal{max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px - var(--safe-top) - var(--safe-bot));}
+  .mh{padding-left:var(--sp3);}
+  .mbody{padding:var(--sp3);}
+  .mfooter,.exp-btns{padding:var(--sp3);}
+  .ana-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .ana-tab{white-space:nowrap;flex-shrink:0;}
+  .lw-par{flex-wrap:wrap;}
+  .lw-par-text{flex-basis:100%;min-width:0;padding-bottom:4px;}
+}
+/* Laptop bis 1679 px: langer Projektname darf die Topbar im Erweitert-Modus nicht umbrechen */
+@media (max-width:1679px){ body:not(.beginner-mode) .proj-label{max-width:150px;} }
+@media (min-width:1280px) and (max-width:1439px){
+  body:not(.beginner-mode) .topbar{gap:6px;}
+  body:not(.beginner-mode) .proj-label{max-width:130px;}
+}
+@media (min-width:1280px){
+  /* Mehr Platz für den Namen des Prozessschritts */
+  .data-tbl th.cn,.data-tbl td.cn{min-width:280px;}
+}
 
 /* ── DRUCKANSICHT DER AUSWERTUNG ──
    Bewusst eigene Farbwerte statt der Theme-Variablen: Papier ist weiß,

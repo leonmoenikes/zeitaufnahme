@@ -150,6 +150,12 @@ body.beginner-mode .simple-only{display:inline-block;}
 .cb-t{font-size:9px;color:var(--text3);font-family:var(--mono);}
 .cat-btn.has-v .cb-t{color:var(--accent);}
 body.sub .cat-btn.has-v{border-color:var(--red);background:var(--red-dim);}
+/* Gerechnete Meter: ƒ statt Zählen, gestrichelt, damit die Kachel nicht wie ein Zähler wirkt */
+.cb-lw{display:none;position:absolute;bottom:3px;right:6px;font-size:13px;font-style:italic;font-weight:700;
+  color:var(--accent-bright);font-family:Georgia,serif;pointer-events:none;}
+.cat-btn.lw-calc{border-style:dashed;}
+.cat-btn.lw-calc .cb-lw{display:block;}
+.lw-f{font-style:italic;font-weight:700;color:var(--accent-bright);font-family:Georgia,serif;margin-left:3px;}
 body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .cb-note-panel{display:none;}
 
@@ -2333,10 +2339,15 @@ function copyAnzahlToCategory(){
   const targets=getFilteredParts();
   if(targets.length===0){ toast('⚠ Keine (gefilterten) Prozessschritte gefunden'); return; }
   const catLabel=(COLS.find(c=>c.key===key)||{}).label||key;
-  if(!confirm(`Anzahl-Werte in "${catLabel}" für ${targets.length} Prozessschritt(e) übernehmen?\n\nBestehende Werte in dieser Kategorie werden dabei überschrieben.`)) return;
-  targets.forEach(p=>{ data[p.id][key]=stepQty(p.id); });
+  /* Gerechnete Meter bleiben unangetastet — sie kämen beim nächsten Rechenlauf ohnehin zurück */
+  const gerechnet=key===LW_KAT?targets.filter(p=>lwHat(p.id)).length:0;
+  const ziele=key===LW_KAT?targets.filter(p=>!lwHat(p.id)):targets;
+  if(ziele.length===0){ toast('⚠ Alle gewählten Prozessschritte haben gerechnete Laufwege'); return; }
+  if(!confirm(`Anzahl-Werte in "${catLabel}" für ${ziele.length} Prozessschritt(e) übernehmen?\n\nBestehende Werte in dieser Kategorie werden dabei überschrieben.`
+    +(gerechnet?`\n\n${gerechnet} Prozessschritt(e) mit gerechnetem Laufweg bleiben unverändert.`:''))) return;
+  ziele.forEach(p=>{ data[p.id][key]=stepQty(p.id); });
   updGrid();renderBody();markDirty();
-  toast(`✓ Anzahl → "${catLabel}" für ${targets.length} Prozessschritt(e) übernommen`);
+  toast(`✓ Anzahl → "${catLabel}" für ${ziele.length} Prozessschritt(e) übernommen`);
 }
 
 /* ═══════════════════════════════════════
@@ -2653,7 +2664,8 @@ function buildGrid(){
       +`<span class="cb-lbl">${c.label}</span>`
       +`<span class="cb-par adv-only">${dispParam(c.param)} ${ul()}</span>`
       +`<span class="cb-cnt" id="cv_${c.key}">${v}</span>`
-      +`<span class="cb-t adv-only" id="ct_${c.key}">${v>0?disp(v*c.param)+' '+ul():''}</span>`;
+      +`<span class="cb-t adv-only" id="ct_${c.key}">${v>0?disp(v*c.param)+' '+ul():''}</span>`
+      +(c.key===LW_KAT?'<span class="cb-lw">ƒ</span>':'');
     btn.addEventListener('click',e=>{
       if(e.target.closest('.cb-note-tgl')) return;
       doCount(c.key);
@@ -2677,6 +2689,7 @@ function buildGrid(){
       });
     }
   });
+  lwKachel();
 }
 function updGrid(){
   COLS.forEach(c=>{
@@ -2692,7 +2705,15 @@ function updGrid(){
       btn.style.background=v>0?gCol+'33':'';
     }
   });
+  lwKachel();
   updateActiveBar();
+}
+/* Meter-Kachel: ƒ und Hinweis, solange der aktive Schritt gerechnet wird */
+function lwKachel(){
+  const btn=document.getElementById('cb_'+LW_KAT); if(!btn) return;
+  const an=lwHat(activePart);
+  btn.classList.toggle('lw-calc',an);
+  btn.title=an?'Laufweg wird gerechnet — im Fenster Laufwege ändern':'';
 }
 
 /* ═══════════════════════════════════════
@@ -2907,6 +2928,10 @@ function renderBody(){
       const t=v*c.param;
       const tdv=document.createElement('td');
       tdv.className=v>0?'vnz':'';tdv.textContent=v>0?v:'–';tr.appendChild(tdv);
+      if(c.key===LW_KAT && lwHat(id)){
+        const f=document.createElement('span'); f.className='lw-f'; f.textContent='ƒ'; tdv.appendChild(f);
+        tdv.title='Laufweg wird gerechnet — im Fenster Laufwege ändern';
+      }
       const tdt=document.createElement('td');
       tdt.className=(t>0?'tnz':'')+' adv-only';tdt.textContent=t>0?disp2(t):'–';
       if(t>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'59';tdt.style.color='#2b3244';}
@@ -3015,6 +3040,9 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
 ═══════════════════════════════════════ */
 function doCount(key){
   if(!activePart)return;
+  /* Gerechnete Meter werden nicht gezählt — der nächste Rechenlauf würde den Klick stillschweigend
+     überschreiben. Stattdessen öffnet sich die Zeile des Schritts im Laufweg-Fenster. */
+  if(key===LW_KAT && lwHat(activePart)){ lwZeigeSchritt(activePart); return; }
   const p=activePart;
   const cur=data[p][key]||0;
   const next = mode==='add' ? cur+1 : Math.max(0,cur-1);
@@ -3037,6 +3065,11 @@ function undoLast(){
   const last=undoStack.pop();
   if(!last){toast('Nichts rückgängig zu machen');return;}
   if(!data[last.part]){toast('⚠ Prozessschritt nicht mehr vorhanden');return;}
+  /* Zählung aus der Zeit, bevor der Schritt Auslöser bekam: zurücksetzen hielte nur bis zum nächsten Rechenlauf */
+  if(last.key===LW_KAT && lwHat(last.part)){
+    toast('↩ Übersprungen: Meter von "'+partName(last.part)+'" wird gerechnet');
+    return;
+  }
   data[last.part][last.key]=last.prev;
   updGrid(); renderBody(); markDirty();
   const nm=partName(last.part)||'(gelöschter Prozessschritt)';
@@ -3160,6 +3193,7 @@ function pasteRow(id){
   /* Kopierte Teile bekommen eigene IDs — sonst hingen zwei Schritte an denselben Teilen */
   data[id].__teile=normTeile(data[id].__teile).map(t=>Object.assign(t,{id:newTeilId()}));
   ensureKeys();
+  lwNeuRechnen();   // Auslöser kommen mit; Meter aus denselben Meterwerten
   updGrid();renderBody();markDirty();
   toast('📋 Eingefügt in "'+targetName+'"');
 }
@@ -3208,6 +3242,7 @@ function delPart(id){
 function resetAll(){
   if(!confirm('Alle Zähler zurücksetzen?'))return;
   parts.forEach(p=>{COLS.forEach(c=>data[p.id][c.key]=0);});   // Teile und Mengen bleiben
+  lwNeuRechnen();   // Auslöser sind keine Zähler: gerechnete Meter stehen gleich wieder da
   updGrid();renderBody();markDirty();toast('Alle Zähler zurückgesetzt');
 }
 

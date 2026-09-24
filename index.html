@@ -487,7 +487,7 @@ td.nr .teil-caret{width:16px;}
 .mtm-sec-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 4px;}
 
 /* ── LAUFWEG-RECHNER ── */
-.lw-modal{max-width:920px;}
+.lw-modal{max-width:1060px;}
 .lw-par{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-bottom:1px solid var(--border);}
 .lw-par-lbl{width:136px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--text);}
 .lw-par .pval{min-height:38px;}
@@ -519,6 +519,17 @@ td.nr .teil-caret{width:16px;}
 .lw-tbl tr.lw-akt td.lw-name{box-shadow:inset 3px 0 0 var(--accent);}
 .lw-tbl tfoot td{position:sticky;bottom:0;z-index:1;background:#dde5f5;font-weight:700;border-top:2px solid var(--accent);}
 .lw-tbl tfoot td.lw-name{z-index:3;}
+.lw-auf{display:inline-block;width:22px;min-height:24px;border:none;background:none;color:var(--accent-bright);
+  cursor:pointer;font-size:12px;padding:0;margin-right:2px;vertical-align:middle;}
+.lw-auf.leer{visibility:hidden;}
+.lw-tbl tr.lw-lvl1 td.lw-name{font-weight:700;}
+/* Unterzeile mit den Teilen: der Inhalt klebt links, damit er beim seitlichen Blättern sichtbar bleibt */
+.lw-tbl tr.lw-teile td{background:var(--surface2);text-align:left;font-family:var(--sans);padding:4px 6px 8px;white-space:normal;}
+.lw-teile-box{position:sticky;left:0;display:inline-block;max-width:720px;}
+.lw-teile-box table{border-collapse:collapse;font-size:11px;}
+.lw-teile-box th{position:static;background:none;color:var(--text3);font-weight:600;text-align:left;padding:2px 10px 2px 0;border:none;}
+.lw-teile-box td{background:none!important;border:none;border-bottom:1px dashed var(--border);padding:2px 10px 2px 0;font-family:var(--sans);white-space:nowrap;}
+.lw-teile-box td.mg{text-align:right;font-family:var(--mono);}
 
 /* ── TOAST ── */
 .toast{
@@ -4005,13 +4016,43 @@ function lwErgebnisHtml(id){
   const tip=lwHat(id)?'gerechnet':'gezählt (nicht gerechnet)';
   return `<td class="lw-m" title="${tip}">${m}</td><td class="lw-t">${(m*lwKatParam()).toFixed(3)}</td>`;
 }
+/* Aufgeklappte Schritte im Laufweg-Fenster — reine Ansicht, wird nicht gespeichert */
+let lwAuf={};
 function lwZeileHtml(id,i){
-  const d=data[id], t=lwTrig(id)||{};
-  return `<tr data-id="${escAttr(id)}" class="${lwHat(id)?'':'lw-grau'}${id===activePart?' lw-akt':''}">`
-    +`<td>${i+1}</td><td class="lw-txt">${escHtml(d.__extra1||'')}</td>`
-    +`<td class="lw-txt lw-name" title="${escAttr(partName(id))}">${escHtml(partName(id))}</td>`
+  const d=data[id], t=lwTrig(id)||{}, lvl=d.__level||1, nT=stepTeile(id).length;
+  return `<tr data-id="${escAttr(id)}" class="${lwHat(id)?'':'lw-grau'}${id===activePart?' lw-akt':''}${lvl===1?' lw-lvl1':''}">`
+    +`<td>${i+1}</td><td>${lvl}</td><td class="lw-txt">${escHtml(d.__extra1||'')}</td>`
+    +`<td class="lw-txt lw-name" title="${escAttr(partName(id))}"><button type="button" class="lw-auf${nT?'':' leer'}" title="Teile zeigen">${lwAuf[id]?'▾':'▸'}</button>${escHtml(partName(id))}</td>`
+    +`<td>${stepQty(id)||'–'}</td>`
     +LW_KEYS.map(k=>`<td class="lw-inz"><input class="lw-in" type="number" min="0" step="1" inputmode="numeric" data-k="${k}" value="${t[k]||''}" placeholder="0"/></td>`).join('')
-    +lwErgebnisHtml(id)+'</tr>';
+    +lwErgebnisHtml(id)+'</tr>'+(lwAuf[id]?lwTeileHtml(id):'');
+}
+/* Unterzeile: welche Teile der Schritt anpackt — Grundlage, um die Auslöser sinnvoll zu wählen */
+function lwTeileHtml(id){
+  const teile=stepTeile(id);
+  const zeilen=teile.map(t=>`<tr><td>${escHtml(t.sachnr||'–')}</td><td>${escHtml(t.name||'–')}</td><td class="mg">${t.menge}×</td></tr>`).join('');
+  return `<tr class="lw-teile" data-fuer="${escAttr(id)}"><td colspan="${5+LW_KEYS.length+2}"><div class="lw-teile-box">`
+    +(teile.length?`<table><tr><th>Sachnummer</th><th>Bezeichnung</th><th>Menge</th></tr>${zeilen}</table>`:'keine Teile')
+    +'</div></td></tr>';
+}
+function lwAufklappen(id,auf){
+  const tr=document.querySelector('#lwTbody tr[data-id="'+id+'"]'); if(!tr) return;
+  if(auf) lwAuf[id]=true; else delete lwAuf[id];
+  tr.querySelector('.lw-auf').textContent=auf?'▾':'▸';
+  const sub=tr.nextElementSibling;
+  if(sub && sub.classList.contains('lw-teile')) sub.remove();
+  if(auf){ tr.insertAdjacentHTML('afterend',lwTeileHtml(id)); tr.nextElementSibling.style.display=tr.style.display; }
+  lwAufKnopf();
+}
+function lwAlleAufklappen(){
+  const sichtbar=[...document.querySelectorAll('#lwTbody tr[data-id]')].filter(tr=>tr.style.display!=='none'&&stepTeile(tr.dataset.id).length);
+  const auf=!sichtbar.every(tr=>lwAuf[tr.dataset.id]);
+  sichtbar.forEach(tr=>lwAufklappen(tr.dataset.id,auf));
+}
+function lwAufKnopf(){
+  const k=document.getElementById('lwAlleAuf'); if(!k) return;
+  const sichtbar=[...document.querySelectorAll('#lwTbody tr[data-id]')].filter(tr=>tr.style.display!=='none'&&stepTeile(tr.dataset.id).length);
+  k.textContent=sichtbar.length&&sichtbar.every(tr=>lwAuf[tr.dataset.id])?'▸ Alle zuklappen':'▾ Alle aufklappen';
 }
 function renderLwSchritt(){
   const el=document.getElementById('lwPanelSchritt');
@@ -4026,8 +4067,9 @@ function renderLwSchritt(){
     +`<label class="takt-ctl-item">${escHtml(colLabel('extra1'))}<select class="takt-sel lw-sel" id="lwFStation">${opt(stationen,lwFilter.station)}</select></label>`
     +`<label class="takt-ctl-item">${escHtml(colLabel('stufe'))}<select class="takt-sel lw-sel" id="lwFStufe">${opt(stufen,lwFilter.stufe)}</select></label>`
     +`<label class="takt-ctl-item takt-chk"><input type="checkbox" id="lwFOhne"${lwFilter.ohne?' checked':''}/> nur Schritte ohne Laufweg</label>`
+    +'<button type="button" class="tbtn" id="lwAlleAuf" onclick="lwAlleAufklappen()">▾ Alle aufklappen</button>'
     +'<span class="takt-hint" id="lwFInfo"></span></div>';
-  h+=`<div class="lw-wrap" id="lwWrap"><table class="lw-tbl"><thead><tr><th>Nr</th><th>${escHtml(colLabel('extra1'))}</th><th class="lw-name">Prozessschritt</th>`
+  h+=`<div class="lw-wrap" id="lwWrap"><table class="lw-tbl"><thead><tr><th>Nr</th><th>Lvl</th><th>${escHtml(colLabel('extra1'))}</th><th class="lw-name">Prozessschritt</th><th>Teile</th>`
     +LW_KEYS.map(k=>`<th title="${escAttr(LW_TEXT[k].label+': '+LW_TEXT[k].text)}">${LW_KOPF[k]}<span class="lw-th-m">${lwParams[k]} m</span></th>`).join('')
     +'<th>Meter</th><th>minD</th></tr></thead><tbody id="lwTbody">'
     +parts.map((p,i)=>lwZeileHtml(p.id,i)).join('')
@@ -4048,7 +4090,11 @@ function renderLwSchritt(){
     inp.value=t[inp.dataset.k]||''; inp.classList.remove('bad');
   });
   tb.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.classList.contains('lw-in')) e.target.blur(); });
-  tb.addEventListener('click',e=>{ const tr=e.target.closest('tr'); if(tr) lwAktivSetzen(tr.dataset.id); });
+  tb.addEventListener('click',e=>{
+    const tr=e.target.closest('tr'); if(!tr) return;
+    if(e.target.closest('.lw-auf')){ lwAufklappen(tr.dataset.id,!lwAuf[tr.dataset.id]); return; }
+    lwAktivSetzen(tr.dataset.id||tr.dataset.fuer);
+  });
   lwFilterAnwenden();
 }
 function lwEingabe(inp){
@@ -4082,21 +4128,25 @@ function lwSichtbar(id){
 /* „nur ohne Laufweg" greift erst beim nächsten Filterwechsel — sonst verschwände
    eine Zeile, sobald man in ihr die erste Zahl eintippt */
 function lwFilterAnwenden(){
-  const trs=document.querySelectorAll('#lwTbody tr'); let n=0;
-  trs.forEach(tr=>{ const ok=lwSichtbar(tr.dataset.id); tr.style.display=ok?'':'none'; if(ok) n++; });
+  const trs=document.querySelectorAll('#lwTbody tr[data-id]'); let n=0;
+  trs.forEach(tr=>{
+    const ok=lwSichtbar(tr.dataset.id); tr.style.display=ok?'':'none'; if(ok) n++;
+    const sub=tr.nextElementSibling; if(sub && sub.classList.contains('lw-teile')) sub.style.display=tr.style.display;
+  });
+  lwAufKnopf();
   document.getElementById('lwFInfo').textContent=n<trs.length?(n+' von '+trs.length+' Schritten'):'';
   lwFussAktualisieren();
 }
 /* Summen über die sichtbaren Zeilen — wie die Teilergebnis-Zeile unter einem Excel-Filter */
 function lwFussAktualisieren(){
   const fuss=document.getElementById('lwFuss'); if(!fuss) return;
-  const s={}; LW_KEYS.forEach(k=>s[k]=0); let m=0, n=0;
-  document.querySelectorAll('#lwTbody tr').forEach(tr=>{
+  const s={}; LW_KEYS.forEach(k=>s[k]=0); let m=0, n=0, q=0;
+  document.querySelectorAll('#lwTbody tr[data-id]').forEach(tr=>{
     if(tr.style.display==='none') return;
     const id=tr.dataset.id, t=lwTrig(id)||{};
-    LW_KEYS.forEach(k=>s[k]+=t[k]||0); m+=data[id][LW_KAT]||0; n++;
+    LW_KEYS.forEach(k=>s[k]+=t[k]||0); m+=data[id][LW_KAT]||0; q+=stepQty(id); n++;
   });
-  fuss.innerHTML=`<td></td><td></td><td class="lw-txt lw-name">Summe · ${n} Schritt${n===1?'':'e'}</td>`
+  fuss.innerHTML=`<td></td><td></td><td></td><td class="lw-txt lw-name">Summe · ${n} Schritt${n===1?'':'e'}</td><td>${q}</td>`
     +LW_KEYS.map(k=>`<td>${s[k]}</td>`).join('')+`<td>${m}</td><td>${(m*lwKatParam()).toFixed(3)}</td>`;
 }
 function lwAktivSetzen(id){

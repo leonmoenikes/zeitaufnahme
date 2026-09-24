@@ -47,6 +47,8 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   - Ein Wert größer 0 schaltet den Schritt aufs Rechnen um. Alle Auslöser auf 0 schaltet ihn
     zurück aufs Zählen; die Meterzahl bleibt auf dem letzten Stand.
   - Schritte ohne Auslöser sind grau hinterlegt.
+  - Spalten „Lvl" und „Teile" (Summe der Mengen). ▸ vor dem Schrittnamen klappt die Teile
+    des Schritts auf (Sachnummer, Bezeichnung, Menge); „Alle aufklappen" öffnet alle sichtbaren.
 - Gerechnete Schritte zeigen an der Meter-Kachel und in der Tabelle ein ƒ.
   - Tippen auf die Kachel (oder ihr Tastenkürzel) öffnet die Zeile des Schritts im Reiter
     „Je Schritt", statt zu zählen.

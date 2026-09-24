@@ -3881,7 +3881,7 @@ function renderLwParam(){
       +`<span class="punit">m</span><span class="lw-par-text">${escHtml(LW_TEXT[k].text)}</span></div>`;
   });
   h+='<div class="takt-szen-btns"><button class="tbtn" onclick="lwStandardwerte()">↺ Standardwerte</button>'
-    +'<button class="tbtn" onclick="lwAutoZuordnung()">⚡ Auto-Zuordnung</button></div>'
+    +`<button class="tbtn" onclick="lwAutoZuordnung()" title="${escAttr(LW_AUTO_HINWEIS)}">⚡ Auto-Zuordnung</button></div>`
     +'<div class="mtm-sec-title">Kennzahlen</div><div id="lwKpi"></div>';
   el.innerHTML=h;
   el.querySelectorAll('input[data-k]').forEach(inp=>{
@@ -3961,6 +3961,16 @@ function lwAutoTrig(id){
   if(alt.rollwagen) t.rollwagen=alt.rollwagen;
   return lwTrigPruefen(t);
 }
+/* Hinweis beim Überfahren des Knopfs — dieselben Regeln wie lwAutoTrig */
+const LW_AUTO_HINWEIS='Setzt die Auslöser aller Schritte aus den vorhandenen Daten:\n'
+  +'• Montagestufe „Kommission…" → Kommissionieren = Teilemenge, Grundweg 0\n'
+  +'• sonst Grundweg 1\n'
+  +'• Werkzeug eingetragen → Werkzeug 1\n'
+  +'• Kranhub = Anzahl „Crane Part >12 kg"\n'
+  +'• Scan = Anzahl „Code scan"\n'
+  +'• Name enthält z.B. Transportwagen, Bereitstellung, abrüsten → Bereitstellen 1\n'
+  +'• Rollwagen bleibt unverändert (von Hand eintragen)\n'
+  +'Level-1-Überschriften bleiben unangetastet. Nicht per Undo umkehrbar.';
 function lwAutoZuordnung(){
   if(!confirm('Auslöser für alle Prozessschritte aus den vorhandenen Daten setzen? Bereits eingetragene Rollwagen-Werte bleiben erhalten.')) return;
   /* Level-1-Zeilen sind Überschriften ohne eigenen Arbeitsgang und bekommen keinen Laufweg; sie bleiben

@@ -40,6 +40,7 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
     Werkzeug, Kranhub, Code-Scan, Schrittname). Eingetragene Rollwagen-Werte bleiben erhalten.
     Level-1-Zeilen sind Überschriften ohne eigenen Arbeitsgang und bleiben unangetastet
     (nur wenn das Projekt Unterebenen nutzt; sonst wird jeder Schritt zugeordnet).
+    Beim Überfahren des Knopfs zeigt ein Hinweis die Regeln.
 - Reiter „Je Schritt": je Schritt die sieben Auslöser als Eingabefelder, dazu Meter und minD.
   - Filter nach Station, Montagestufe und „nur Schritte ohne Laufweg"; die Summenzeile
     zählt die sichtbaren Zeilen.

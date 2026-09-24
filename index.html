@@ -490,6 +490,29 @@ td.nr .teil-caret{width:16px;}
 .lw-gelb{background:#fff9d6!important;border-color:#e2cf7d!important;color:var(--text)!important;}
 .lw-gelb.bad{border-color:var(--red)!important;}
 .lw-note{font-size:10px;color:var(--text3);margin-top:6px;}
+.lw-sel{min-height:34px;font-size:12px;max-width:200px;}
+/* Eigener Scrollbereich, damit Kopfzeile, Summenzeile und Schrittname beim Blättern stehen bleiben */
+.lw-wrap{overflow:auto;max-height:calc(100vh - 250px);border:1px solid var(--border);border-radius:6px;-webkit-overflow-scrolling:touch;}
+.lw-tbl{border-collapse:separate;border-spacing:0;font-size:11px;width:100%;}
+.lw-tbl th{position:sticky;top:0;z-index:2;background:#44506b;color:#fff;font-weight:600;padding:5px 4px;
+  border-right:1px solid #333d54;text-align:center;vertical-align:bottom;line-height:1.2;}
+.lw-th-m{display:block;font-weight:400;font-size:9px;opacity:.8;font-family:var(--mono);}
+.lw-tbl td{padding:2px 5px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:right;
+  font-family:var(--mono);background:var(--surface);white-space:nowrap;}
+.lw-tbl td.lw-txt{text-align:left;font-family:var(--sans);}
+.lw-tbl .lw-name{position:sticky;left:0;z-index:1;min-width:170px;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+.lw-tbl th.lw-name{z-index:3;}
+.lw-tbl td.lw-inz{padding:2px 3px;text-align:center;}
+.lw-in{width:46px;min-height:32px;padding:4px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+  color:var(--text);font-family:var(--mono);font-size:12px;text-align:right;}
+.lw-in:focus{outline:none;border-color:var(--accent);}
+.lw-in.bad{border-color:var(--red);}
+.lw-tbl tr.lw-grau td{color:var(--text3);background:var(--surface2);}
+.lw-tbl tr.lw-grau .lw-in{background:var(--surface);}
+.lw-tbl tr.lw-akt td{background:var(--accent-dim);}
+.lw-tbl tr.lw-akt td.lw-name{box-shadow:inset 3px 0 0 var(--accent);}
+.lw-tbl tfoot td{position:sticky;bottom:0;z-index:1;background:#dde5f5;font-weight:700;border-top:2px solid var(--accent);}
+.lw-tbl tfoot td.lw-name{z-index:3;}
 
 /* ── TOAST ── */
 .toast{
@@ -3892,8 +3915,128 @@ function lwAutoZuordnung(){
   toast('✓ Auto-Zuordnung: '+n+' Prozessschritt'+(n===1?'':'e')+' geändert');
 }
 
+/* ── Reiter „Je Schritt" ──
+   Die Tabelle wird beim Öffnen des Reiters einmal gebaut. Eine Eingabe zeichnet danach nur
+   ihre eigene Zeile und die Summenzeile neu — ein Neuaufbau würde bei ~300 Schritten
+   das gerade fokussierte Feld (und am iPad die Tastatur) verlieren. */
+let lwFilter={station:'',stufe:'',ohne:false};
+/* Trennstellen für die schmalen Spalten; Bezeichnungen bleiben die aus LW_TEXT */
+const LW_KOPF={base:'Grund&shy;weg',tool:'Werk&shy;zeug',rollwagen:'Roll&shy;wagen',crane:'Kran&shy;hub',
+  scan:'Scan',bereitstellen:'Bereit&shy;stellen',komm:'Kommis&shy;sionieren'};
+
+function lwErgebnisHtml(id){
+  const m=data[id][LW_KAT]||0;
+  const tip=lwHat(id)?'gerechnet':'gezählt (nicht gerechnet)';
+  return `<td class="lw-m" title="${tip}">${m}</td><td class="lw-t">${(m*lwKatParam()).toFixed(3)}</td>`;
+}
+function lwZeileHtml(id,i){
+  const d=data[id], t=lwTrig(id)||{};
+  return `<tr data-id="${escAttr(id)}" class="${lwHat(id)?'':'lw-grau'}${id===activePart?' lw-akt':''}">`
+    +`<td>${i+1}</td><td class="lw-txt">${escHtml(d.__extra1||'')}</td>`
+    +`<td class="lw-txt lw-name" title="${escAttr(partName(id))}">${escHtml(partName(id))}</td>`
+    +LW_KEYS.map(k=>`<td class="lw-inz"><input class="lw-in" type="number" min="0" step="1" inputmode="numeric" data-k="${k}" value="${t[k]||''}" placeholder="0"/></td>`).join('')
+    +lwErgebnisHtml(id)+'</tr>';
+}
 function renderLwSchritt(){
-  document.getElementById('lwPanelSchritt').innerHTML='';
+  const el=document.getElementById('lwPanelSchritt');
+  const werte=k=>[...new Set(parts.map(p=>String(data[p.id][k]||'').trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,'de',{numeric:true}));
+  const stationen=werte('__extra1'), stufen=werte('__stufe');
+  if(!stationen.includes(lwFilter.station)) lwFilter.station='';
+  if(!stufen.includes(lwFilter.stufe)) lwFilter.stufe='';
+  const opt=(list,sel)=>'<option value="">alle</option>'
+    +list.map(v=>`<option value="${escAttr(v)}"${v===sel?' selected':''}>${escHtml(v)}</option>`).join('');
+  let h='<div class="takt-ctl">'
+    +`<label class="takt-ctl-item">${escHtml(colLabel('extra1'))}<select class="takt-sel lw-sel" id="lwFStation">${opt(stationen,lwFilter.station)}</select></label>`
+    +`<label class="takt-ctl-item">${escHtml(colLabel('stufe'))}<select class="takt-sel lw-sel" id="lwFStufe">${opt(stufen,lwFilter.stufe)}</select></label>`
+    +`<label class="takt-ctl-item takt-chk"><input type="checkbox" id="lwFOhne"${lwFilter.ohne?' checked':''}/> nur Schritte ohne Laufweg</label>`
+    +'<span class="takt-hint" id="lwFInfo"></span></div>';
+  h+=`<div class="lw-wrap" id="lwWrap"><table class="lw-tbl"><thead><tr><th>Nr</th><th>${escHtml(colLabel('extra1'))}</th><th class="lw-name">Prozessschritt</th>`
+    +LW_KEYS.map(k=>`<th title="${escAttr(LW_TEXT[k].label+': '+LW_TEXT[k].text)}">${LW_KOPF[k]}<span class="lw-th-m">${lwParams[k]} m</span></th>`).join('')
+    +'<th>Meter</th><th>minD</th></tr></thead><tbody id="lwTbody">'
+    +parts.map((p,i)=>lwZeileHtml(p.id,i)).join('')
+    +'</tbody><tfoot><tr id="lwFuss"></tr></tfoot></table></div>'
+    +'<div class="lw-note">Grau = Schritt ohne Auslöser: Meter wird dort gezählt, nicht gerechnet. '
+    +'Ein Wert größer 0 schaltet den Schritt aufs Rechnen um; alle Auslöser auf 0 schaltet zurück, '
+    +'die Meterzahl bleibt dann auf dem letzten Stand.</div>';
+  el.innerHTML=h;
+
+  document.getElementById('lwFStation').addEventListener('change',e=>{ lwFilter.station=e.target.value; lwFilterAnwenden(); });
+  document.getElementById('lwFStufe').addEventListener('change',e=>{ lwFilter.stufe=e.target.value; lwFilterAnwenden(); });
+  document.getElementById('lwFOhne').addEventListener('change',e=>{ lwFilter.ohne=e.target.checked; lwFilterAnwenden(); });
+  const tb=document.getElementById('lwTbody');
+  tb.addEventListener('input',e=>{ if(e.target.classList.contains('lw-in')) lwEingabe(e.target); });
+  tb.addEventListener('focusout',e=>{
+    const inp=e.target; if(!inp.classList||!inp.classList.contains('lw-in')) return;
+    const t=lwTrig(inp.closest('tr').dataset.id)||{};
+    inp.value=t[inp.dataset.k]||''; inp.classList.remove('bad');
+  });
+  tb.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.classList.contains('lw-in')) e.target.blur(); });
+  tb.addEventListener('click',e=>{ const tr=e.target.closest('tr'); if(tr) lwAktivSetzen(tr.dataset.id); });
+  lwFilterAnwenden();
+}
+function lwEingabe(inp){
+  const tr=inp.closest('tr'), id=tr.dataset.id, k=inp.dataset.k;
+  const roh=String(inp.value).trim().replace(',','.');
+  const v=roh===''?0:Math.round(Number(roh));
+  const ok=!(inp.validity&&inp.validity.badInput)&&isFinite(v)&&v>=0;
+  inp.classList.toggle('bad',!ok);
+  if(!ok) return;
+  const alt=lwTrig(id), t=Object.assign({},alt||{});
+  t[k]=v;
+  const neu=lwTrigPruefen(t);
+  if(JSON.stringify(neu)===JSON.stringify(alt)) return;
+  if(neu) data[id].__lw=neu; else delete data[id].__lw;   // alle 0: wieder gezählt, Meter bleibt auf dem letzten Stand
+  lwNachAenderung();
+  lwZeileAktualisieren(tr); lwFussAktualisieren();
+}
+function lwZeileAktualisieren(tr){
+  const id=tr.dataset.id, m=data[id][LW_KAT]||0;
+  tr.classList.toggle('lw-grau',!lwHat(id));
+  const cm=tr.querySelector('.lw-m');
+  cm.textContent=m; cm.title=lwHat(id)?'gerechnet':'gezählt (nicht gerechnet)';
+  tr.querySelector('.lw-t').textContent=(m*lwKatParam()).toFixed(3);
+}
+function lwSichtbar(id){
+  const d=data[id];
+  return (!lwFilter.station||String(d.__extra1||'').trim()===lwFilter.station)
+      && (!lwFilter.stufe||String(d.__stufe||'').trim()===lwFilter.stufe)
+      && (!lwFilter.ohne||!lwHat(id));
+}
+/* „nur ohne Laufweg" greift erst beim nächsten Filterwechsel — sonst verschwände
+   eine Zeile, sobald man in ihr die erste Zahl eintippt */
+function lwFilterAnwenden(){
+  const trs=document.querySelectorAll('#lwTbody tr'); let n=0;
+  trs.forEach(tr=>{ const ok=lwSichtbar(tr.dataset.id); tr.style.display=ok?'':'none'; if(ok) n++; });
+  document.getElementById('lwFInfo').textContent=n<trs.length?(n+' von '+trs.length+' Schritten'):'';
+  lwFussAktualisieren();
+}
+/* Summen über die sichtbaren Zeilen — wie die Teilergebnis-Zeile unter einem Excel-Filter */
+function lwFussAktualisieren(){
+  const fuss=document.getElementById('lwFuss'); if(!fuss) return;
+  const s={}; LW_KEYS.forEach(k=>s[k]=0); let m=0, n=0;
+  document.querySelectorAll('#lwTbody tr').forEach(tr=>{
+    if(tr.style.display==='none') return;
+    const id=tr.dataset.id, t=lwTrig(id)||{};
+    LW_KEYS.forEach(k=>s[k]+=t[k]||0); m+=data[id][LW_KAT]||0; n++;
+  });
+  fuss.innerHTML=`<td></td><td></td><td class="lw-txt lw-name">Summe · ${n} Schritt${n===1?'':'e'}</td>`
+    +LW_KEYS.map(k=>`<td>${s[k]}</td>`).join('')+`<td>${m}</td><td>${(m*lwKatParam()).toFixed(3)}</td>`;
+}
+function lwAktivSetzen(id){
+  if(!parts.some(p=>p.id===id)) return;
+  selectPart(id);
+  document.querySelectorAll('#lwTbody tr.lw-akt').forEach(tr=>tr.classList.remove('lw-akt'));
+  const tr=document.querySelector('#lwTbody tr[data-id="'+id+'"]');
+  if(tr) tr.classList.add('lw-akt');
+  return tr;
+}
+/* Reiter „Je Schritt" öffnen und die Zeile des Schritts zeigen; ein Filter, der sie verbirgt, wird aufgehoben */
+function lwZeigeSchritt(id){
+  if(!lwSichtbar(id)) lwFilter={station:'',stufe:'',ohne:false};
+  openLw('schritt');
+  const tr=lwAktivSetzen(id);
+  if(tr) tr.scrollIntoView({block:'center'});
 }
 
 /* Esc schließt das Fenster — auch aus einem Eingabefeld heraus */

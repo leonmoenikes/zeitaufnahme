@@ -100,7 +100,7 @@ body{
 .tg-btn.on-unit{background:var(--green-dim);color:var(--green);}
 .tg-btn.on-mode{background:var(--accent);color:var(--on-accent);}
 /* Einfach-Modus am iPad: jede Schaltfläche mindestens 44 px */
-body.beginner-mode .topbar .tbtn,body.beginner-mode .topbar .tg-btn{min-height:44px;font-size:var(--fs-m);}
+body.beginner-mode :is(.tbtn,.tg-btn){min-height:44px;font-size:var(--fs-m);}
 body.beginner-mode .topbar .tbtn.tb-ic{width:44px;}
 body.beginner-mode .tb-addsub .tg-btn{min-width:92px;font-size:var(--fs-l);}
 body.beginner-mode .tb-export{padding:0 18px;}
@@ -338,45 +338,46 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .act-time span{color:var(--active-text);font-size:var(--fs-xs);font-weight:400;}
 body.sub .active-bar{box-shadow:inset 4px 0 0 var(--red);}
 
-/* ── TABLE ── */
+/* ── TABLE ──
+   Erweitert (Laptop): kompakte Zeilen, ruhige Linien, viele Spalten auf einen Blick.
+   Einfach (iPad): Zeilen 44 px, jede Bedienfläche mindestens 44 × 44 px (Block am Ende). */
 .tbl-outer{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
-.data-tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs-xs);min-width:100%;table-layout:auto;}
+.data-tbl{--nr-w:32px;--lv-w:38px;border-collapse:separate;border-spacing:0;font-size:var(--fs-s);min-width:100%;table-layout:auto;}
 .data-tbl thead th{
   position:sticky;top:0;z-index:10;background:var(--surface);
-  border-bottom:1px solid var(--border2);padding:7px 5px;white-space:nowrap;
-  font-weight:500;color:var(--text2);font-family:var(--mono);font-size:var(--fs-xs);text-align:center;
+  border-bottom:2px solid var(--border2);padding:6px;white-space:nowrap;line-height:1.2;
+  font-weight:600;color:var(--text2);font-size:var(--fs-xs);text-align:center;vertical-align:bottom;
 }
-.data-tbl thead th:first-child{text-align:left;padding-left:12px;}
-body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
-.th-t{color:var(--accent);}
+.th-t{color:var(--accent);font-family:var(--mono);font-weight:500;}
 .th-tot{color:var(--green);}
-/* sticky Nr.-Spalte (ganz vorne) */
+/* Fixiert beim seitlichen Blättern: Nr., Lvl, Prozessschritt (left der beiden letzten setzt der Code) */
 .data-tbl th.nr,.data-tbl td.nr{
   position:sticky;left:0;z-index:5;background:var(--surface);
-  border-right:1px solid var(--border);width:32px;min-width:32px;max-width:32px;
+  width:var(--nr-w);min-width:var(--nr-w);max-width:var(--nr-w);padding-left:0;padding-right:0;
   text-align:center;color:var(--text2);font-weight:600;font-family:var(--mono);font-size:var(--fs-xs);
 }
-.data-tbl thead th.nr{z-index:15;}
-/* sticky Level-Spalte (left wird im Code gesetzt) */
 .data-tbl th.level,.data-tbl td.level{
-  position:sticky;left:32px;z-index:5;background:var(--surface);
-  border-right:1px solid var(--border);width:38px;min-width:38px;max-width:38px;
-  text-align:center;
+  position:sticky;left:var(--nr-w);z-index:5;background:var(--surface);
+  width:var(--lv-w);min-width:var(--lv-w);max-width:var(--lv-w);padding:0;text-align:center;
 }
-.data-tbl thead th.level{z-index:15;}
+/* Schatten an der Kante, unter der die übrigen Spalten beim Blättern verschwinden */
+.data-tbl th.cn,.data-tbl td.cn{
+  position:sticky;left:70px;z-index:5;background:var(--surface);min-width:220px;
+  box-shadow:1px 0 0 var(--border2),6px 0 6px -6px rgba(26,30,46,.3);
+}
+.data-tbl thead :is(th.nr,th.level,th.cn){z-index:15;}
 .level-select{
-  background:transparent;border:none;outline:none;text-align:center;
-  font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;color:var(--text);width:100%;
+  background:transparent;border:none;outline:none;text-align:center;height:22px;
+  font-family:var(--mono);font-size:var(--fs-s);font-weight:700;color:var(--text);width:100%;
 }
 .level-select:focus{outline:none;background:var(--surface2);}
 /* Sachnummer und Bauteilbenennung — zugeklappt Anzeige, in den Unterzeilen Eingabe */
 .data-tbl th.sachnr,.data-tbl td.sachnr{
-  border-right:1px solid var(--border);width:88px;min-width:88px;max-width:88px;
+  width:92px;min-width:92px;max-width:92px;
   text-align:center;font-family:var(--mono);font-size:var(--fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .data-tbl th.teilname,.data-tbl td.teilname{
-  border-right:1px solid var(--border);min-width:150px;max-width:220px;
-  text-align:left;font-size:var(--fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  min-width:150px;max-width:220px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .data-tbl tbody td.teilname{font-family:var(--sans);color:var(--text2);}
 .sachnr-input{
@@ -385,57 +386,51 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
   border-bottom:1px solid transparent;
 }
 .sachnr-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
-/* sticky name col (left wird im Code gesetzt — hängt an der Sichtbarkeit von Lvl) */
-.data-tbl th.cn,.data-tbl td.cn{
-  position:sticky;left:70px;z-index:5;background:var(--surface);
-  border-right:1px solid var(--border);min-width:195px;
-}
-.data-tbl thead th.cn{z-index:15;}
-/* Level-Farbcodierung (Struktur-/Hierarchieerkennung) — Aktive-Zeile-Hervorhebung hat via !important weiterhin Vorrang */
-/* Level-Farbcodierung: nur bis einschließlich Spalte "Anzahl" (qty) — danach neutral */
+/* Level-Farben (fachlich belegt) bis einschließlich „Anzahl" — die aktive Zeile hat per !important Vorrang */
 .data-tbl tr.lvl-1{--lvl:#ffffff}.data-tbl tr.lvl-2{--lvl:#eef3fb}.data-tbl tr.lvl-3{--lvl:#d8e6f7}.data-tbl tr.lvl-4{--lvl:#b9d0f0}.data-tbl tr.lvl-5{--lvl:#97b8e8}.data-tbl tr.lvl-6{--lvl:#7aa3de}.data-tbl tr.lvl-7{--lvl:#5c8bd1}
 .data-tbl tbody tr[class*="lvl-"] :is(td.nr,td.level,td.sachnr,td.teilname,td.cn,td.extra,td.qty){background:var(--lvl);}
 /* Zusatzspalten (optional ein-/ausblendbar, Inhalte bleiben beim Export erhalten) */
 .data-tbl td.extra{text-align:center;}
 .extra-input{
   background:transparent;border:none;outline:none;text-align:center;
-  font-family:var(--sans);font-size:var(--fs-xs);color:var(--text);width:100%;min-width:70px;
+  font-family:var(--sans);font-size:var(--fs-s);color:var(--text);width:100%;min-width:70px;
   border-bottom:1px solid transparent;
 }
 .extra-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
 .cn-wrap{display:flex;align-items:center;gap:0;}
-/* Aufklapp-Symbol und Unterzeilen (Teile) */
-.teil-caret{flex-shrink:0;width:24px;height:26px;border:none;background:none;padding:0;
-  color:var(--text2);font-size:var(--fs-xs);cursor:pointer;}
+.cn-wrap .ni{flex:1;min-width:50px;}
+/* Aufklapp-Symbol der Teile */
+.teil-caret{flex-shrink:0;width:22px;height:22px;border:none;background:none;padding:0;
+  color:var(--text2);font-size:var(--fs-s);cursor:pointer;border-radius:var(--r-s);}
 .teil-caret.leer{opacity:.35;}
+td.nr .teil-caret{width:18px;}
 .data-tbl tbody td.teil-toggle{cursor:pointer;}
 .data-tbl tbody td.teil-toggle:active{background:var(--accent-dim)!important;}
-td.nr .teil-caret{width:16px;}
-.data-tbl tbody tr.teil td{background:var(--surface2);border-bottom:1px dashed var(--border);padding-top:2px;padding-bottom:2px;}
+/* Unterzeilen mit Teilen: heller, eingerückt, mit Verbindungslinie zum Prozessschritt */
+.data-tbl tbody tr.teil td{background:var(--surface2);padding-top:2px;padding-bottom:2px;color:var(--text2);}
 .data-tbl tbody tr.teil.hit td.sachnr,.data-tbl tbody tr.teil.hit td.teilname{background:var(--active);}
-.data-tbl tbody tr.teil td.teil-rest{background:var(--surface);border-bottom:none;}
-.teil-mark{display:inline-block;padding-left:26px;color:var(--text3);font-size:var(--fs-s);}
+.data-tbl tbody tr.teil td.teil-rest{background:var(--surface);border-bottom-color:transparent;}
+.teil-mark{display:inline-block;width:14px;height:12px;margin:0 6px 0 30px;vertical-align:middle;transform:translateY(-5px);
+  border-left:2px solid var(--border2);border-bottom:2px solid var(--border2);border-bottom-left-radius:6px;}
 .teil-name-in{background:transparent;border:none;outline:none;width:100%;min-width:130px;
-  font-family:var(--sans);font-size:var(--fs-xs);color:var(--text);border-bottom:1px solid var(--border);padding:3px 2px;}
+  font-family:var(--sans);font-size:var(--fs-s);color:var(--text);border-bottom:1px solid var(--border);padding:3px 2px;}
 .teil-name-in:focus,.data-tbl tr.teil .sachnr-input:focus,.data-tbl tr.teil .qi:focus{border-bottom-color:var(--accent);background:var(--surface);}
 .data-tbl tr.teil .sachnr-input,.data-tbl tr.teil .qi{border-bottom:1px solid var(--border);padding:3px 2px;}
-.teil-add{background:none;border:1px dashed var(--border2);border-radius:var(--r-s);color:var(--accent-bright);
-  font-size:var(--fs-xs);padding:4px 10px;cursor:pointer;margin-left:26px;white-space:nowrap;}
+.teil-add{background:none;border:none;border-radius:var(--r-s);color:var(--accent-bright);
+  font-size:var(--fs-s);padding:3px 8px;cursor:pointer;margin-left:44px;white-space:nowrap;}
 .teil-add:active{background:var(--accent-dim);}
-.cn-wrap .ni{flex:1;min-width:50px;}
 /* Zeilen-Aktionen: eigene Spalte, damit sie auch bei ausgeblendeter Prozessschritt-Spalte erreichbar bleiben */
 .data-tbl th.acts,.data-tbl td.acts{white-space:nowrap;text-align:center;padding-left:2px;padding-right:2px;}
 .row-icon-btn{
-  flex-shrink:0;width:20px;height:20px;line-height:20px;border:none;background:transparent;
-  color:var(--text3);font-size:var(--fs-xs);cursor:pointer;border-radius:4px;padding:0;
+  flex-shrink:0;width:22px;height:22px;border:none;background:transparent;
+  color:var(--text3);font-size:var(--fs-s);cursor:pointer;border-radius:var(--r-s);padding:0;
 }
 .row-icon-btn:active{background:var(--surface2);}
 .row-icon-btn.active{color:var(--accent-bright);}
 .row-icon-btn.danger:active{background:var(--red-dim);color:var(--red);}
-/* sum/total col (jetzt Spalte 2, nicht mehr sticky) */
+/* Summe je Schritt */
 .data-tbl td.ct{font-weight:600;color:var(--text2);text-align:center;background:var(--surface2);}
 .data-tbl th.ct{color:var(--green);background:var(--surface2);}
-/* qty (Stückzahl) col - informativ, fließt nicht in Berechnung ein */
 .data-tbl th.th-qty{color:var(--text2);}
 .data-tbl td.qty{text-align:center;}
 /* Linker Block bis einschließlich ∑ nur so breit wie sein Inhalt. Ist die Tabelle schmaler als
@@ -449,12 +444,12 @@ td.nr .teil-caret{width:16px;}
 .data-tbl th.ct,.data-tbl td.ct{width:1px;}
 .qi{
   background:transparent;border:none;outline:none;text-align:center;
-  font-family:var(--mono);font-size:var(--fs-xs);color:var(--text);
+  font-family:var(--mono);font-size:var(--fs-s);color:var(--text);
   width:100%;min-width:50px;border-bottom:1px solid transparent;
 }
 .qi:focus{border-bottom-color:var(--accent);background:var(--surface2);}
 .data-tbl tbody td{
-  padding:5px 5px;text-align:center;border-bottom:1px solid var(--border);
+  padding:2px 6px;text-align:center;border-bottom:1px solid var(--border);
   color:var(--text3);font-family:var(--mono);
 }
 .data-tbl tbody td.cn{
@@ -464,23 +459,38 @@ td.nr .teil-caret{width:16px;}
 .data-tbl tbody td.ct{font-weight:600;color:var(--text2);text-align:center;}
 .data-tbl tbody tr{cursor:pointer;}
 .data-tbl tbody tr:active td{background:var(--surface2)!important;}
+/* Zeile unter der Maus leicht hinterlegt — über Level- und Gruppenfarbe gelegt, nicht statt ihrer */
+@media (hover:hover){
+  .data-tbl tbody tr:not(.teil):not(.sum-row):hover td{background-image:linear-gradient(rgba(47,109,224,.07),rgba(47,109,224,.07));}
+  .row-icon-btn:hover,.teil-caret:hover{background:var(--surface3);color:var(--text);}
+}
 /* Aktive Zeile: bewusst warmer Ton + Randakzent, damit sie nicht mit der blauen Level-Färbung verwechselt wird */
 .data-tbl tbody tr.ar td{background:var(--active)!important;}
 .data-tbl tbody tr.ar td:first-child{box-shadow:inset 3px 0 0 var(--yellow);}
-.data-tbl tbody tr.ar td.cn{color:var(--active-text);font-weight:600;}
+.data-tbl tbody tr.ar td.cn{color:var(--active-text);font-weight:600;box-shadow:1px 0 0 var(--border2),6px 0 6px -6px rgba(26,30,46,.3);}
 .data-tbl tbody tr.ar td.ct{color:var(--active-text);}
-.vnz{background:var(--accent-dim)!important;color:var(--accent-bright)!important;}
+.vnz{background:var(--accent-dim)!important;color:var(--accent-bright)!important;font-weight:600;}
 .tnz{background:var(--surface3);color:var(--text);}  /* Rückfall — die Kategoriefarbe wird je Zelle inline gesetzt */
 .sum-row td{background:var(--surface2)!important;color:var(--text)!important;font-weight:600;border-top:1px solid var(--border2)!important;}
 .sum-row td.ct{color:var(--yellow)!important;}
-/* inline name edit */
+/* Prozessschritt direkt editierbar */
 .ni{
   background:transparent;border:none;outline:none;
   color:var(--accent-bright);font-family:var(--sans);font-size:var(--fs-s);font-weight:500;
-  width:100%;min-width:70px;padding:2px 4px 2px 10px;
+  width:100%;min-width:70px;padding:2px 4px 2px 6px;
   border-bottom:1px solid transparent;
 }
 .ni:focus{border-bottom-color:var(--accent);}
+/* Einfach-Modus am iPad: jede Bedienfläche mindestens 44 × 44 px — optisch bleiben die Symbole klein */
+body.beginner-mode .data-tbl{--nr-w:44px;--lv-w:48px;}
+body.beginner-mode .data-tbl tbody td{height:44px;padding-top:0;padding-bottom:0;}
+body.beginner-mode .data-tbl thead th{height:48px;}
+body.beginner-mode .data-tbl thead th:has(.flt-ico){cursor:pointer;}
+body.beginner-mode .level-select{height:44px;font-size:var(--fs-m);}
+body.beginner-mode :is(.row-icon-btn,.teil-caret){width:44px;height:44px;font-size:var(--fs-m);}
+body.beginner-mode :is(.ni,.extra-input){height:44px;font-size:var(--fs-m);}
+body.beginner-mode tr.teil :is(.sachnr-input,.teil-name-in,.qi){height:44px;font-size:var(--fs-m);}
+body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
 
 /* ── MODAL ── */
 .modal-bg{
@@ -1745,10 +1755,10 @@ function fltIco(fk,label,kind){
 /* Klick-Handler für alle Filtersymbole (nach buildHead aufrufen) */
 function bindFilterIcons(){
   document.querySelectorAll('#tblHead .flt-ico').forEach(ico=>{
-    ico.addEventListener('click',e=>{
-      e.stopPropagation();
-      openColFilter(ico,ico.dataset.fk,ico.dataset.lbl,ico.dataset.kind);
-    });
+    const auf=e=>{ e.stopPropagation(); openColFilter(ico,ico.dataset.fk,ico.dataset.lbl,ico.dataset.kind); };
+    ico.addEventListener('click',auf);
+    /* Einfach-Modus: der ganze Spaltenkopf öffnet den Filter — das Symbol allein wäre am iPad zu klein */
+    ico.closest('th').addEventListener('click',e=>{ if(uiMode==='beginner') auf(e); });
   });
 }
 
@@ -2910,7 +2920,10 @@ function updateActiveBar(){
 /* Linke Spalten: # (immer), Lvl, Prozessschritt, Sachnummer, Bauteilbenennung.
    Festgehalten beim Scrollen werden #, Lvl und Prozessschritt — mit Sachnummer und
    Benennung wäre auf dem iPad fast die halbe Breite blockiert. */
-function stickyLeft(){ return {level:32, cn:32+(isColVisible('level')?38:0)}; }
+function stickyLeft(){
+  const nr=uiMode==='beginner'?44:32, lv=uiMode==='beginner'?48:38;   // wie --nr-w/--lv-w im CSS
+  return {level:nr, cn:nr+(isColVisible('level')?lv:0)};
+}
 /* Kategoriebereich einer Unterzeile als eine einzige Zelle — statt 22 bzw. 44 leerer Zellen
    je Teil. Jeder Tipp auf eine Kachel baut die Tabelle neu, da zählt jede Zelle. */
 function kategorieSpan(){ return COLS.length*(uiMode==='beginner'?1:2); }
@@ -3165,7 +3178,7 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   tr.appendChild(td('nr'));
   tr.appendChild(td('level',vis.level,L.level));
   const tdCn=td('cn',vis.name,L.cn);
-  tdCn.innerHTML='<span class="teil-mark">↳</span>';
+  tdCn.innerHTML='<span class="teil-mark"></span>';
   tr.appendChild(tdCn);
   const feld=(cls,show,key,attrs)=>{
     const c=td(cls,show);
@@ -3208,7 +3221,7 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
   /* Knopf in die erste sichtbare der linken Spalten, damit er ohne Scrollen erreichbar ist */
   const host=[[vis.name,tdCn],[vis.sachnr,tdS],[vis.teilname,tdT]].find(x=>x[0]);
   const btn=document.createElement('button');
-  btn.type='button';btn.className='teil-add';btn.textContent='+ Teil hinzufügen';
+  btn.type='button';btn.className='teil-add';btn.innerHTML=ic('plus')+'Teil hinzufügen';
   btn.addEventListener('click',e=>{e.stopPropagation();addTeil(stepId);});
   (host?host[1]:tr.firstChild).appendChild(btn);
   return tr;

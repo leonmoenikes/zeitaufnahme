@@ -2420,6 +2420,7 @@ function handleStartImport(evt){
       taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
       teileOffen={};
       lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
+      if(parsed.lwTrigger) Object.keys(parsed.lwTrigger).forEach(id=>{ if(data[id]) data[id].__lw=parsed.lwTrigger[id]; });
       lastExportTime=null;
       lastActionText='';
       undoStack=[];
@@ -2459,6 +2460,11 @@ function switchProject(){
      neu: Level, Prozessschritt, Teile,      Stufe, Werkzeug, Quelle, Zusatz×3, Anzahl, Gesamt */
 const CSV_FORMAT=3;
 const CSV_FIX=11;
+/* CSV_FIX (und CSV_FORMAT) bleiben beim Laufweg-Rechner bewusst unverändert: Meterwerte und Auslöser
+   stehen in eigenen Metazeilen (__LWPARAM__, __LW__), nicht in neuen Datenspalten. Eine neue Spalte
+   vor den Kategorien hätte alle Kategorie-Spalten verschoben und bestehende Dateien falsch eingelesen.
+   Die gerechneten Meter stehen weiterhin als Anzahl in der Meter-Spalte — ältere App-Versionen
+   überspringen die neuen Metazeilen und zeigen dieselbe Ist-Zeit. */
 /* Import-Meldung: bei alten Dateien auf die Umwandlung hinweisen, bei defekter Teile-Spalte warnen */
 function importHinweis(parsed,ok){
   if(parsed.teileFehler) toast('⚠ Bei '+parsed.teileFehler+' Prozessschritt(en) war die Teile-Spalte unlesbar – dort ohne Teile übernommen',6000);
@@ -2541,7 +2547,7 @@ function parseImportedCSV(text){
   }
   /* Alle weiteren Metazeilen überspringen und bekannte auswerten. So verschiebt eine
      künftig ergänzte Zeile die Kopfzeile nicht mehr, und ältere Dateien ohne sie laufen weiter. */
-  let mtmCustomParsed=null, mtmGeParsed=null, taktParsed=null, szenRaw=null;
+  let mtmCustomParsed=null, mtmGeParsed=null, taktParsed=null, szenRaw=null, lwParamRaw=null, lwRaw=null;
   const metaJson=(zeile)=>{
     try{ const o=JSON.parse(decodeURIComponent(zeile.split(';')[1]||'')); return (o&&typeof o==='object')?o:null; }
     catch(e){ return null; }
@@ -2555,6 +2561,14 @@ function parseImportedCSV(text){
       taktParsed={soll:(isNaN(soll)||soll<0)?0:soll, mitVz:q[2]!=='0', groupKey:(q[3]||'').trim()};
     }
     else if(lines[idx].startsWith('__SZENARIO__')) szenRaw=metaJson(lines[idx]);
+    else if(lines[idx].startsWith('__LWPARAM__')){
+      lwParamRaw={};
+      lines[idx].split(';').slice(1).forEach(seg=>{
+        const [k,v]=seg.split('|');
+        if(k&&v!==undefined&&v.trim()!=='') lwParamRaw[k.trim()]=Number(v.trim().replace(',','.'));
+      });
+    }
+    else if(lines[idx].startsWith('__LW__')) lwRaw=metaJson(lines[idx]);
     idx++;
   }
   idx++; // Kopfzeile überspringen
@@ -2612,7 +2626,13 @@ function parseImportedCSV(text){
     szenGeprueft.moves=m;
     szenParsed=szenGeprueft;
   }
-  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed, mtmCustom:mtmCustomParsed, mtmCustomGE:mtmGeParsed, takt:taktParsed, szenario:szenParsed, format, teileFehler};
+  /* Auslöser stehen unter der Zeilennummer der Datei (wie beim Szenario) → auf die neuen IDs umschlüsseln */
+  let lwTrigger=null;
+  if(lwRaw && !Array.isArray(lwRaw)){
+    lwTrigger={};
+    Object.keys(lwRaw).forEach(i=>{ const id=rowIds[+i], t=lwTrigPruefen(lwRaw[i]); if(id&&t) lwTrigger[id]=t; });
+  }
+  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed, mtmCustom:mtmCustomParsed, mtmCustomGE:mtmGeParsed, takt:taktParsed, szenario:szenParsed, lwParams:lwParamRaw, lwTrigger, format, teileFehler};
 }
 
 /* ═══════════════════════════════════════
@@ -4546,8 +4566,13 @@ function doExport(){
   const szenCsv = taktSzenario ? {groupKey:taktSzenario.groupKey, extra:taktSzenario.extra,
     moves:Object.fromEntries(parts.map((pt,i)=>[i,pt.id]).filter(([,id])=>taktHas(taktSzenario.moves,id)).map(([i,id])=>[i,taktSzenario.moves[id]]))} : null;
   const metaSzen = ['__SZENARIO__',encodeURIComponent(JSON.stringify(szenCsv))].join(sep);
+  // Laufweg: Meterwerte je Auslöser (warum als Metazeile statt Spalte: siehe CSV_FIX)
+  const metaLwParam = ['__LWPARAM__',...LW_KEYS.map(k=>k+'|'+lwParams[k])].join(sep);
+  // Auslöser je Schritt mit Zeilennummer statt ID — der Import vergibt neue IDs, wie beim Szenario
+  const lwCsv={}; parts.forEach((pt,i)=>{ const t=lwTrig(pt.id); if(t) lwCsv[i]=t; });
+  const metaLw = ['__LW__',encodeURIComponent(JSON.stringify(lwCsv))].join(sep);
   const metaFormat = ['__FORMAT__',CSV_FORMAT].join(sep);
-  const csv='\uFEFF'+[metaFormat,metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,metaMtmGe,metaTakt,metaSzen,hdr,...rows].join('\n');
+  const csv='\uFEFF'+[metaFormat,metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,metaMtmGe,metaTakt,metaSzen,metaLwParam,metaLw,hdr,...rows].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();
@@ -4604,6 +4629,7 @@ function handleImport(evt){
       taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
       teileOffen={};
       lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
+      if(parsed.lwTrigger) Object.keys(parsed.lwTrigger).forEach(id=>{ if(data[id]) data[id].__lw=parsed.lwTrigger[id]; });
       undoStack=[];
       rowClipboard=null;
       activePart=parts[0].id;

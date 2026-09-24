@@ -1036,6 +1036,63 @@ let unit = 'minD';
 const MIND_FACTOR = 0.6; // 1 minD = 0.6 min
 const SHORTCUT_POOL = "1234567890qwertzuiopasdfghjkl".split('');
 
+/* ═══════════════════════════════════════
+   LAUFWEGE — Rechenkern
+   Der Laufweg wird nicht gezählt, sondern gerechnet: Auslöser je Schritt × zentrale Meterwerte.
+   Das Ergebnis landet in data[id].meter und speist den bestehenden Baustein „Meter in total" —
+   Auswertung, Taktabgleich und Exporte rechnen dadurch ohne eigene Anpassung richtig.
+   Schritte ohne __lw bleiben manuell gezählt: so lässt sich Schritt für Schritt umstellen,
+   und ein Projekt ohne Laufwege verhält sich exakt wie vorher.
+   Die Konstanten stehen hier oben, weil ensureKeys() sie braucht und const vor der
+   Deklaration nicht erreichbar ist.
+═══════════════════════════════════════ */
+const LW_KAT='meter';   // Kategorie, in die der gerechnete Laufweg geschrieben wird
+const LW_KEYS=['base','tool','rollwagen','crane','scan','bereitstellen','komm'];
+const LW_DEF={base:2, tool:2, rollwagen:4, crane:6, scan:3, bereitstellen:8, komm:1.5};
+const LW_TEXT={
+  base:         {label:'Grundweg',        text:'je Ablaufschritt: KLT-Regal am Platz zum Werkstück und zurück'},
+  tool:         {label:'Werkzeug',        text:'Werkzeug holen und ablegen (Schrauber-/Sonderwerkzeugplatz)'},
+  rollwagen:    {label:'Rollwagen',       text:'Großteil vom Rollwagen statt aus dem KLT-Regal (Teil > 3 kg, ohne Kran)'},
+  crane:        {label:'Kranhub',         text:'je Kranhub: Rollwagen zum Schwenkkran zum Werkstück'},
+  scan:         {label:'Scan',            text:'Weg zum MES-Bildschirm / Scanner'},
+  bereitstellen:{label:'Bereitstellen',   text:'Bereitstellung auf Transportwagen / Übergabe an die nächste Station'},
+  komm:         {label:'Kommissionieren', text:'je Teil aus dem KLT-Regal auf den Werkstückträger'},
+};
+/* zentrale Meterwerte, projektbezogen gespeichert */
+let lwParams={...LW_DEF};
+
+function lwTrig(id){ const d=data[id]; return (d && d.__lw && typeof d.__lw==='object') ? d.__lw : null; }
+function lwHat(id){ return !!lwTrig(id); }
+/* Math.round rundet positive Zahlen kaufmännisch — wie ROUND(…;0) in Excel, damit Tool und
+   Excel-Export auf dieselbe Meterzahl kommen (1,5 m × 3 = 4,5 → 5). */
+function lwMeter(id){
+  const t=lwTrig(id); if(!t) return 0;
+  return Math.round(LW_KEYS.reduce((s,k)=>s+(t[k]||0)*(lwParams[k]||0),0));
+}
+/* Nach jeder Parameter- oder Auslöseränderung alle gerechneten Schritte neu setzen */
+function lwNeuRechnen(){
+  parts.forEach(p=>{ if(lwHat(p.id)) data[p.id][LW_KAT]=lwMeter(p.id); });
+}
+/* Meterwerte aus Speicher oder Datei: jeder Wert eine Zahl ≥ 0, unbekannte Schlüssel verworfen,
+   fehlende aus den Standardwerten ergänzt */
+function lwParamsPruefen(o){
+  const r={...LW_DEF};
+  if(o && typeof o==='object') LW_KEYS.forEach(k=>{
+    if(o[k]===null || o[k]===undefined || o[k]==='') return;
+    const v=Number(o[k]);
+    if(isFinite(v) && v>=0) r[k]=v;
+  });
+  return r;
+}
+/* Auslöser eines Schritts: nur gesetzte Schlüssel mit ganzzahligem Wert > 0.
+   Bleibt nichts übrig, gibt es kein __lw — der Schritt ist dann manuell. */
+function lwTrigPruefen(o){
+  if(!o || typeof o!=='object' || Array.isArray(o)) return null;
+  const r={};
+  LW_KEYS.forEach(k=>{ const v=Math.round(Number(o[k])); if(isFinite(v) && v>0) r[k]=v; });
+  return Object.keys(r).length ? r : null;
+}
+
 function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -1156,6 +1213,8 @@ function ensureKeys(){
     const p=part.id;
     COLS.forEach(c=>{ if(!data[p]) data[p]={}; if(data[p][c.key]===undefined) data[p][c.key]=0; });
     migrateLegacyStep(data[p],part.name);   // Vorversion umwandeln bzw. Teile-Liste absichern
+    const lw=lwTrigPruefen(data[p].__lw);
+    if(lw) data[p].__lw=lw; else delete data[p].__lw;
     if(data[p].__note===undefined) data[p].__note='';
     if(data[p].__extra1===undefined) data[p].__extra1='';
     if(data[p].__extra2===undefined) data[p].__extra2='';
@@ -2246,6 +2305,7 @@ function startNewProject(){
   verteilzeitFactor=0;
   hourlyRate=0;
   taktSoll=0; taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
+  lwParams={...LW_DEF};
   lastExportTime=null;
   lastActionText='';
   undoStack=[];
@@ -2295,12 +2355,14 @@ function handleStartImport(evt){
       if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
       taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
       teileOffen={};
+      lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
       lastExportTime=null;
       lastActionText='';
       undoStack=[];
       rowClipboard=null;
       activePart=parts[0].id;
       ensureKeys();
+      lwNeuRechnen();
       hasUnsavedChanges=false;
       document.getElementById('startScreen').classList.remove('open');
       updateProjLabel();
@@ -3669,7 +3731,7 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -3714,7 +3776,9 @@ function loadState(){
     if(s.teileOffen && typeof s.teileOffen==='object'){
       teileOffen={}; parts.forEach(p=>{ if(s.teileOffen[p.id]) teileOffen[p.id]=true; });
     }
+    lwParams=lwParamsPruefen(s.lwParams);
     ensureKeys();   // wandelt Daten der Vorversion in Prozessschritte mit Teilen um
+    lwNeuRechnen();   // gespeicherte Meterzahlen könnten zu anderen Meterwerten gehören
     if(ausAlt) saveState();   // ab jetzt unter dem neuen Schlüssel; der alte bleibt als Rückfallebene
     return true;
   } catch(e){ return false; }
@@ -4178,10 +4242,12 @@ function handleImport(evt){
       if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
       taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
       teileOffen={};
+      lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
       undoStack=[];
       rowClipboard=null;
       activePart=parts[0].id;
       ensureKeys();
+      lwNeuRechnen();
       buildGrid(); buildHead(); buildCopySelect(); renderBody(); updateActiveBar();
       setUnit(unit); setMode(mode);
       updateProjLabel();
@@ -4246,10 +4312,13 @@ self.addEventListener('fetch',e=>{
 ═══════════════════════════════════════ */
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
 const isStandalone=window.matchMedia('(display-mode:standalone)').matches||navigator.standalone;
-if(isIOS&&!isStandalone&&!sessionStorage.getItem('ib_dismissed')){
+/* sessionStorage kann (privates Surfen, data:-URL aus dem Kurzbefehl) werfen —
+   dann zeigt der Hinweis eben erneut, statt dass das ganze Skript abbricht. */
+function ibDismissed(){ try{ return !!sessionStorage.getItem('ib_dismissed'); }catch(e){ return false; } }
+if(isIOS&&!isStandalone&&!ibDismissed()){
   setTimeout(()=>document.getElementById('installBanner').classList.add('show'),1500);
   document.getElementById('installBanner').querySelector('.ib-close').addEventListener('click',()=>{
-    sessionStorage.setItem('ib_dismissed','1');
+    try{ sessionStorage.setItem('ib_dismissed','1'); }catch(e){}
   });
 }
 

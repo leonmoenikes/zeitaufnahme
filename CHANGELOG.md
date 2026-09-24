@@ -19,6 +19,14 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > übernommen und umgewandelt.
 
 ### Laufweg-Rechner
+- Neue Kategorie-Gruppe „Walking / Distance" in Sand/Ocker. „Meter in total"
+  gehört dazu und steht als letzter Baustein am Ende; die Gruppe hat einen eigenen Anteil in
+  Auswertung, Diagramm, Druck und Excel-Export.
+  - Bestehende Projekte und ältere CSV-Dateien werden beim Laden automatisch umgestellt;
+    gezählte Werte und das Ist bleiben unverändert.
+  - Die Tastenkürzel verschieben sich: Meter in total T → S; die bisher nachfolgenden
+    Bausteine rücken eine Taste vor (Clean & Seal Z → T, Ölen / Fetten U → Z, Code scan I → U,
+    Screw lock glue O → I, Screw lock mech. P → O, Quality gate A → P, QS check S → A).
 - Neuer Knopf „🚶 Laufwege" (Modus Erweitert). Die Kategorie „Meter in total" kann je
   Prozessschritt gerechnet statt gezählt werden:
   Meter = Σ Auslöser × Meterwert, auf ganze Meter gerundet.

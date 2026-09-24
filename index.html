@@ -480,6 +480,17 @@ td.nr .teil-caret{width:16px;}
 .mtm-codes td.act{text-align:center;padding:2px 4px;}
 .mtm-sec-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 4px;}
 
+/* ── LAUFWEG-RECHNER ── */
+.lw-modal{max-width:920px;}
+.lw-par{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-bottom:1px solid var(--border);}
+.lw-par-lbl{width:136px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--text);}
+.lw-par .pval{min-height:38px;}
+.lw-par-text{flex:1;min-width:160px;font-size:11px;color:var(--text2);}
+/* Gelb wie die Eingabezellen im Excel-Blatt „Laufweg-Parameter": gelb = hier wird eingegeben, der Rest rechnet */
+.lw-gelb{background:#fff9d6!important;border-color:#e2cf7d!important;color:var(--text)!important;}
+.lw-gelb.bad{border-color:var(--red)!important;}
+.lw-note{font-size:10px;color:var(--text3);margin-top:6px;}
+
 /* ── TOAST ── */
 .toast{
   position:fixed;bottom:calc(20px + var(--safe-bot));left:50%;
@@ -729,6 +740,7 @@ td.nr .teil-caret{width:16px;}
   <div class="sep"></div>
   <button class="tbtn adv-only" onclick="openCfg()">⚙ Zeiten</button>
   <button class="tbtn adv-only" onclick="openMtm()">🧱 Bausteine</button>
+  <button class="tbtn adv-only" onclick="openLw()">🚶 Laufwege</button>
   <button class="tbtn adv-only" onclick="openAnalysis()">📊 Auswertung</button>
   <div class="spacer"></div>
   <span class="last-action" id="lastActionIndicator"></span>
@@ -905,6 +917,24 @@ td.nr .teil-caret{width:16px;}
       <div id="mtmPanelGrund" style="display:none;"></div>
       <div id="mtmPanelNeu" style="display:none;"></div>
       <div id="mtmPanelNeuGe" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LAUFWEG-RECHNER -->
+<div class="modal-bg" id="lwModal">
+  <div class="modal lw-modal">
+    <div class="mh">
+      <span class="mh-title">🚶 Laufwege – Rechner</span>
+      <button class="mclose" onclick="closeLw()">✕</button>
+    </div>
+    <div class="mbody" id="lwBody">
+      <div class="ana-tabs">
+        <button class="ana-tab on" id="lwTabPar" onclick="setLwTab('param')">Parameter</button>
+        <button class="ana-tab" id="lwTabSchritt" onclick="setLwTab('schritt')">Je Schritt</button>
+      </div>
+      <div id="lwPanelParam"></div>
+      <div id="lwPanelSchritt" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -3719,6 +3749,159 @@ function renderMtmNeu(){
 }
 
 /* ═══════════════════════════════════════
+   LAUFWEG-RECHNER (Fenster)
+   Reiter „Parameter": Meterwerte je Auslöser und Kennzahlen.
+   Reiter „Je Schritt": Auslöser je Prozessschritt.
+   Änderungen hier laufen bewusst nicht über den Undo-Stapel — Undo nimmt Zählschritte
+   zurück; der Weg zurück bei den Meterwerten ist „Standardwerte".
+═══════════════════════════════════════ */
+let lwTab='param';
+/* Schlagwörter im Schrittnamen, die eine Bereitstellung bedeuten — so vorgegeben, nicht erweitert */
+const LW_BEREIT_WOERTER=['transportwagen','bereitstellen','bereitstellung','abrüstplatz','abruestplatz',
+  'sonderladungsträger','sonderladungstraeger','abrüsten','abruesten'];
+
+function lwOffen(){ return document.getElementById('lwModal').classList.contains('open'); }
+function openLw(tab){ setLwTab(tab||lwTab); document.getElementById('lwModal').classList.add('open'); }
+function closeLw(){ if(lwTabelleTmr) lwTabelleNachziehen(); document.getElementById('lwModal').classList.remove('open'); }
+function setLwTab(t){
+  lwTab=t;
+  document.getElementById('lwTabPar').className='ana-tab'+(t==='param'?' on':'');
+  document.getElementById('lwTabSchritt').className='ana-tab'+(t==='schritt'?' on':'');
+  document.getElementById('lwPanelParam').style.display=(t==='param')?'':'none';
+  document.getElementById('lwPanelSchritt').style.display=(t==='schritt')?'':'none';
+  if(t==='param') renderLwParam(); else renderLwSchritt();
+}
+/* Zeitwert der Meter-Kategorie; fehlt die Kategorie in den Zeiten, kosten Meter keine Zeit */
+function lwKatParam(){ const c=COLS.find(c=>c.key===LW_KAT); return c?c.param:0; }
+/* Nach jeder Änderung im Fenster: Meter neu rechnen, Speichern anstoßen, Tabelle und Auswertung nachziehen.
+   renderBody braucht bei ~300 Schritten spürbar Zeit (am iPad mehr) — beim Tippen einer Zahl reicht es,
+   die vom Fenster verdeckte Haupttabelle nach der letzten Eingabe einmal neu zu zeichnen. */
+let lwTabelleTmr=null;
+function lwNachAenderung(){
+  lwNeuRechnen(); markDirty();
+  clearTimeout(lwTabelleTmr);
+  lwTabelleTmr=setTimeout(lwTabelleNachziehen,150);
+}
+function lwTabelleNachziehen(){
+  clearTimeout(lwTabelleTmr); lwTabelleTmr=null;
+  buildGrid(); renderBody(); updateActiveBar(); refreshAnalysisIfOpen();
+}
+
+function renderLwParam(){
+  const el=document.getElementById('lwPanelParam');
+  let h='<div class="mtm-hint">Meter je Auslöser (gelb = Eingabe). Meter eines Schritts = Σ Auslöser × Meterwert, '
+    +'auf ganze Meter gerundet. Gerechnet wird nur bei Schritten mit eingetragenen Auslösern — '
+    +'alle anderen behalten ihre gezählten Meter.</div>';
+  LW_KEYS.forEach(k=>{
+    h+=`<div class="lw-par"><span class="lw-par-lbl">${escHtml(LW_TEXT[k].label)}</span>`
+      +`<input class="pval lw-gelb" type="number" min="0" step="0.5" inputmode="decimal" data-k="${k}" value="${lwParams[k]}"/>`
+      +`<span class="punit">m</span><span class="lw-par-text">${escHtml(LW_TEXT[k].text)}</span></div>`;
+  });
+  h+='<div class="takt-szen-btns"><button class="tbtn" onclick="lwStandardwerte()">↺ Standardwerte</button>'
+    +'<button class="tbtn" onclick="lwAutoZuordnung()">⚡ Auto-Zuordnung</button></div>'
+    +'<div class="mtm-sec-title">Kennzahlen</div><div id="lwKpi"></div>';
+  el.innerHTML=h;
+  el.querySelectorAll('input[data-k]').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const v=parseFloat(String(inp.value).replace(',','.'));
+      const ok=isFinite(v)&&v>=0;
+      inp.classList.toggle('bad',!ok&&inp.value!=='');
+      /* Leeres Feld beim Neueintippen: letzten gültigen Wert behalten, sonst springen alle Meter kurz auf 0 */
+      if(!ok||lwParams[inp.dataset.k]===v) return;
+      lwParams[inp.dataset.k]=v;
+      lwNachAenderung(); renderLwKpi();
+    });
+    inp.addEventListener('blur',()=>{ inp.value=lwParams[inp.dataset.k]; inp.classList.remove('bad'); });
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); });
+  });
+  renderLwKpi();
+}
+
+function lwKennzahlen(){
+  const r={meter:0, meterLw:0, mit:0, ohne:0, ohneMitMeter:0, trig:{}, mTrig:{}};
+  LW_KEYS.forEach(k=>{ r.trig[k]=0; r.mTrig[k]=0; });
+  parts.forEach(p=>{
+    const m=data[p.id][LW_KAT]||0, t=lwTrig(p.id);
+    r.meter+=m;
+    if(t){ r.mit++; r.meterLw+=m; LW_KEYS.forEach(k=>{ r.trig[k]+=t[k]||0; r.mTrig[k]+=(t[k]||0)*(lwParams[k]||0); }); }
+    else { r.ohne++; if(m>0) r.ohneMitMeter++; }
+  });
+  return r;
+}
+function renderLwKpi(){
+  const el=document.getElementById('lwKpi'); if(!el) return;
+  const r=lwKennzahlen(), minD=r.meter*lwKatParam(), ist=grandTotal();
+  const kpi=(lbl,val,sub)=>`<div class="ana-kpi"><span class="ana-kpi-lbl">${lbl}</span><span class="ana-kpi-val">${val}</span>`
+    +(sub?`<span class="ana-kpi-sub">${sub}</span>`:'')+'</div>';
+  let h='<div class="ana-kpi-row">'
+    +kpi('Σ Meter',r.meter+' m','davon gerechnet '+r.meterLw+' m')
+    +kpi('Σ minD',minD.toFixed(3),'Σ min '+(minD*MIND_FACTOR).toFixed(3))
+    +kpi('Anteil am Ist',(ist>0?minD/ist*100:0).toFixed(1)+' %','Ist '+ist.toFixed(3)+' minD')
+    +kpi('Schritte mit Laufweg',r.mit,'ohne: '+r.ohne+(r.ohneMitMeter?' · davon '+r.ohneMitMeter+' mit gezählten Metern':''))
+    +'</div>';
+  if(!COLS.some(c=>c.key===LW_KAT)) h+='<div class="takt-note">Die Kategorie „Meter" fehlt unter ⚙ Zeiten — die Meter kosten deshalb keine Zeit.</div>';
+  const sumK=LW_KEYS.reduce((s,k)=>s+r.mTrig[k],0);
+  h+='<div style="overflow-x:auto;"><table class="takt-tbl"><thead><tr><th>Auslöser</th><th>Meterwert [m]</th><th>Σ Auslöser</th><th>Σ Meter</th><th>Anteil</th></tr></thead><tbody>';
+  LW_KEYS.forEach(k=>{
+    h+=`<tr><td class="tk-name">${escHtml(LW_TEXT[k].label)}</td><td>${lwParams[k]}</td><td>${r.trig[k]}</td>`
+      +`<td>${r.mTrig[k].toFixed(1)}</td><td>${sumK>0?(r.mTrig[k]/sumK*100).toFixed(1):'0.0'} %</td></tr>`;
+  });
+  h+=`<tr class="tk-sum"><td class="tk-name">Summe</td><td></td><td>${LW_KEYS.reduce((s,k)=>s+r.trig[k],0)}</td>`
+    +`<td>${sumK.toFixed(1)}</td><td>${sumK>0?'100.0':'0.0'} %</td></tr></tbody></table></div>`
+    +'<div class="lw-note">Σ Meter je Auslöser ist ungerundet. Jeder Schritt rundet für sich auf ganze Meter — '
+    +'deshalb kann die Summe leicht von „davon gerechnet" abweichen.</div>';
+  el.innerHTML=h;
+}
+
+function lwStandardwerte(){
+  const txt=LW_KEYS.map(k=>LW_TEXT[k].label+' '+LW_DEF[k]+' m').join('\n');
+  if(!confirm('Alle Meterwerte auf die Standardwerte zurücksetzen?\n\n'+txt)) return;
+  lwParams={...LW_DEF};
+  lwNachAenderung(); renderLwParam();
+  toast('↺ Meterwerte auf Standard gesetzt');
+}
+
+/* Auslöser eines Schritts aus den vorhandenen Daten — genau nach den vereinbarten Regeln.
+   Rollwagen lässt sich aus den Daten nicht ablesen; ein eingetragener Wert bleibt, sonst 0. */
+function lwAutoTrig(id){
+  const d=data[id], alt=lwTrig(id)||{}, t={};
+  if(String(d.__stufe||'').toLowerCase().includes('kommission')){
+    t.komm=stepQty(id); t.base=0;
+  } else {
+    t.base=1;
+    t.tool=String(d.__werkzeug||'').trim()?1:0;
+    t.crane=d.crane_gt12||0;
+    t.scan=d.code_scan||0;
+    const n=partName(id).toLowerCase();
+    t.bereitstellen=LW_BEREIT_WOERTER.some(w=>n.includes(w))?1:0;
+  }
+  if(alt.rollwagen) t.rollwagen=alt.rollwagen;
+  return lwTrigPruefen(t);
+}
+function lwAutoZuordnung(){
+  if(!confirm('Auslöser für alle Prozessschritte aus den vorhandenen Daten setzen? Bereits eingetragene Rollwagen-Werte bleiben erhalten.')) return;
+  let n=0;
+  parts.forEach(p=>{
+    const alt=lwTrig(p.id), neu=lwAutoTrig(p.id);
+    if(JSON.stringify(alt)===JSON.stringify(neu)) return;
+    if(neu) data[p.id].__lw=neu; else delete data[p.id].__lw;   // ohne Auslöser: Meter behält den letzten Wert
+    n++;
+  });
+  lwNachAenderung();
+  setLwTab(lwTab);
+  toast('✓ Auto-Zuordnung: '+n+' Prozessschritt'+(n===1?'':'e')+' geändert');
+}
+
+function renderLwSchritt(){
+  document.getElementById('lwPanelSchritt').innerHTML='';
+}
+
+/* Esc schließt das Fenster — auch aus einem Eingabefeld heraus */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && lwOffen()){ e.preventDefault(); closeLw(); }
+});
+
+/* ═══════════════════════════════════════
    AUTOSAVE (localStorage)
 ═══════════════════════════════════════ */
 const LS_KEY = 'zeitaufnahme_v21';
@@ -4372,6 +4555,8 @@ document.addEventListener('keydown', e=>{
   if(document.getElementById('cfgModal').classList.contains('open')) return;
   if(document.getElementById('expModal').classList.contains('open')) return;
   if(document.getElementById('anaModal').classList.contains('open')) return;
+  if(document.getElementById('mtmModal').classList.contains('open')) return;
+  if(document.getElementById('lwModal').classList.contains('open')) return;
   const key=e.key.toLowerCase();
   const idx=SHORTCUT_POOL.indexOf(key);
   if(idx>=0 && idx<COLS.length){

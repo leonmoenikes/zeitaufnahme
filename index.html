@@ -72,33 +72,70 @@ body{
 /* ── TOPBAR ── */
 .topbar{
   flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);
-  padding:8px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:var(--sp2) var(--sp3);display:flex;align-items:center;gap:var(--sp2);flex-wrap:wrap;
 }
-.topbar-title{font-size:var(--fs-l);font-weight:700;color:var(--accent-bright);white-space:nowrap;margin-right:4px;}
+.tb-gruppe{display:flex;align-items:center;gap:var(--sp1);min-width:0;}
+.tb-kopf{flex-shrink:1;}
+.topbar-title{font-size:var(--fs-l);font-weight:700;color:var(--accent-bright);white-space:nowrap;}
+.topbar-title .ic{width:20px;height:20px;}
 .sep{width:1px;height:26px;background:var(--border);flex-shrink:0;}
 .tbtn{
-  font-size:var(--fs-s);padding:6px 11px;border:1px solid var(--border2);border-radius:var(--radius);
-  background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;
+  font-size:var(--fs-s);min-height:32px;padding:0 10px;border:1px solid var(--border2);border-radius:var(--radius);
+  background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;
   -webkit-user-select:none;user-select:none;
 }
 .tbtn:active{background:var(--surface2);}
 .tbtn.danger{color:var(--red);}
-.toggle-group{display:flex;border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;}
+.tbtn.tb-ic{padding:0;width:32px;}
+.tb-export{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600;}
+.tb-export:active{background:var(--accent-bright);}
+.toggle-group{display:flex;border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;flex-shrink:0;}
 .tg-btn{
-  padding:6px 12px;border:none;background:transparent;
+  min-height:30px;padding:0 12px;border:none;background:transparent;
   font-size:var(--fs-s);cursor:pointer;color:var(--text3);
   -webkit-user-select:none;user-select:none;
 }
-.tg-btn.on-add{background:var(--accent-dim);color:var(--accent-bright);}
-.tg-btn.on-sub{background:var(--red-dim);color:var(--red);}
+.tg-btn.on-add{background:var(--accent-dim);color:var(--accent-bright);font-weight:600;}
+.tg-btn.on-sub{background:var(--red);color:var(--on-accent);font-weight:600;}
 .tg-btn.on-unit{background:var(--green-dim);color:var(--green);}
 .tg-btn.on-mode{background:var(--accent);color:var(--on-accent);}
+/* Einfach-Modus am iPad: jede Schaltfläche mindestens 44 px */
+body.beginner-mode .topbar .tbtn,body.beginner-mode .topbar .tg-btn{min-height:44px;font-size:var(--fs-m);}
+body.beginner-mode .topbar .tbtn.tb-ic{width:44px;}
+body.beginner-mode .tb-addsub .tg-btn{min-width:92px;font-size:var(--fs-l);}
+body.beginner-mode .tb-export{padding:0 18px;}
+/* Menü „Weitere Aktionen" */
+.tb-mehr{position:relative;}
+.mehr-menue{display:none;position:absolute;right:0;top:calc(100% + 6px);z-index:300;min-width:240px;padding:var(--sp1);
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--sh-pop);}
+.mehr-menue.open{display:block;}
+.mehr-menue button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;padding:0 var(--sp3);border:none;background:none;
+  border-radius:var(--r-s);font-size:var(--fs-m);color:var(--text);cursor:pointer;text-align:left;}
+body.beginner-mode .mehr-menue button{min-height:48px;}
+.mehr-menue button.danger{color:var(--red);}
+.mehr-menue button:active{background:var(--surface2);}
+/* Hover nur auf Geräten mit Maus — am iPad bliebe er nach dem Tippen hängen */
+@media (hover:hover){
+  .tbtn:hover,.mehr-menue button:hover{background:var(--surface2);border-color:var(--text3);}
+  .tg-btn:not([class*=" on-"]):hover{background:var(--surface2);color:var(--text2);}
+  .tb-export:hover{background:var(--accent-bright);border-color:var(--accent-bright);}
+}
+button:focus-visible,[tabindex]:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 /* Beginner-Modus: Advanced-Elemente ausblenden (nur Anzeige, keine Daten betroffen) */
 body.beginner-mode .adv-only{display:none!important;}
-.simple-only{display:none;}
-body.beginner-mode .simple-only{display:inline-block;}
+body:not(.beginner-mode) .simple-only{display:none!important;}
 @media (max-width: 700px){
   .mode-toggle .tg-label{display:none;}
+}
+/* Platz in der Topbar: Schriftzug nur auf breiten Bildschirmen; am Laptop darunter Projekt/Import und
+   Moduswahl nur als Symbol (mit Tooltip — dort gibt es Hover). Im Einfach-Modus bleiben alle Beschriftungen. */
+@media (max-width:1799px){ body:not(.beginner-mode) .tb-titel{display:none;} }
+@media (max-width:1679px){ body:not(.beginner-mode) :is(.mode-toggle .tg-label,.tb-lbl){display:none;} }
+@media (max-width:1279px){ body.beginner-mode .tb-titel{display:none;} }
+@media (max-width:900px){
+  .topbar{gap:6px;padding:var(--sp2) 10px;}
+  body.beginner-mode .tb-addsub .tg-btn{min-width:76px;}
+  body.beginner-mode .proj-label{max-width:110px;}
 }
 .spacer{flex:1;}
 
@@ -122,7 +159,7 @@ body.beginner-mode .simple-only{display:inline-block;}
 .start-btn.secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border2);}
 .start-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--text3);font-size:var(--fs-xs);}
 .start-divider::before,.start-divider::after{content:'';flex:1;height:1px;background:var(--border);}
-.proj-label{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;margin-right:2px;}
+.proj-label{font-size:var(--fs-s);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
 .last-action{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;margin-right:6px;max-width:220px;overflow:hidden;text-overflow:ellipsis;}
 .export-indicator{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;margin:0 2px;}
 
@@ -780,41 +817,54 @@ td.nr .teil-caret{width:16px;}
 </div>
 <input type="file" id="startImportFileInput" accept=".csv" class="hidden" onchange="handleStartImport(event)"/>
 
-<!-- TOPBAR -->
+<!-- TOPBAR
+     Erweitert (Laptop): Projekt · Modus | Erfassung | Analyse | Datei | ⋯ (Zähler zurücksetzen, bewusst abgesetzt)
+     Einfach (iPad): nur was an der Linie gebraucht wird — Add/Sub, Undo, Export; Projekt und Import im ⋯-Menü -->
 <div class="topbar">
-  <span class="topbar-title"><svg class="ic"><use href="#i-uhr"/></svg>ZEITAUFNAHME</span>
-  <span class="proj-label" id="projLabel"></span>
-  <button class="row-icon-btn" id="projDescBtn" title="Projektbeschreibung"><svg class="ic"><use href="#i-notiz"/></svg></button>
-  <div class="sep"></div>
+  <div class="tb-gruppe tb-kopf">
+    <span class="topbar-title"><svg class="ic"><use href="#i-uhr"/></svg><span class="tb-titel">ZEITAUFNAHME</span></span>
+    <span class="proj-label" id="projLabel"></span>
+    <button class="row-icon-btn tb-ic" id="projDescBtn" title="Projektbeschreibung" aria-label="Projektbeschreibung"><svg class="ic"><use href="#i-notiz"/></svg></button>
+  </div>
   <div class="toggle-group mode-toggle" title="Bedienmodus">
     <button class="tg-btn on-mode" id="modeBeginnerBtn" onclick="setUIMode('beginner')" title="Einfach"><svg class="ic"><use href="#i-tablet"/></svg><span class="tg-label">Einfach</span></button>
     <button class="tg-btn" id="modeAdvancedBtn" onclick="setUIMode('advanced')" title="Erweitert"><svg class="ic"><use href="#i-laptop"/></svg><span class="tg-label">Erweitert</span></button>
   </div>
   <div class="sep"></div>
-  <button class="tbtn" onclick="switchProject()"><svg class="ic"><use href="#i-projekt"/></svg>Projekt</button>
-  <div class="sep"></div>
-  <div class="toggle-group">
-    <button class="tg-btn on-add" id="mAdd" onclick="setMode('add')"><svg class="ic"><use href="#i-plus"/></svg>Add</button>
-    <button class="tg-btn" id="mSub" onclick="setMode('sub')"><svg class="ic"><use href="#i-minus"/></svg>Sub</button>
+  <div class="tb-gruppe" aria-label="Erfassung">
+    <div class="toggle-group tb-addsub">
+      <button class="tg-btn on-add" id="mAdd" onclick="setMode('add')"><svg class="ic"><use href="#i-plus"/></svg>Add</button>
+      <button class="tg-btn" id="mSub" onclick="setMode('sub')"><svg class="ic"><use href="#i-minus"/></svg>Sub</button>
+    </div>
+    <button class="tbtn" onclick="undoLast()"><svg class="ic"><use href="#i-undo"/></svg>Undo</button>
+    <div class="toggle-group adv-only">
+      <button class="tg-btn on-unit" id="uMinD" onclick="setUnit('minD')">minD</button>
+      <button class="tg-btn" id="uMin" onclick="setUnit('min')">min</button>
+    </div>
   </div>
-  <div class="sep"></div>
-  <div class="toggle-group adv-only">
-    <button class="tg-btn on-unit" id="uMinD" onclick="setUnit('minD')">minD</button>
-    <button class="tg-btn" id="uMin" onclick="setUnit('min')">min</button>
+  <div class="sep adv-only"></div>
+  <div class="tb-gruppe adv-only" aria-label="Analyse">
+    <button class="tbtn" onclick="openCfg()"><svg class="ic"><use href="#i-zeiten"/></svg>Zeiten</button>
+    <button class="tbtn" onclick="openMtm()"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine</button>
+    <button class="tbtn" onclick="openLw()"><svg class="ic"><use href="#i-laufwege"/></svg>Laufwege</button>
+    <button class="tbtn" onclick="openAnalysis()"><svg class="ic"><use href="#i-auswertung"/></svg>Auswertung</button>
   </div>
-  <div class="sep"></div>
-  <button class="tbtn adv-only" onclick="openCfg()"><svg class="ic"><use href="#i-zeiten"/></svg>Zeiten</button>
-  <button class="tbtn adv-only" onclick="openMtm()"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine</button>
-  <button class="tbtn adv-only" onclick="openLw()"><svg class="ic"><use href="#i-laufwege"/></svg>Laufwege</button>
-  <button class="tbtn adv-only" onclick="openAnalysis()"><svg class="ic"><use href="#i-auswertung"/></svg>Auswertung</button>
   <div class="spacer"></div>
-  <span class="last-action" id="lastActionIndicator"></span>
-  <button class="tbtn" onclick="undoLast()"><svg class="ic"><use href="#i-undo"/></svg>Undo</button>
-  <button class="tbtn" onclick="openImport()"><svg class="ic"><use href="#i-import"/></svg>CSV Import</button>
-  <button class="tbtn" onclick="openExportModal()" title="Excel-Report (.xlsx) oder CSV zum Weiterarbeiten"><svg class="ic"><use href="#i-export"/></svg>Excel Export</button>
-  <span class="export-indicator" id="exportIndicator" title=""></span>
-  <span class="save-dot" id="saveDot" title="Automatisch gespeichert"></span>
-  <button class="tbtn danger adv-only" onclick="resetAll()" title="Alle Zähler zurücksetzen"><svg class="ic"><use href="#i-reset"/></svg></button>
+  <div class="tb-gruppe" aria-label="Datei">
+    <button class="tbtn adv-only" onclick="switchProject()" title="Projekt wechseln"><svg class="ic"><use href="#i-projekt"/></svg><span class="tb-lbl">Projekt</span></button>
+    <button class="tbtn adv-only" onclick="openImport()" title="CSV-Datei importieren"><svg class="ic"><use href="#i-import"/></svg><span class="tb-lbl">Import</span></button>
+    <button class="tbtn tb-export" onclick="openExportModal()" title="Excel-Report (.xlsx) oder CSV zum Weiterarbeiten"><svg class="ic"><use href="#i-export"/></svg>Export</button>
+    <span class="export-indicator" id="exportIndicator" title=""></span>
+    <span class="save-dot" id="saveDot" title="Automatisch gespeichert"></span>
+  </div>
+  <div class="tb-mehr">
+    <button class="tbtn tb-ic" id="mehrBtn" onclick="toggleMehrMenue(event)" title="Weitere Aktionen" aria-label="Weitere Aktionen"><svg class="ic"><use href="#i-mehr"/></svg></button>
+    <div class="mehr-menue" id="mehrMenue">
+      <button class="simple-only" onclick="switchProject()"><svg class="ic"><use href="#i-projekt"/></svg>Projekt wechseln</button>
+      <button class="simple-only" onclick="openImport()"><svg class="ic"><use href="#i-import"/></svg>CSV importieren</button>
+      <button class="adv-only danger" onclick="resetAll()"><svg class="ic"><use href="#i-reset"/></svg>Alle Zähler zurücksetzen</button>
+    </div>
+  </div>
 </div>
 
 <!-- COUNTER BUTTONS -->
@@ -827,6 +877,7 @@ td.nr .teil-caret{width:16px;}
 <div class="active-bar">
   <span class="act-lbl">Aktiv:</span>
   <span class="act-name" id="actName">—</span>
+  <span class="last-action" id="lastActionIndicator"></span>
   <span class="act-time"><span>∑ </span><span id="actTime">0.000</span> <span id="actUnit">minD</span></span>
 </div>
 
@@ -4964,6 +5015,11 @@ if(projDescBtn){
     });
   });
 }
+
+/* ── Menü „Weitere Aktionen" (⋯) ── jeder Klick außerhalb des Knopfs schließt es, auch auf einen Eintrag */
+function toggleMehrMenue(e){ if(e) e.stopPropagation(); document.getElementById('mehrMenue').classList.toggle('open'); }
+function closeMehrMenue(){ const m=document.getElementById('mehrMenue'); if(m) m.classList.remove('open'); }
+document.addEventListener('click',e=>{ if(!e.target.closest('#mehrBtn')) closeMehrMenue(); });
 
 /* Tastatur-Shortcuts für Kategorien (1-9,0,q,w,e,r,t,z,u,i,o,p,a,s,d,f,g,h,j,k,l) */
 document.addEventListener('keydown', e=>{

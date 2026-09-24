@@ -160,6 +160,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   gespeicherter Schlüssel `zeitaufnahme_theme` wird nicht mehr gelesen.
 
 ### Behoben
+- Einheit in den Bezeichnungen korrigiert: Grundelement #28 heißt jetzt „Seal or grease
+  small (400 cm²)", #27 „Seal or grease large (2500 cm²)" (bisher „400mm"/„2500mm"),
+  der darauf aufbauende Baustein „Clean & Seal 400cm²" (bisher „400mm²"). Nur die
+  Namen ändern sich, die Zeitwerte bleiben gleich. In bestehenden Projekten trägt die
+  Kategorie ihren gespeicherten Namen; umbenennen geht gefahrlos über „⚙ Zeiten".
 - Im Einfach-Modus wurden die linken Spalten (vor allem Station und Anzahl)
   deutlich breiter als im Erweitert-Modus, sobald die Tabelle ohne die
   [minD]-Spalten schmaler war als der Bildschirm — gemessen bei sechs Kategorien

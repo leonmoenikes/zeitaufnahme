@@ -316,6 +316,8 @@ body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
 .teil-caret{flex-shrink:0;width:24px;height:26px;border:none;background:none;padding:0;
   color:var(--text2);font-size:11px;cursor:pointer;}
 .teil-caret.leer{opacity:.35;}
+.data-tbl tbody td.teil-toggle{cursor:pointer;}
+.data-tbl tbody td.teil-toggle:active{background:var(--accent-dim)!important;}
 td.nr .teil-caret{width:16px;}
 .data-tbl tbody tr.teil td{background:#f7f9fc;border-bottom:1px dashed var(--border);padding-top:2px;padding-bottom:2px;}
 .data-tbl tbody tr.teil.hit td.sachnr,.data-tbl tbody tr.teil.hit td.teilname{background:#fff3cd;}
@@ -732,7 +734,7 @@ td.nr .teil-caret{width:16px;}
   <span class="last-action" id="lastActionIndicator"></span>
   <button class="tbtn" onclick="undoLast()">↩ Undo</button>
   <button class="tbtn" onclick="openImport()">↑ CSV Import</button>
-  <button class="tbtn" onclick="openExportModal()">↓ CSV Export</button>
+  <button class="tbtn" onclick="openExportModal()" title="Excel-Report (.xlsx) oder CSV zum Weiterarbeiten">↓ Excel Export</button>
   <span class="export-indicator" id="exportIndicator" title=""></span>
   <span class="save-dot" id="saveDot" title="Automatisch gespeichert"></span>
   <button class="tbtn danger adv-only" onclick="resetAll()">↺</button>
@@ -2315,7 +2317,7 @@ function handleStartImport(evt){
 }
 
 function switchProject(){
-  if(hasUnsavedChanges && !confirm('Zum Projekt-Start wechseln?\n\nNicht exportierte Änderungen gehen verloren.\nVorher über „↓ CSV Export" sichern!')) return;
+  if(hasUnsavedChanges && !confirm('Zum Projekt-Start wechseln?\n\nNicht exportierte Änderungen gehen verloren.\nVorher über „↓ Excel Export" als CSV sichern!')) return;
   currentProject=null;
   updateProjLabel();
   document.getElementById('startScreen').classList.add('open');
@@ -2342,7 +2344,7 @@ function parseImportedCSV(text){
   const clean=text.replace(/^\uFEFF/,'');
   /* Ohne diese Pr\u00FCfungen wird eine Bin\u00E4rdatei zeichenweise als Tabelle gelesen
      und ersetzt das Projekt durch Datenm\u00FCll (ZIP-Signatur = .xlsx/.ods) */
-  if(clean.startsWith('PK\x03\x04')) throw new Error('Das ist eine Excel-Datei (.xlsx), keine CSV. Bitte \u00FCber \u201E\u2193 CSV Export" erzeugte Datei w\u00E4hlen.');
+  if(clean.startsWith('PK\x03\x04')) throw new Error('Das ist eine Excel-Datei (.xlsx), keine CSV. Bitte eine \u00FCber \u201E\u2193 Excel Export" als CSV gespeicherte Datei w\u00E4hlen.');
   if(clean.includes('\x00')) throw new Error('Die Datei ist keine UTF-8-Textdatei. Bitte als CSV (UTF-8) speichern.');
   if(!clean.includes(';')) throw new Error('Keine mit Semikolon getrennte CSV-Datei.');
   const lines=clean.split('\n').map(l=>l.trim()).filter(l=>l);
@@ -2714,13 +2716,17 @@ function renderBody(){
     tr.appendChild(td0);
 
     // Sachnummer / Bauteilbenennung: zugeklappt erster Eintrag + „+n", nur Anzeige
+    /* Antippen klappt die Teile auf und zu — größere Fläche als das kleine ▸ */
+    const klapp=c=>{ c.classList.add('teil-toggle'); c.addEventListener('click',e=>{e.stopPropagation();toggleTeile(id);}); };
     const tdSach=td('sachnr',vis.sachnr);
     tdSach.textContent=stepKurz(id,'sachnr')||'—';
     tdSach.title=teile.map(t=>t.sachnr).filter(Boolean).join(', ');
+    klapp(tdSach);
     tr.appendChild(tdSach);
     const tdTn=td('teilname',vis.teilname);
     tdTn.textContent=stepKurz(id,'name')||'—';
     tdTn.title=teile.map(t=>t.name).filter(Boolean).join(', ');
+    klapp(tdTn);
     tr.appendChild(tdTn);
 
     // Zusatzspalten (optional, Inhalte bleiben unabhängig von der Anzeige erhalten)
@@ -4209,7 +4215,7 @@ function startAutosaveReminder(){
   if(autosaveReminderTimer) clearInterval(autosaveReminderTimer);
   autosaveReminderTimer=setInterval(()=>{
     if(currentProject && hasUnsavedChanges){
-      toast('⏰ Zwischenstand nicht vergessen: ↓ CSV Export',6000);
+      toast('⏰ Zwischenstand nicht vergessen: ↓ Excel Export → CSV',6000);
     }
   },15*60*1000);
 }

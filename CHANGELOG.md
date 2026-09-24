@@ -26,6 +26,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   Bestehende Projekte behalten ihre eigene Kategorienliste.
 
 ### Prozessschritte statt Bauteile
+- Antippen der Felder „Sachnr." oder „Bauteilbenennung" in einer Schrittzeile klappt
+  die Teile auf und wieder zu – eine größere Fläche als das kleine ▸.
+- Der Knopf „↓ CSV Export" heißt jetzt „↓ Excel Export": Er öffnet den Dialog, in dem
+  es sowohl den Excel-Report (.xlsx) als auch die CSV zum Weiterarbeiten gibt.
+  Hinweistexte, die auf den Knopf verweisen, sind angepasst.
 - Jede Zeile ist ein Prozessschritt, dem beliebig viele Teile (Sachnummer,
   Bezeichnung, Menge) zugeordnet sind. „Anzahl" ist die Summe der Teilemengen und
   wird berechnet, nicht mehr eingetippt.

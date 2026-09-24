@@ -26,6 +26,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   Bestehende Projekte behalten ihre eigene Kategorienliste.
 
 ### Prozessschritte statt Bauteile
+- Antippen der Felder „Sachnr." oder „Bauteilbenennung" in einer Schrittzeile klappt
+  die Teile auf und wieder zu – eine größere Fläche als das kleine ▸.
+- Der Knopf „↓ CSV Export" heißt jetzt „↓ Excel Export": Er öffnet den Dialog, in dem
+  es sowohl den Excel-Report (.xlsx) als auch die CSV zum Weiterarbeiten gibt.
+  Hinweistexte, die auf den Knopf verweisen, sind angepasst.
 - Jede Zeile ist ein Prozessschritt, dem beliebig viele Teile (Sachnummer,
   Bezeichnung, Menge) zugeordnet sind. „Anzahl" ist die Summe der Teilemengen und
   wird berechnet, nicht mehr eingetippt.
@@ -160,6 +165,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   gespeicherter Schlüssel `zeitaufnahme_theme` wird nicht mehr gelesen.
 
 ### Behoben
+- Einheit in den Bezeichnungen korrigiert: Grundelement #28 heißt jetzt „Seal or grease
+  small (400 cm²)", #27 „Seal or grease large (2500 cm²)" (bisher „400mm"/„2500mm"),
+  der darauf aufbauende Baustein „Clean & Seal 400cm²" (bisher „400mm²"). Nur die
+  Namen ändern sich, die Zeitwerte bleiben gleich. In bestehenden Projekten trägt die
+  Kategorie ihren gespeicherten Namen; umbenennen geht gefahrlos über „⚙ Zeiten".
 - Im Einfach-Modus wurden die linken Spalten (vor allem Station und Anzahl)
   deutlich breiter als im Erweitert-Modus, sobald die Tabelle ohne die
   [minD]-Spalten schmaler war als der Bildschirm — gemessen bei sechs Kategorien

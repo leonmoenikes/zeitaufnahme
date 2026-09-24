@@ -150,6 +150,12 @@ body.beginner-mode .simple-only{display:inline-block;}
 .cb-t{font-size:9px;color:var(--text3);font-family:var(--mono);}
 .cat-btn.has-v .cb-t{color:var(--accent);}
 body.sub .cat-btn.has-v{border-color:var(--red);background:var(--red-dim);}
+/* Gerechnete Meter: ƒ statt Zählen, gestrichelt, damit die Kachel nicht wie ein Zähler wirkt */
+.cb-lw{display:none;position:absolute;bottom:3px;right:6px;font-size:13px;font-style:italic;font-weight:700;
+  color:var(--accent-bright);font-family:Georgia,serif;pointer-events:none;}
+.cat-btn.lw-calc{border-style:dashed;}
+.cat-btn.lw-calc .cb-lw{display:block;}
+.lw-f{font-style:italic;font-weight:700;color:var(--accent-bright);font-family:Georgia,serif;margin-left:3px;}
 body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .cb-note-panel{display:none;}
 
@@ -480,6 +486,51 @@ td.nr .teil-caret{width:16px;}
 .mtm-codes td.act{text-align:center;padding:2px 4px;}
 .mtm-sec-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 4px;}
 
+/* ── LAUFWEG-RECHNER ── */
+.lw-modal{max-width:1060px;}
+.lw-par{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-bottom:1px solid var(--border);}
+.lw-par-lbl{width:136px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--text);}
+.lw-par .pval{min-height:38px;}
+.lw-par-text{flex:1;min-width:160px;font-size:11px;color:var(--text2);}
+/* Gelb wie die Eingabezellen im Excel-Blatt „Laufweg-Parameter": gelb = hier wird eingegeben, der Rest rechnet */
+.lw-gelb{background:#fff9d6!important;border-color:#e2cf7d!important;color:var(--text)!important;}
+.lw-gelb.bad{border-color:var(--red)!important;}
+.lw-note{font-size:10px;color:var(--text3);margin-top:6px;}
+.lw-sel{min-height:34px;font-size:12px;max-width:200px;}
+/* Eigener Scrollbereich, damit Kopfzeile, Summenzeile und Schrittname beim Blättern stehen bleiben */
+.lw-wrap{overflow:auto;max-height:calc(100vh - 250px);border:1px solid var(--border);border-radius:6px;-webkit-overflow-scrolling:touch;}
+.lw-tbl{border-collapse:separate;border-spacing:0;font-size:11px;width:100%;}
+.lw-tbl th{position:sticky;top:0;z-index:2;background:#44506b;color:#fff;font-weight:600;padding:5px 4px;
+  border-right:1px solid #333d54;text-align:center;vertical-align:bottom;line-height:1.2;}
+.lw-th-m{display:block;font-weight:400;font-size:9px;opacity:.8;font-family:var(--mono);}
+.lw-tbl td{padding:2px 5px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:right;
+  font-family:var(--mono);background:var(--surface);white-space:nowrap;}
+.lw-tbl td.lw-txt{text-align:left;font-family:var(--sans);}
+.lw-tbl .lw-name{position:sticky;left:0;z-index:1;min-width:170px;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+.lw-tbl th.lw-name{z-index:3;}
+.lw-tbl td.lw-inz{padding:2px 3px;text-align:center;}
+.lw-in{width:46px;min-height:32px;padding:4px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+  color:var(--text);font-family:var(--mono);font-size:12px;text-align:right;}
+.lw-in:focus{outline:none;border-color:var(--accent);}
+.lw-in.bad{border-color:var(--red);}
+.lw-tbl tr.lw-grau td{color:var(--text3);background:var(--surface2);}
+.lw-tbl tr.lw-grau .lw-in{background:var(--surface);}
+.lw-tbl tr.lw-akt td{background:var(--accent-dim);}
+.lw-tbl tr.lw-akt td.lw-name{box-shadow:inset 3px 0 0 var(--accent);}
+.lw-tbl tfoot td{position:sticky;bottom:0;z-index:1;background:#dde5f5;font-weight:700;border-top:2px solid var(--accent);}
+.lw-tbl tfoot td.lw-name{z-index:3;}
+.lw-auf{display:inline-block;width:22px;min-height:24px;border:none;background:none;color:var(--accent-bright);
+  cursor:pointer;font-size:12px;padding:0;margin-right:2px;vertical-align:middle;}
+.lw-auf.leer{visibility:hidden;}
+.lw-tbl tr.lw-lvl1 td.lw-name{font-weight:700;}
+/* Unterzeile mit den Teilen: der Inhalt klebt links, damit er beim seitlichen Blättern sichtbar bleibt */
+.lw-tbl tr.lw-teile td{background:var(--surface2);text-align:left;font-family:var(--sans);padding:4px 6px 8px;white-space:normal;}
+.lw-teile-box{position:sticky;left:0;display:inline-block;max-width:720px;}
+.lw-teile-box table{border-collapse:collapse;font-size:11px;}
+.lw-teile-box th{position:static;background:none;color:var(--text3);font-weight:600;text-align:left;padding:2px 10px 2px 0;border:none;}
+.lw-teile-box td{background:none!important;border:none;border-bottom:1px dashed var(--border);padding:2px 10px 2px 0;font-family:var(--sans);white-space:nowrap;}
+.lw-teile-box td.mg{text-align:right;font-family:var(--mono);}
+
 /* ── TOAST ── */
 .toast{
   position:fixed;bottom:calc(20px + var(--safe-bot));left:50%;
@@ -729,6 +780,7 @@ td.nr .teil-caret{width:16px;}
   <div class="sep"></div>
   <button class="tbtn adv-only" onclick="openCfg()">⚙ Zeiten</button>
   <button class="tbtn adv-only" onclick="openMtm()">🧱 Bausteine</button>
+  <button class="tbtn adv-only" onclick="openLw()">🚶 Laufwege</button>
   <button class="tbtn adv-only" onclick="openAnalysis()">📊 Auswertung</button>
   <div class="spacer"></div>
   <span class="last-action" id="lastActionIndicator"></span>
@@ -909,6 +961,24 @@ td.nr .teil-caret{width:16px;}
   </div>
 </div>
 
+<!-- LAUFWEG-RECHNER -->
+<div class="modal-bg" id="lwModal">
+  <div class="modal lw-modal">
+    <div class="mh">
+      <span class="mh-title">🚶 Laufwege – Rechner</span>
+      <button class="mclose" onclick="closeLw()">✕</button>
+    </div>
+    <div class="mbody" id="lwBody">
+      <div class="ana-tabs">
+        <button class="ana-tab on" id="lwTabPar" onclick="setLwTab('param')">Parameter</button>
+        <button class="ana-tab" id="lwTabSchritt" onclick="setLwTab('schritt')">Je Schritt</button>
+      </div>
+      <div id="lwPanelParam"></div>
+      <div id="lwPanelSchritt" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- EXPORT MODAL -->
 <div class="modal-bg" id="expModal">
   <div class="modal exp-modal">
@@ -919,7 +989,7 @@ td.nr .teil-caret{width:16px;}
     <div class="exp-row">
       <label class="exp-label">Dateiname</label>
       <input class="exp-input" id="expFilename" type="text" placeholder="z.B. Linie3_Getriebe_Welle"/>
-      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (4 Blätter)</span>
+      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (5 Blätter)</span>
     </div>
     <div class="exp-btns">
       <button class="exp-cancel" onclick="closeExpModal()">Abbrechen</button>
@@ -1035,6 +1105,64 @@ let mode = 'add';
 let unit = 'minD';
 const MIND_FACTOR = 0.6; // 1 minD = 0.6 min
 const SHORTCUT_POOL = "1234567890qwertzuiopasdfghjkl".split('');
+
+/* ═══════════════════════════════════════
+   LAUFWEGE — Rechenkern
+   Der Laufweg wird nicht gezählt, sondern gerechnet: Auslöser je Schritt × zentrale Meterwerte.
+   Das Ergebnis landet in data[id].meter und speist den bestehenden Baustein „Meter in total" —
+   Auswertung, Taktabgleich und Exporte rechnen dadurch ohne eigene Anpassung richtig.
+   Schritte ohne __lw bleiben manuell gezählt: so lässt sich Schritt für Schritt umstellen,
+   und ein Projekt ohne Laufwege verhält sich exakt wie vorher.
+   Die Konstanten stehen hier oben, weil ensureKeys() sie braucht und const vor der
+   Deklaration nicht erreichbar ist.
+═══════════════════════════════════════ */
+const LW_KAT='meter';   // Kategorie, in die der gerechnete Laufweg geschrieben wird
+const LW_KEYS=['base','tool','rollwagen','crane','scan','bereitstellen','komm'];
+const LW_DEF={base:2, tool:2, rollwagen:4, crane:6, scan:3, bereitstellen:8, komm:1.5};
+const LW_TEXT={
+  base:         {label:'Grundweg',        text:'je Ablaufschritt: KLT-Regal am Platz zum Werkstück und zurück'},
+  tool:         {label:'Werkzeug',        text:'Werkzeug holen und ablegen (Schrauber-/Sonderwerkzeugplatz)'},
+  rollwagen:    {label:'Rollwagen',       text:'Großteil vom Rollwagen statt aus dem KLT-Regal (Teil > 3 kg, ohne Kran)'},
+  crane:        {label:'Kranhub',         text:'je Kranhub: Rollwagen zum Schwenkkran zum Werkstück'},
+  scan:         {label:'Scan',            text:'Weg zum MES-Bildschirm / Scanner'},
+  bereitstellen:{label:'Bereitstellen',   text:'Bereitstellung auf Transportwagen / Übergabe an die nächste Station'},
+  komm:         {label:'Kommissionieren', text:'je Teil aus dem KLT-Regal auf den Werkstückträger'},
+};
+/* zentrale Meterwerte, projektbezogen gespeichert */
+let lwParams={...LW_DEF};
+
+function lwTrig(id){ const d=data[id]; return (d && d.__lw && typeof d.__lw==='object') ? d.__lw : null; }
+function lwHat(id){ return !!lwTrig(id); }
+/* Math.round rundet positive Zahlen kaufmännisch — wie ROUND(…;0) in Excel, damit Tool und
+   Excel-Export auf dieselbe Meterzahl kommen (1,5 m × 3 = 4,5 → 5). toPrecision schneidet
+   Gleitkomma-Rauschen ab, wie Excel mit seinen 15 Stellen (4,1 × 15 = 61,4999… → 61,5 → 62). */
+function lwMeter(id){
+  const t=lwTrig(id); if(!t) return 0;
+  return Math.round(+LW_KEYS.reduce((s,k)=>s+(t[k]||0)*(lwParams[k]||0),0).toPrecision(12));
+}
+/* Nach jeder Parameter- oder Auslöseränderung alle gerechneten Schritte neu setzen */
+function lwNeuRechnen(){
+  parts.forEach(p=>{ if(lwHat(p.id)) data[p.id][LW_KAT]=lwMeter(p.id); });
+}
+/* Meterwerte aus Speicher oder Datei: jeder Wert eine Zahl ≥ 0, unbekannte Schlüssel verworfen,
+   fehlende aus den Standardwerten ergänzt */
+function lwParamsPruefen(o){
+  const r={...LW_DEF};
+  if(o && typeof o==='object') LW_KEYS.forEach(k=>{
+    if(o[k]===null || o[k]===undefined || o[k]==='') return;
+    const v=Number(o[k]);
+    if(isFinite(v) && v>=0) r[k]=v;
+  });
+  return r;
+}
+/* Auslöser eines Schritts: nur gesetzte Schlüssel mit ganzzahligem Wert > 0.
+   Bleibt nichts übrig, gibt es kein __lw — der Schritt ist dann manuell. */
+function lwTrigPruefen(o){
+  if(!o || typeof o!=='object' || Array.isArray(o)) return null;
+  const r={};
+  LW_KEYS.forEach(k=>{ const v=Math.round(Number(o[k])); if(isFinite(v) && v>0) r[k]=v; });
+  return Object.keys(r).length ? r : null;
+}
 
 function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1156,6 +1284,8 @@ function ensureKeys(){
     const p=part.id;
     COLS.forEach(c=>{ if(!data[p]) data[p]={}; if(data[p][c.key]===undefined) data[p][c.key]=0; });
     migrateLegacyStep(data[p],part.name);   // Vorversion umwandeln bzw. Teile-Liste absichern
+    const lw=lwTrigPruefen(data[p].__lw);
+    if(lw) data[p].__lw=lw; else delete data[p].__lw;
     if(data[p].__note===undefined) data[p].__note='';
     if(data[p].__extra1===undefined) data[p].__extra1='';
     if(data[p].__extra2===undefined) data[p].__extra2='';
@@ -2221,10 +2351,15 @@ function copyAnzahlToCategory(){
   const targets=getFilteredParts();
   if(targets.length===0){ toast('⚠ Keine (gefilterten) Prozessschritte gefunden'); return; }
   const catLabel=(COLS.find(c=>c.key===key)||{}).label||key;
-  if(!confirm(`Anzahl-Werte in "${catLabel}" für ${targets.length} Prozessschritt(e) übernehmen?\n\nBestehende Werte in dieser Kategorie werden dabei überschrieben.`)) return;
-  targets.forEach(p=>{ data[p.id][key]=stepQty(p.id); });
+  /* Gerechnete Meter bleiben unangetastet — sie kämen beim nächsten Rechenlauf ohnehin zurück */
+  const gerechnet=key===LW_KAT?targets.filter(p=>lwHat(p.id)).length:0;
+  const ziele=key===LW_KAT?targets.filter(p=>!lwHat(p.id)):targets;
+  if(ziele.length===0){ toast('⚠ Alle gewählten Prozessschritte haben gerechnete Laufwege'); return; }
+  if(!confirm(`Anzahl-Werte in "${catLabel}" für ${ziele.length} Prozessschritt(e) übernehmen?\n\nBestehende Werte in dieser Kategorie werden dabei überschrieben.`
+    +(gerechnet?`\n\n${gerechnet} Prozessschritt(e) mit gerechnetem Laufweg bleiben unverändert.`:''))) return;
+  ziele.forEach(p=>{ data[p.id][key]=stepQty(p.id); });
   updGrid();renderBody();markDirty();
-  toast(`✓ Anzahl → "${catLabel}" für ${targets.length} Prozessschritt(e) übernommen`);
+  toast(`✓ Anzahl → "${catLabel}" für ${ziele.length} Prozessschritt(e) übernommen`);
 }
 
 /* ═══════════════════════════════════════
@@ -2246,6 +2381,7 @@ function startNewProject(){
   verteilzeitFactor=0;
   hourlyRate=0;
   taktSoll=0; taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
+  lwParams={...LW_DEF};
   lastExportTime=null;
   lastActionText='';
   undoStack=[];
@@ -2295,12 +2431,15 @@ function handleStartImport(evt){
       if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
       taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
       teileOffen={};
+      lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
+      if(parsed.lwTrigger) Object.keys(parsed.lwTrigger).forEach(id=>{ if(data[id]) data[id].__lw=parsed.lwTrigger[id]; });
       lastExportTime=null;
       lastActionText='';
       undoStack=[];
       rowClipboard=null;
       activePart=parts[0].id;
       ensureKeys();
+      lwNeuRechnen();
       hasUnsavedChanges=false;
       document.getElementById('startScreen').classList.remove('open');
       updateProjLabel();
@@ -2333,11 +2472,20 @@ function switchProject(){
      neu: Level, Prozessschritt, Teile,      Stufe, Werkzeug, Quelle, Zusatz×3, Anzahl, Gesamt */
 const CSV_FORMAT=3;
 const CSV_FIX=11;
+/* CSV_FIX (und CSV_FORMAT) bleiben beim Laufweg-Rechner bewusst unverändert: Meterwerte und Auslöser
+   stehen in eigenen Metazeilen (__LWPARAM__, __LW__), nicht in neuen Datenspalten. Eine neue Spalte
+   vor den Kategorien hätte alle Kategorie-Spalten verschoben und bestehende Dateien falsch eingelesen.
+   Die gerechneten Meter stehen weiterhin als Anzahl in der Meter-Spalte — ältere App-Versionen
+   überspringen die neuen Metazeilen und zeigen dieselbe Ist-Zeit. */
 /* Import-Meldung: bei alten Dateien auf die Umwandlung hinweisen, bei defekter Teile-Spalte warnen */
 function importHinweis(parsed,ok){
   if(parsed.teileFehler) toast('⚠ Bei '+parsed.teileFehler+' Prozessschritt(en) war die Teile-Spalte unlesbar – dort ohne Teile übernommen',6000);
   else if(parsed.format<CSV_FORMAT) toast('ℹ Projekt aus älterem Format übernommen – Bauteile wurden in Prozessschritte umgewandelt',6000);
-  else toast(ok);
+  else {
+    /* Sichtbar machen, dass die Laufweg-Auslöser mit der Datei zurückgekommen sind */
+    const nLw=parsed.lwTrigger?Object.keys(parsed.lwTrigger).length:0;
+    toast(ok+(nLw?' · '+nLw+' Schritte mit Laufweg':''));
+  }
 }
 /* Gemeinsamer CSV-Parser für Start-Import und laufenden Import */
 function parseImportedCSV(text){
@@ -2415,7 +2563,7 @@ function parseImportedCSV(text){
   }
   /* Alle weiteren Metazeilen überspringen und bekannte auswerten. So verschiebt eine
      künftig ergänzte Zeile die Kopfzeile nicht mehr, und ältere Dateien ohne sie laufen weiter. */
-  let mtmCustomParsed=null, mtmGeParsed=null, taktParsed=null, szenRaw=null;
+  let mtmCustomParsed=null, mtmGeParsed=null, taktParsed=null, szenRaw=null, lwParamRaw=null, lwRaw=null;
   const metaJson=(zeile)=>{
     try{ const o=JSON.parse(decodeURIComponent(zeile.split(';')[1]||'')); return (o&&typeof o==='object')?o:null; }
     catch(e){ return null; }
@@ -2429,6 +2577,14 @@ function parseImportedCSV(text){
       taktParsed={soll:(isNaN(soll)||soll<0)?0:soll, mitVz:q[2]!=='0', groupKey:(q[3]||'').trim()};
     }
     else if(lines[idx].startsWith('__SZENARIO__')) szenRaw=metaJson(lines[idx]);
+    else if(lines[idx].startsWith('__LWPARAM__')){
+      lwParamRaw={};
+      lines[idx].split(';').slice(1).forEach(seg=>{
+        const [k,v]=seg.split('|');
+        if(k&&v!==undefined&&v.trim()!=='') lwParamRaw[k.trim()]=Number(v.trim().replace(',','.'));
+      });
+    }
+    else if(lines[idx].startsWith('__LW__')) lwRaw=metaJson(lines[idx]);
     idx++;
   }
   idx++; // Kopfzeile überspringen
@@ -2486,7 +2642,13 @@ function parseImportedCSV(text){
     szenGeprueft.moves=m;
     szenParsed=szenGeprueft;
   }
-  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed, mtmCustom:mtmCustomParsed, mtmCustomGE:mtmGeParsed, takt:taktParsed, szenario:szenParsed, format, teileFehler};
+  /* Auslöser stehen unter der Zeilennummer der Datei (wie beim Szenario) → auf die neuen IDs umschlüsseln */
+  let lwTrigger=null;
+  if(lwRaw && !Array.isArray(lwRaw)){
+    lwTrigger={};
+    Object.keys(lwRaw).forEach(i=>{ const id=rowIds[+i], t=lwTrigPruefen(lwRaw[i]); if(id&&t) lwTrigger[id]=t; });
+  }
+  return {cols, parts:newParts, data:newData, projectName, sollzeit:sollzeitParsed, description:descParsed, verteilzeit:verteilParsed, stundensatz:stundensatzParsed, colLabels:colLabelsParsed, mtmCustom:mtmCustomParsed, mtmCustomGE:mtmGeParsed, takt:taktParsed, szenario:szenParsed, lwParams:lwParamRaw, lwTrigger, format, teileFehler};
 }
 
 /* ═══════════════════════════════════════
@@ -2538,7 +2700,8 @@ function buildGrid(){
       +`<span class="cb-lbl">${c.label}</span>`
       +`<span class="cb-par adv-only">${dispParam(c.param)} ${ul()}</span>`
       +`<span class="cb-cnt" id="cv_${c.key}">${v}</span>`
-      +`<span class="cb-t adv-only" id="ct_${c.key}">${v>0?disp(v*c.param)+' '+ul():''}</span>`;
+      +`<span class="cb-t adv-only" id="ct_${c.key}">${v>0?disp(v*c.param)+' '+ul():''}</span>`
+      +(c.key===LW_KAT?'<span class="cb-lw">ƒ</span>':'');
     btn.addEventListener('click',e=>{
       if(e.target.closest('.cb-note-tgl')) return;
       doCount(c.key);
@@ -2562,6 +2725,7 @@ function buildGrid(){
       });
     }
   });
+  lwKachel();
 }
 function updGrid(){
   COLS.forEach(c=>{
@@ -2577,7 +2741,15 @@ function updGrid(){
       btn.style.background=v>0?gCol+'33':'';
     }
   });
+  lwKachel();
   updateActiveBar();
+}
+/* Meter-Kachel: ƒ und Hinweis, solange der aktive Schritt gerechnet wird */
+function lwKachel(){
+  const btn=document.getElementById('cb_'+LW_KAT); if(!btn) return;
+  const an=lwHat(activePart);
+  btn.classList.toggle('lw-calc',an);
+  btn.title=an?'Laufweg wird gerechnet — im Fenster Laufwege ändern':'';
 }
 
 /* ═══════════════════════════════════════
@@ -2792,6 +2964,10 @@ function renderBody(){
       const t=v*c.param;
       const tdv=document.createElement('td');
       tdv.className=v>0?'vnz':'';tdv.textContent=v>0?v:'–';tr.appendChild(tdv);
+      if(c.key===LW_KAT && lwHat(id)){
+        const f=document.createElement('span'); f.className='lw-f'; f.textContent='ƒ'; tdv.appendChild(f);
+        tdv.title='Laufweg wird gerechnet — im Fenster Laufwege ändern';
+      }
       const tdt=document.createElement('td');
       tdt.className=(t>0?'tnz':'')+' adv-only';tdt.textContent=t>0?disp2(t):'–';
       if(t>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'59';tdt.style.color='#2b3244';}
@@ -2900,6 +3076,9 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
 ═══════════════════════════════════════ */
 function doCount(key){
   if(!activePart)return;
+  /* Gerechnete Meter werden nicht gezählt — der nächste Rechenlauf würde den Klick stillschweigend
+     überschreiben. Stattdessen öffnet sich die Zeile des Schritts im Laufweg-Fenster. */
+  if(key===LW_KAT && lwHat(activePart)){ lwZeigeSchritt(activePart); return; }
   const p=activePart;
   const cur=data[p][key]||0;
   const next = mode==='add' ? cur+1 : Math.max(0,cur-1);
@@ -2922,6 +3101,11 @@ function undoLast(){
   const last=undoStack.pop();
   if(!last){toast('Nichts rückgängig zu machen');return;}
   if(!data[last.part]){toast('⚠ Prozessschritt nicht mehr vorhanden');return;}
+  /* Zählung aus der Zeit, bevor der Schritt Auslöser bekam: zurücksetzen hielte nur bis zum nächsten Rechenlauf */
+  if(last.key===LW_KAT && lwHat(last.part)){
+    toast('↩ Übersprungen: Meter von "'+partName(last.part)+'" wird gerechnet');
+    return;
+  }
   data[last.part][last.key]=last.prev;
   updGrid(); renderBody(); markDirty();
   const nm=partName(last.part)||'(gelöschter Prozessschritt)';
@@ -3045,6 +3229,7 @@ function pasteRow(id){
   /* Kopierte Teile bekommen eigene IDs — sonst hingen zwei Schritte an denselben Teilen */
   data[id].__teile=normTeile(data[id].__teile).map(t=>Object.assign(t,{id:newTeilId()}));
   ensureKeys();
+  lwNeuRechnen();   // Auslöser kommen mit; Meter aus denselben Meterwerten
   updGrid();renderBody();markDirty();
   toast('📋 Eingefügt in "'+targetName+'"');
 }
@@ -3093,6 +3278,7 @@ function delPart(id){
 function resetAll(){
   if(!confirm('Alle Zähler zurücksetzen?'))return;
   parts.forEach(p=>{COLS.forEach(c=>data[p.id][c.key]=0);});   // Teile und Mengen bleiben
+  lwNeuRechnen();   // Auslöser sind keine Zähler: gerechnete Meter stehen gleich wieder da
   updGrid();renderBody();markDirty();toast('Alle Zähler zurückgesetzt');
 }
 
@@ -3657,6 +3843,334 @@ function renderMtmNeu(){
 }
 
 /* ═══════════════════════════════════════
+   LAUFWEG-RECHNER (Fenster)
+   Reiter „Parameter": Meterwerte je Auslöser und Kennzahlen.
+   Reiter „Je Schritt": Auslöser je Prozessschritt.
+   Änderungen hier laufen bewusst nicht über den Undo-Stapel — Undo nimmt Zählschritte
+   zurück; der Weg zurück bei den Meterwerten ist „Standardwerte".
+═══════════════════════════════════════ */
+let lwTab='param';
+/* Schlagwörter im Schrittnamen, die eine Bereitstellung bedeuten — so vorgegeben, nicht erweitert */
+const LW_BEREIT_WOERTER=['transportwagen','bereitstellen','bereitstellung','abrüstplatz','abruestplatz',
+  'sonderladungsträger','sonderladungstraeger','abrüsten','abruesten'];
+
+function lwOffen(){ return document.getElementById('lwModal').classList.contains('open'); }
+function openLw(tab){ setLwTab(tab||lwTab); document.getElementById('lwModal').classList.add('open'); }
+function closeLw(){ if(lwTabelleTmr) lwTabelleNachziehen(); document.getElementById('lwModal').classList.remove('open'); }
+function setLwTab(t){
+  lwTab=t;
+  document.getElementById('lwTabPar').className='ana-tab'+(t==='param'?' on':'');
+  document.getElementById('lwTabSchritt').className='ana-tab'+(t==='schritt'?' on':'');
+  document.getElementById('lwPanelParam').style.display=(t==='param')?'':'none';
+  document.getElementById('lwPanelSchritt').style.display=(t==='schritt')?'':'none';
+  if(t==='param') renderLwParam(); else renderLwSchritt();
+}
+/* Zeitwert der Meter-Kategorie; fehlt die Kategorie in den Zeiten, kosten Meter keine Zeit */
+function lwKatParam(){ const c=COLS.find(c=>c.key===LW_KAT); return c?c.param:0; }
+/* Nach jeder Änderung im Fenster: Meter neu rechnen, Speichern anstoßen, Tabelle und Auswertung nachziehen.
+   renderBody braucht bei ~300 Schritten spürbar Zeit (am iPad mehr) — beim Tippen einer Zahl reicht es,
+   die vom Fenster verdeckte Haupttabelle nach der letzten Eingabe einmal neu zu zeichnen. */
+let lwTabelleTmr=null;
+function lwNachAenderung(){
+  lwNeuRechnen(); markDirty();
+  clearTimeout(lwTabelleTmr);
+  lwTabelleTmr=setTimeout(lwTabelleNachziehen,150);
+}
+function lwTabelleNachziehen(){
+  clearTimeout(lwTabelleTmr); lwTabelleTmr=null;
+  buildGrid(); renderBody(); updateActiveBar(); refreshAnalysisIfOpen();
+}
+
+function renderLwParam(){
+  const el=document.getElementById('lwPanelParam');
+  let h='<div class="mtm-hint">Meter je Auslöser (gelb = Eingabe). Meter eines Schritts = Σ Auslöser × Meterwert, '
+    +'auf ganze Meter gerundet. Gerechnet wird nur bei Schritten mit eingetragenen Auslösern — '
+    +'alle anderen behalten ihre gezählten Meter.</div>';
+  LW_KEYS.forEach(k=>{
+    h+=`<div class="lw-par"><span class="lw-par-lbl">${escHtml(LW_TEXT[k].label)}</span>`
+      +`<input class="pval lw-gelb" type="number" min="0" step="0.5" inputmode="decimal" data-k="${k}" value="${lwParams[k]}"/>`
+      +`<span class="punit">m</span><span class="lw-par-text">${escHtml(LW_TEXT[k].text)}</span></div>`;
+  });
+  h+='<div class="takt-szen-btns"><button class="tbtn" onclick="lwStandardwerte()">↺ Standardwerte</button>'
+    +`<button class="tbtn" onclick="lwAutoZuordnung()" title="${escAttr(LW_AUTO_HINWEIS)}">⚡ Auto-Zuordnung</button></div>`
+    +'<div class="mtm-sec-title">Kennzahlen</div><div id="lwKpi"></div>';
+  el.innerHTML=h;
+  el.querySelectorAll('input[data-k]').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const v=parseFloat(String(inp.value).replace(',','.'));
+      const ok=isFinite(v)&&v>=0;
+      inp.classList.toggle('bad',!ok&&inp.value!=='');
+      /* Leeres Feld beim Neueintippen: letzten gültigen Wert behalten, sonst springen alle Meter kurz auf 0 */
+      if(!ok||lwParams[inp.dataset.k]===v) return;
+      lwParams[inp.dataset.k]=v;
+      lwNachAenderung(); renderLwKpi();
+    });
+    inp.addEventListener('blur',()=>{ inp.value=lwParams[inp.dataset.k]; inp.classList.remove('bad'); });
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); });
+  });
+  renderLwKpi();
+}
+
+function lwKennzahlen(){
+  const r={meter:0, meterLw:0, mit:0, ohne:0, ohneMitMeter:0, trig:{}, mTrig:{}};
+  LW_KEYS.forEach(k=>{ r.trig[k]=0; r.mTrig[k]=0; });
+  parts.forEach(p=>{
+    const m=data[p.id][LW_KAT]||0, t=lwTrig(p.id);
+    r.meter+=m;
+    if(t){ r.mit++; r.meterLw+=m; LW_KEYS.forEach(k=>{ r.trig[k]+=t[k]||0; r.mTrig[k]+=(t[k]||0)*(lwParams[k]||0); }); }
+    else { r.ohne++; if(m>0) r.ohneMitMeter++; }
+  });
+  return r;
+}
+function renderLwKpi(){
+  const el=document.getElementById('lwKpi'); if(!el) return;
+  const r=lwKennzahlen(), minD=r.meter*lwKatParam(), ist=grandTotal();
+  const kpi=(lbl,val,sub)=>`<div class="ana-kpi"><span class="ana-kpi-lbl">${lbl}</span><span class="ana-kpi-val">${val}</span>`
+    +(sub?`<span class="ana-kpi-sub">${sub}</span>`:'')+'</div>';
+  let h='<div class="ana-kpi-row">'
+    +kpi('Σ Meter',r.meter+' m','davon gerechnet '+r.meterLw+' m')
+    +kpi('Σ minD',minD.toFixed(3),'Σ min '+(minD*MIND_FACTOR).toFixed(3))
+    +kpi('Anteil am Ist',(ist>0?minD/ist*100:0).toFixed(1)+' %','Ist '+ist.toFixed(3)+' minD')
+    +kpi('Schritte mit Laufweg',r.mit,'ohne: '+r.ohne+(r.ohneMitMeter?' · davon '+r.ohneMitMeter+' mit gezählten Metern':''))
+    +'</div>';
+  if(!COLS.some(c=>c.key===LW_KAT)) h+='<div class="takt-note">Die Kategorie „Meter" fehlt unter ⚙ Zeiten — die Meter kosten deshalb keine Zeit.</div>';
+  const sumK=LW_KEYS.reduce((s,k)=>s+r.mTrig[k],0);
+  h+='<div style="overflow-x:auto;"><table class="takt-tbl"><thead><tr><th>Auslöser</th><th>Meterwert [m]</th><th>Σ Auslöser</th><th>Σ Meter</th><th>Anteil</th></tr></thead><tbody>';
+  LW_KEYS.forEach(k=>{
+    h+=`<tr><td class="tk-name">${escHtml(LW_TEXT[k].label)}</td><td>${lwParams[k]}</td><td>${r.trig[k]}</td>`
+      +`<td>${r.mTrig[k].toFixed(1)}</td><td>${sumK>0?(r.mTrig[k]/sumK*100).toFixed(1):'0.0'} %</td></tr>`;
+  });
+  h+=`<tr class="tk-sum"><td class="tk-name">Summe</td><td></td><td>${LW_KEYS.reduce((s,k)=>s+r.trig[k],0)}</td>`
+    +`<td>${sumK.toFixed(1)}</td><td>${sumK>0?'100.0':'0.0'} %</td></tr></tbody></table></div>`
+    +'<div class="lw-note">Σ Meter je Auslöser ist ungerundet. Jeder Schritt rundet für sich auf ganze Meter — '
+    +'deshalb kann die Summe leicht von „davon gerechnet" abweichen.</div>';
+  el.innerHTML=h;
+}
+
+function lwStandardwerte(){
+  const txt=LW_KEYS.map(k=>LW_TEXT[k].label+' '+LW_DEF[k]+' m').join('\n');
+  if(!confirm('Alle Meterwerte auf die Standardwerte zurücksetzen?\n\n'+txt)) return;
+  lwParams={...LW_DEF};
+  lwNachAenderung(); renderLwParam();
+  toast('↺ Meterwerte auf Standard gesetzt');
+}
+
+/* Auslöser eines Schritts aus den vorhandenen Daten — genau nach den vereinbarten Regeln.
+   Rollwagen lässt sich aus den Daten nicht ablesen; ein eingetragener Wert bleibt, sonst 0. */
+function lwAutoTrig(id){
+  const d=data[id], alt=lwTrig(id)||{}, t={};
+  if(String(d.__stufe||'').toLowerCase().includes('kommission')){
+    t.komm=stepQty(id); t.base=0;
+  } else {
+    t.base=1;
+    t.tool=String(d.__werkzeug||'').trim()?1:0;
+    t.crane=d.crane_gt12||0;
+    t.scan=d.code_scan||0;
+    const n=partName(id).toLowerCase();
+    t.bereitstellen=LW_BEREIT_WOERTER.some(w=>n.includes(w))?1:0;
+  }
+  if(alt.rollwagen) t.rollwagen=alt.rollwagen;
+  return lwTrigPruefen(t);
+}
+/* Hinweis beim Überfahren des Knopfs — dieselben Regeln wie lwAutoTrig */
+const LW_AUTO_HINWEIS='Setzt die Auslöser aller Schritte aus den vorhandenen Daten:\n'
+  +'• Montagestufe „Kommission…" → Kommissionieren = Teilemenge, Grundweg 0\n'
+  +'• sonst Grundweg 1\n'
+  +'• Werkzeug eingetragen → Werkzeug 1\n'
+  +'• Kranhub = Anzahl „Crane Part >12 kg"\n'
+  +'• Scan = Anzahl „Code scan"\n'
+  +'• Name enthält z.B. Transportwagen, Bereitstellung, abrüsten → Bereitstellen 1\n'
+  +'• Rollwagen bleibt unverändert (von Hand eintragen)\n'
+  +'Level-1-Überschriften bleiben unangetastet. Nicht per Undo umkehrbar.';
+function lwAutoZuordnung(){
+  if(!confirm('Auslöser für alle Prozessschritte aus den vorhandenen Daten setzen? Bereits eingetragene Rollwagen-Werte bleiben erhalten.')) return;
+  /* Level-1-Zeilen sind Überschriften ohne eigenen Arbeitsgang und bekommen keinen Laufweg; sie bleiben
+     unangetastet. Nutzt ein Projekt gar keine Unterebenen (neue Schritte starten auf Level 1),
+     gibt es keine Überschriften — dann wird jeder Schritt zugeordnet. */
+  const mitEbenen=parts.some(p=>(data[p.id].__level||1)>1);
+  let n=0, ueber=0;
+  parts.forEach(p=>{
+    if(mitEbenen && (data[p.id].__level||1)===1){ ueber++; return; }
+    const alt=lwTrig(p.id), neu=lwAutoTrig(p.id);
+    if(JSON.stringify(alt)===JSON.stringify(neu)) return;
+    if(neu) data[p.id].__lw=neu; else delete data[p.id].__lw;   // ohne Auslöser: Meter behält den letzten Wert
+    n++;
+  });
+  lwNachAenderung();
+  setLwTab(lwTab);
+  toast('✓ Auto-Zuordnung: '+n+' Prozessschritt'+(n===1?'':'e')+' geändert'
+    +(ueber?' · '+ueber+' Überschrift'+(ueber===1?'':'en')+' (Level 1) ausgelassen':''),5000);
+}
+
+/* ── Reiter „Je Schritt" ──
+   Die Tabelle wird beim Öffnen des Reiters einmal gebaut. Eine Eingabe zeichnet danach nur
+   ihre eigene Zeile und die Summenzeile neu — ein Neuaufbau würde bei ~300 Schritten
+   das gerade fokussierte Feld (und am iPad die Tastatur) verlieren. */
+let lwFilter={station:'',stufe:'',ohne:false};
+/* Trennstellen für die schmalen Spalten; Bezeichnungen bleiben die aus LW_TEXT */
+const LW_KOPF={base:'Grund&shy;weg',tool:'Werk&shy;zeug',rollwagen:'Roll&shy;wagen',crane:'Kran&shy;hub',
+  scan:'Scan',bereitstellen:'Bereit&shy;stellen',komm:'Kommis&shy;sionieren'};
+
+function lwErgebnisHtml(id){
+  const m=data[id][LW_KAT]||0;
+  const tip=lwHat(id)?'gerechnet':'gezählt (nicht gerechnet)';
+  return `<td class="lw-m" title="${tip}">${m}</td><td class="lw-t">${(m*lwKatParam()).toFixed(3)}</td>`;
+}
+/* Aufgeklappte Schritte im Laufweg-Fenster — reine Ansicht, wird nicht gespeichert */
+let lwAuf={};
+function lwZeileHtml(id,i){
+  const d=data[id], t=lwTrig(id)||{}, lvl=d.__level||1, nT=stepTeile(id).length;
+  return `<tr data-id="${escAttr(id)}" class="${lwHat(id)?'':'lw-grau'}${id===activePart?' lw-akt':''}${lvl===1?' lw-lvl1':''}">`
+    +`<td>${i+1}</td><td>${lvl}</td><td class="lw-txt">${escHtml(d.__extra1||'')}</td>`
+    +`<td class="lw-txt lw-name" title="${escAttr(partName(id))}"><button type="button" class="lw-auf${nT?'':' leer'}" title="Teile zeigen">${lwAuf[id]?'▾':'▸'}</button>${escHtml(partName(id))}</td>`
+    +`<td>${stepQty(id)||'–'}</td>`
+    +LW_KEYS.map(k=>`<td class="lw-inz"><input class="lw-in" type="number" min="0" step="1" inputmode="numeric" data-k="${k}" value="${t[k]||''}" placeholder="0"/></td>`).join('')
+    +lwErgebnisHtml(id)+'</tr>'+(lwAuf[id]?lwTeileHtml(id):'');
+}
+/* Unterzeile: welche Teile der Schritt anpackt — Grundlage, um die Auslöser sinnvoll zu wählen */
+function lwTeileHtml(id){
+  const teile=stepTeile(id);
+  const zeilen=teile.map(t=>`<tr><td>${escHtml(t.sachnr||'–')}</td><td>${escHtml(t.name||'–')}</td><td class="mg">${t.menge}×</td></tr>`).join('');
+  return `<tr class="lw-teile" data-fuer="${escAttr(id)}"><td colspan="${5+LW_KEYS.length+2}"><div class="lw-teile-box">`
+    +(teile.length?`<table><tr><th>Sachnummer</th><th>Bezeichnung</th><th>Menge</th></tr>${zeilen}</table>`:'keine Teile')
+    +'</div></td></tr>';
+}
+function lwAufklappen(id,auf){
+  const tr=document.querySelector('#lwTbody tr[data-id="'+id+'"]'); if(!tr) return;
+  if(auf) lwAuf[id]=true; else delete lwAuf[id];
+  tr.querySelector('.lw-auf').textContent=auf?'▾':'▸';
+  const sub=tr.nextElementSibling;
+  if(sub && sub.classList.contains('lw-teile')) sub.remove();
+  if(auf){ tr.insertAdjacentHTML('afterend',lwTeileHtml(id)); tr.nextElementSibling.style.display=tr.style.display; }
+  lwAufKnopf();
+}
+function lwAlleAufklappen(){
+  const sichtbar=[...document.querySelectorAll('#lwTbody tr[data-id]')].filter(tr=>tr.style.display!=='none'&&stepTeile(tr.dataset.id).length);
+  const auf=!sichtbar.every(tr=>lwAuf[tr.dataset.id]);
+  sichtbar.forEach(tr=>lwAufklappen(tr.dataset.id,auf));
+}
+function lwAufKnopf(){
+  const k=document.getElementById('lwAlleAuf'); if(!k) return;
+  const sichtbar=[...document.querySelectorAll('#lwTbody tr[data-id]')].filter(tr=>tr.style.display!=='none'&&stepTeile(tr.dataset.id).length);
+  k.textContent=sichtbar.length&&sichtbar.every(tr=>lwAuf[tr.dataset.id])?'▸ Alle zuklappen':'▾ Alle aufklappen';
+}
+function renderLwSchritt(){
+  const el=document.getElementById('lwPanelSchritt');
+  const werte=k=>[...new Set(parts.map(p=>String(data[p.id][k]||'').trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,'de',{numeric:true}));
+  const stationen=werte('__extra1'), stufen=werte('__stufe');
+  if(!stationen.includes(lwFilter.station)) lwFilter.station='';
+  if(!stufen.includes(lwFilter.stufe)) lwFilter.stufe='';
+  const opt=(list,sel)=>'<option value="">alle</option>'
+    +list.map(v=>`<option value="${escAttr(v)}"${v===sel?' selected':''}>${escHtml(v)}</option>`).join('');
+  let h='<div class="takt-ctl">'
+    +`<label class="takt-ctl-item">${escHtml(colLabel('extra1'))}<select class="takt-sel lw-sel" id="lwFStation">${opt(stationen,lwFilter.station)}</select></label>`
+    +`<label class="takt-ctl-item">${escHtml(colLabel('stufe'))}<select class="takt-sel lw-sel" id="lwFStufe">${opt(stufen,lwFilter.stufe)}</select></label>`
+    +`<label class="takt-ctl-item takt-chk"><input type="checkbox" id="lwFOhne"${lwFilter.ohne?' checked':''}/> nur Schritte ohne Laufweg</label>`
+    +'<button type="button" class="tbtn" id="lwAlleAuf" onclick="lwAlleAufklappen()">▾ Alle aufklappen</button>'
+    +'<span class="takt-hint" id="lwFInfo"></span></div>';
+  h+=`<div class="lw-wrap" id="lwWrap"><table class="lw-tbl"><thead><tr><th>Nr</th><th>Lvl</th><th>${escHtml(colLabel('extra1'))}</th><th class="lw-name">Prozessschritt</th><th>Teile</th>`
+    +LW_KEYS.map(k=>`<th title="${escAttr(LW_TEXT[k].label+': '+LW_TEXT[k].text)}">${LW_KOPF[k]}<span class="lw-th-m">${lwParams[k]} m</span></th>`).join('')
+    +'<th>Meter</th><th>minD</th></tr></thead><tbody id="lwTbody">'
+    +parts.map((p,i)=>lwZeileHtml(p.id,i)).join('')
+    +'</tbody><tfoot><tr id="lwFuss"></tr></tfoot></table></div>'
+    +'<div class="lw-note">Grau = Schritt ohne Auslöser: Meter wird dort gezählt, nicht gerechnet. '
+    +'Ein Wert größer 0 schaltet den Schritt aufs Rechnen um; alle Auslöser auf 0 schaltet zurück, '
+    +'die Meterzahl bleibt dann auf dem letzten Stand.</div>';
+  el.innerHTML=h;
+
+  document.getElementById('lwFStation').addEventListener('change',e=>{ lwFilter.station=e.target.value; lwFilterAnwenden(); });
+  document.getElementById('lwFStufe').addEventListener('change',e=>{ lwFilter.stufe=e.target.value; lwFilterAnwenden(); });
+  document.getElementById('lwFOhne').addEventListener('change',e=>{ lwFilter.ohne=e.target.checked; lwFilterAnwenden(); });
+  const tb=document.getElementById('lwTbody');
+  tb.addEventListener('input',e=>{ if(e.target.classList.contains('lw-in')) lwEingabe(e.target); });
+  tb.addEventListener('focusout',e=>{
+    const inp=e.target; if(!inp.classList||!inp.classList.contains('lw-in')) return;
+    const t=lwTrig(inp.closest('tr').dataset.id)||{};
+    inp.value=t[inp.dataset.k]||''; inp.classList.remove('bad');
+  });
+  tb.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.classList.contains('lw-in')) e.target.blur(); });
+  tb.addEventListener('click',e=>{
+    const tr=e.target.closest('tr'); if(!tr) return;
+    if(e.target.closest('.lw-auf')){ lwAufklappen(tr.dataset.id,!lwAuf[tr.dataset.id]); return; }
+    lwAktivSetzen(tr.dataset.id||tr.dataset.fuer);
+  });
+  lwFilterAnwenden();
+}
+function lwEingabe(inp){
+  const tr=inp.closest('tr'), id=tr.dataset.id, k=inp.dataset.k;
+  const roh=String(inp.value).trim().replace(',','.');
+  const v=roh===''?0:Math.round(Number(roh));
+  const ok=!(inp.validity&&inp.validity.badInput)&&isFinite(v)&&v>=0;
+  inp.classList.toggle('bad',!ok);
+  if(!ok) return;
+  const alt=lwTrig(id), t=Object.assign({},alt||{});
+  t[k]=v;
+  const neu=lwTrigPruefen(t);
+  if(JSON.stringify(neu)===JSON.stringify(alt)) return;
+  if(neu) data[id].__lw=neu; else delete data[id].__lw;   // alle 0: wieder gezählt, Meter bleibt auf dem letzten Stand
+  lwNachAenderung();
+  lwZeileAktualisieren(tr); lwFussAktualisieren();
+}
+function lwZeileAktualisieren(tr){
+  const id=tr.dataset.id, m=data[id][LW_KAT]||0;
+  tr.classList.toggle('lw-grau',!lwHat(id));
+  const cm=tr.querySelector('.lw-m');
+  cm.textContent=m; cm.title=lwHat(id)?'gerechnet':'gezählt (nicht gerechnet)';
+  tr.querySelector('.lw-t').textContent=(m*lwKatParam()).toFixed(3);
+}
+function lwSichtbar(id){
+  const d=data[id];
+  return (!lwFilter.station||String(d.__extra1||'').trim()===lwFilter.station)
+      && (!lwFilter.stufe||String(d.__stufe||'').trim()===lwFilter.stufe)
+      && (!lwFilter.ohne||!lwHat(id));
+}
+/* „nur ohne Laufweg" greift erst beim nächsten Filterwechsel — sonst verschwände
+   eine Zeile, sobald man in ihr die erste Zahl eintippt */
+function lwFilterAnwenden(){
+  const trs=document.querySelectorAll('#lwTbody tr[data-id]'); let n=0;
+  trs.forEach(tr=>{
+    const ok=lwSichtbar(tr.dataset.id); tr.style.display=ok?'':'none'; if(ok) n++;
+    const sub=tr.nextElementSibling; if(sub && sub.classList.contains('lw-teile')) sub.style.display=tr.style.display;
+  });
+  lwAufKnopf();
+  document.getElementById('lwFInfo').textContent=n<trs.length?(n+' von '+trs.length+' Schritten'):'';
+  lwFussAktualisieren();
+}
+/* Summen über die sichtbaren Zeilen — wie die Teilergebnis-Zeile unter einem Excel-Filter */
+function lwFussAktualisieren(){
+  const fuss=document.getElementById('lwFuss'); if(!fuss) return;
+  const s={}; LW_KEYS.forEach(k=>s[k]=0); let m=0, n=0, q=0;
+  document.querySelectorAll('#lwTbody tr[data-id]').forEach(tr=>{
+    if(tr.style.display==='none') return;
+    const id=tr.dataset.id, t=lwTrig(id)||{};
+    LW_KEYS.forEach(k=>s[k]+=t[k]||0); m+=data[id][LW_KAT]||0; q+=stepQty(id); n++;
+  });
+  fuss.innerHTML=`<td></td><td></td><td></td><td class="lw-txt lw-name">Summe · ${n} Schritt${n===1?'':'e'}</td><td>${q}</td>`
+    +LW_KEYS.map(k=>`<td>${s[k]}</td>`).join('')+`<td>${m}</td><td>${(m*lwKatParam()).toFixed(3)}</td>`;
+}
+function lwAktivSetzen(id){
+  if(!parts.some(p=>p.id===id)) return;
+  selectPart(id);
+  document.querySelectorAll('#lwTbody tr.lw-akt').forEach(tr=>tr.classList.remove('lw-akt'));
+  const tr=document.querySelector('#lwTbody tr[data-id="'+id+'"]');
+  if(tr) tr.classList.add('lw-akt');
+  return tr;
+}
+/* Reiter „Je Schritt" öffnen und die Zeile des Schritts zeigen; ein Filter, der sie verbirgt, wird aufgehoben */
+function lwZeigeSchritt(id){
+  if(!lwSichtbar(id)) lwFilter={station:'',stufe:'',ohne:false};
+  openLw('schritt');
+  const tr=lwAktivSetzen(id);
+  if(tr) tr.scrollIntoView({block:'center'});
+}
+
+/* Esc schließt das Fenster — auch aus einem Eingabefeld heraus */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && lwOffen()){ e.preventDefault(); closeLw(); }
+});
+
+/* ═══════════════════════════════════════
    AUTOSAVE (localStorage)
 ═══════════════════════════════════════ */
 const LS_KEY = 'zeitaufnahme_v21';
@@ -3669,7 +4183,7 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -3714,7 +4228,9 @@ function loadState(){
     if(s.teileOffen && typeof s.teileOffen==='object'){
       teileOffen={}; parts.forEach(p=>{ if(s.teileOffen[p.id]) teileOffen[p.id]=true; });
     }
+    lwParams=lwParamsPruefen(s.lwParams);
     ensureKeys();   // wandelt Daten der Vorversion in Prozessschritte mit Teilen um
+    lwNeuRechnen();   // gespeicherte Meterzahlen könnten zu anderen Meterwerten gehören
     if(ausAlt) saveState();   // ab jetzt unter dem neuen Schlüssel; der alte bleibt als Rückfallebene
     return true;
   } catch(e){ return false; }
@@ -3788,6 +4304,20 @@ function xc(col,row,v,st,num){
   if(num) return `<c r="${ref}"${sAttr}><v>${v}</v></c>`;
   return `<c r="${ref}"${sAttr} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
 }
+/* Formelzelle mit zwischengespeichertem Ergebnis: Excel rechnet beim Öffnen neu (fullCalcOnLoad),
+   Vorschau-Programme ohne Rechenkern zeigen trotzdem die Werte */
+function xcf(col,row,f,st,v){
+  const ref=colLetter(col)+row;
+  const sAttr=st?` s="${st}"`:'';
+  return `<c r="${ref}"${sAttr}><f>${xmlEsc(f)}</f>${(v===''||v===null||v===undefined)?'':`<v>${v}</v>`}</c>`;
+}
+/* Zahl ohne Gleitkomma-Rauschen (0.0325*0.6 → 0.0195 statt 0.019499999999999997) */
+function xn(x){ return String(+(+x).toPrecision(12)); }
+/* Lage der Daten im Blatt Arbeitsablauf — Auswertung und Laufwege verweisen darauf.
+   Muss zu xlsxSheetArbeitsablauf passen: 11 feste Spalten, Zeitwerte in Zeile 5, Daten ab Zeile 6. */
+function xlsxAblaufLage(){ return {firstCatCol:12, ersteZeile:6, summenZeile:6+parts.length}; }
+/* Blatt Laufwege: Meterwerte in B7:B13, Schritte ab Zeile 17 (wie im Blatt „Laufweg-Parameter" der Vorlage) */
+const XLSX_LW_PARAM_ZEILE=7, XLSX_LW_ERSTE_ZEILE=17;
 const XLSX_GROUP_ORDER=['admin','handling','process','trace','safety'];
 function xlsxStyles(){
   const groupFills=XLSX_GROUP_ORDER.map(k=>((GROUPS[k]||{}).color||'#dddddd').replace('#','FF'));
@@ -3797,8 +4327,9 @@ function xlsxStyles(){
     .concat(groupFills.map(c=>`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`))
     .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFEDF1F8"/><bgColor indexed="64"/></patternFill></fill>'])
     .concat(levelFills.map(c=>`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`))
-    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFF7F7F7"/><bgColor indexed="64"/></patternFill></fill>']);
-  // Fill-Indizes: 0 none,1 gray,2 dark,3-7 Gruppen,8 zeitwert,9-15 Level1-7,16 kpi
+    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFF7F7F7"/><bgColor indexed="64"/></patternFill></fill>'])
+    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFFFF9D6"/><bgColor indexed="64"/></patternFill></fill>']);
+  // Fill-Indizes: 0 none,1 gray,2 dark,3-7 Gruppen,8 zeitwert,9-15 Level1-7,16 kpi,17 gelb (Eingabe)
   const fonts=[
     '<font><sz val="9"/><name val="Arial"/></font>',
     '<font><b/><sz val="15"/><name val="Arial"/></font>',
@@ -3829,9 +4360,15 @@ function xlsxStyles(){
   push({b:1,n:165});                          // 34 KPI-Euro
   push({f:6,fl:8,b:1});                       // 35 Summenzeile Text
   push({f:6,fl:8,b:1,n:164});                 // 36 Summenzeile Zahl
+  push({fl:17,b:1});                          // 37 Eingabewert gelb (Meterwerte im Blatt Laufwege)
+  /* 38 Zeitwert mit voller Genauigkeit: die Zeitspalten rechnen mit Zeile 5 — bei „0.000"
+     stünde dort 0.033 statt 0.0325 und jede Kategoriezeit wiche vom Programm ab */
+  push({f:4,fl:8,b:1,n:166});
+  push({b:1,n:167});                          // 39 Prozent mit einer Nachkommastelle
+  push({f:6});                                // 40 Abschnittstitel fett
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<numFmts count="2"><numFmt numFmtId="164" formatCode="0.000"/><numFmt numFmtId="165" formatCode="#,##0.00&quot; €&quot;"/></numFmts>
+<numFmts count="4"><numFmt numFmtId="164" formatCode="0.000"/><numFmt numFmtId="165" formatCode="#,##0.00&quot; €&quot;"/><numFmt numFmtId="166" formatCode="0.000##"/><numFmt numFmtId="167" formatCode="0.0"/></numFmts>
 <fonts count="${fonts.length}">${fonts.join('')}</fonts>
 <fills count="${fillsXml.length}">${fillsXml.join('')}</fills>
 <borders count="${borders.length}">${borders.join('')}</borders>
@@ -3891,12 +4428,14 @@ function xlsxSheetArbeitsablauf(){
   for(let i=2;i<=fixedCols.length;i++) r5+=xc(i,5,'',15);
   merges.push(`A5:${colLetter(fixedCols.length)}5`);
   c=firstCatCol;
-  COLS.forEach(col=>{ r5+=xc(c,5,dispParam(col.param),16,true); r5+=xc(c+1,5,'',16); c+=2; });
+  const fU=u==='minD'?1:MIND_FACTOR;   // Formeln rechnen in der Export-Einheit
+  COLS.forEach(col=>{ r5+=xc(c,5,xn(col.param*fU),38,true); r5+=xc(c+1,5,'',16); c+=2; });
   r5+=xc(noteCol,5,'',15);
   rows+=`<row r="5">${r5}</row>`;
-  // Datenzeilen ab 6
+  // Datenzeilen ab 6 — Zeit = Anzahl × Zeitwert aus Zeile 5, Gesamt = Summe der Zeiten (wie in der Vorlage)
   let rn=6;
-  parts.forEach(p=>{
+  const zeitRefs=r=>COLS.map((col,ci)=>colLetter(firstCatCol+ci*2+1)+r).join(',');
+  parts.forEach((p,pi)=>{
     const d=data[p.id], lvl=Math.min(7,Math.max(1,d.__level||1));
     const sT=17+(lvl-1), sN=24+(lvl-1);
     let r=xc(1,rn,lvl,sN===0?0:sT,true);
@@ -3909,13 +4448,14 @@ function xlsxSheetArbeitsablauf(){
     r+=xc(8,rn,d.__extra2||'',sT);
     r+=xc(9,rn,d.__extra3||'',sT);
     r+=xc(10,rn,stepQty(p.id),sT,true);
-    // Gesamt als Formel-freie Zahl (Zwischenwerte stehen daneben)
-    r+=xc(11,rn,disp(calcTotal(p.id)),sN,true);
+    r+=nCat?xcf(11,rn,'SUM('+zeitRefs(rn)+')',sN,xn(calcTotal(p.id)*fU)):xc(11,rn,0,sN,true);
     c=firstCatCol;
     COLS.forEach(col=>{
       const q=d[col.key]||0;
-      r+=xc(c,rn,q,sT,true);
-      r+=xc(c+1,rn,disp(q*col.param),sN,true);
+      /* Gerechnete Meter holen ihre Anzahl aus dem Blatt Laufwege — dort ändern rechnet bis hierher durch */
+      if(col.key===LW_KAT && lwHat(p.id)) r+=xcf(c,rn,"'Laufwege'!J"+(XLSX_LW_ERSTE_ZEILE+pi),sT,q);
+      else r+=xc(c,rn,q,sT,true);
+      r+=xcf(c+1,rn,colLetter(c)+rn+'*'+colLetter(c)+'$5',sN,xn(q*col.param*fU));
       c+=2;
     });
     r+=xc(noteCol,rn,d.__note||'',sT);
@@ -3926,12 +4466,16 @@ function xlsxSheetArbeitsablauf(){
   let rs=xc(1,rn,'',35)+xc(2,rn,'∑ Gesamt',35)+xc(3,rn,'',35);
   for(let i=4;i<=9;i++) rs+=xc(i,rn,'',35);
   const totQty=parts.reduce((s,p)=>s+stepQty(p.id),0);
-  rs+=xc(10,rn,totQty,35,true);
-  rs+=xc(11,rn,disp(parts.reduce((s,p)=>s+calcTotal(p.id),0)),36,true);
+  const bis=rn-1, sp=(col)=>`SUM(${colLetter(col)}6:${colLetter(col)}${bis})`;
+  const leer=parts.length===0;   // ohne Datenzeilen gäbe es keinen gültigen Bereich
+  rs+=leer?xc(10,rn,0,35,true):xcf(10,rn,sp(10),35,totQty);
+  rs+=leer?xc(11,rn,0,36,true):xcf(11,rn,sp(11),36,xn(parts.reduce((s,p)=>s+calcTotal(p.id),0)*fU));
   c=firstCatCol;
   COLS.forEach(col=>{
     const q=parts.reduce((s,p)=>s+(data[p.id][col.key]||0),0);
-    rs+=xc(c,rn,q,35,true); rs+=xc(c+1,rn,disp(q*col.param),36,true); c+=2;
+    rs+=leer?xc(c,rn,0,35,true):xcf(c,rn,sp(c),35,q);
+    rs+=leer?xc(c+1,rn,0,36,true):xcf(c+1,rn,sp(c+1),36,xn(q*col.param*fU));
+    c+=2;
   });
   rs+=xc(noteCol,rn,'',35);
   rows+=`<row r="${rn}">${rs}</row>`;
@@ -3998,18 +4542,31 @@ function xlsxSheetAuswertung(){
   rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Auswertung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Export: '+new Date().toLocaleString('de-DE')+(projectDescription?'  ·  '+projectDescription:''),2)}</row>`;rn++;
   rn++;
-  const kpi=(label,val,style,isNum)=>{rows+=`<row r="${rn}">${xc(1,rn,label,31)}${xc(2,rn,val,style,isNum)}</row>`;rn++;};
-  kpi('Ist ['+u+']', disp(ist), 32, true);
-  kpi('Verteilzeit-Faktor [%]', verteilzeitFactor||0, 33, true);
-  kpi('Ist inkl. Verteilzeit ['+u+']', disp(istVz), 32, true);
-  kpi('Sollzeit ['+u+']', sollzeit? disp(sollzeit):'–', sollzeit?32:33, !!sollzeit);
-  kpi('Abweichung ['+u+']', sollzeit? disp(istVz-sollzeit):'–', sollzeit?32:33, !!sollzeit);
-  kpi('Abweichung [%]', sollzeit? ((istVz-sollzeit)/sollzeit*100).toFixed(1):'–', 33, !!sollzeit);
+  const kpi=(label,val,style,isNum)=>{rows+=`<row r="${rn}">${xc(1,rn,label,31)}${xc(2,rn,val,style,isNum)}</row>`;return rn++;};
+  /* Kennzahlen als Formeln auf das Blatt Arbeitsablauf: ändert man dort — oder einen Meterwert
+     im Blatt Laufwege —, ziehen Ist, Kosten und Anteile hier nach. Eingaben (Verteilzeit, Soll,
+     Stundensatz) bleiben Zahlen, auf die die Formeln verweisen. */
+  const kpiF=(label,f,style,v)=>{rows+=`<row r="${rn}">${xc(1,rn,label,31)}${xcf(2,rn,f,style,v)}</row>`;return rn++;};
+  const lage=xlsxAblaufLage(), S=lage.summenZeile, AA="'Arbeitsablauf'!";
+  const fU=u==='minD'?1:MIND_FACTOR;
+  const rIst=kpiF('Ist ['+u+']', AA+'K'+S, 32, xn(ist*fU));
+  const rVz=kpi('Verteilzeit-Faktor [%]', verteilzeitFactor||0, 33, true);
+  const rIstVz=kpiF('Ist inkl. Verteilzeit ['+u+']', `B${rIst}*(1+B${rVz}/100)`, 32, xn(istVz*fU));
+  const rSoll=kpi('Sollzeit ['+u+']', sollzeit? disp(sollzeit):'–', sollzeit?32:33, !!sollzeit);
+  if(sollzeit){
+    kpiF('Abweichung ['+u+']', `B${rIstVz}-B${rSoll}`, 32, xn((istVz-sollzeit)*fU));
+    kpiF('Abweichung [%]', `ROUND((B${rIstVz}-B${rSoll})/B${rSoll}*100,1)`, 39, ((istVz-sollzeit)/sollzeit*100).toFixed(1));
+  } else { kpi('Abweichung ['+u+']','–',33,false); kpi('Abweichung [%]','–',33,false); }
   kpi('Prozessschritte', fParts.length, 33, true);
-  kpi('Anzahl aller Teile', totQty, 33, true);
-  kpi('Ø Zeit je Teil ['+u+']', totQty>0? disp(ist/totQty):'–', totQty>0?32:33, totQty>0);
-  kpi('Stundensatz [€/hD]', hourlyRate||0, 34, true);
-  kpi('Montagekosten [€]', hourlyRate>0? ((istVz/100)*hourlyRate).toFixed(2):'–', hourlyRate>0?34:33, hourlyRate>0);
+  const rTeile=kpiF('Anzahl aller Teile', AA+'J'+S, 33, totQty);
+  if(totQty>0) kpiF('Ø Zeit je Teil ['+u+']', `B${rIst}/B${rTeile}`, 32, xn(ist*fU/totQty));
+  else kpi('Ø Zeit je Teil ['+u+']','–',33,false);
+  const rSatz=kpi('Stundensatz [€/hD]', hourlyRate||0, 34, true);
+  /* Kosten immer aus minD (100 minD = 1 hD) — bei Einheit min erst zurückrechnen */
+  if(hourlyRate>0) kpiF('Montagekosten [€]', `ROUND(B${rIstVz}${u==='minD'?'':'/'+MIND_FACTOR}/100*B${rSatz},2)`, 34, ((istVz/100)*hourlyRate).toFixed(2));
+  else kpi('Montagekosten [€]','–',33,false);
+  const aRef=ci=>AA+colLetter(lage.firstCatCol+ci*2+1)+S;   // Zeitsumme einer Kategorie
+  const anteil=(r,v)=>xcf(3,r,`IF($B$${rIst}>0,ROUND(B${r}/$B$${rIst}*100,1),0)`,39,gSum>0?(v/gSum*100).toFixed(1):'0');
   rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Zeitanteil je Kategorie-Gruppe',6===6?31:31)}${xc(2,rn,'['+u+']',31)}${xc(3,rn,'Anteil [%]',31)}</row>`;rn++;
   const gTot={};Object.keys(GROUPS).forEach(g=>gTot[g]=0);
@@ -4017,13 +4574,15 @@ function xlsxSheetAuswertung(){
   const gSum=Object.values(gTot).reduce((s,v)=>s+v,0);
   Object.entries(GROUPS).forEach(([k,g])=>{
     const v=gTot[k]||0;
-    rows+=`<row r="${rn}">${xc(1,rn,g.name,33)}${xc(2,rn,disp(v),32,true)}${xc(3,rn,gSum>0?(v/gSum*100).toFixed(1):'0.0',33)}</row>`;rn++;
+    const refs=COLS.map((col,ci)=>col.group===k?aRef(ci):'').filter(Boolean);
+    const zelle=refs.length?xcf(2,rn,refs.join('+'),32,xn(v*fU)):xc(2,rn,0,32,true);
+    rows+=`<row r="${rn}">${xc(1,rn,g.name,33)}${zelle}${anteil(rn,v)}</row>`;rn++;
   });
   rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Zeitanteil je Kategorie',31)}${xc(2,rn,'['+u+']',31)}${xc(3,rn,'Anteil [%]',31)}</row>`;rn++;
-  COLS.forEach(col=>{
+  COLS.forEach((col,ci)=>{
     const v=fParts.reduce((s,p)=>s+(data[p.id][col.key]||0)*col.param,0);
-    rows+=`<row r="${rn}">${xc(1,rn,col.label,33)}${xc(2,rn,disp(v),32,true)}${xc(3,rn,gSum>0?(v/gSum*100).toFixed(1):'0.0',33)}</row>`;rn++;
+    rows+=`<row r="${rn}">${xc(1,rn,col.label,33)}${xcf(2,rn,aRef(ci),32,xn(v*fU))}${anteil(rn,v)}</row>`;rn++;
   });
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -4054,6 +4613,58 @@ function xlsxSheetZeitwerte(){
 <sheetData>${rows}</sheetData>
 </worksheet>`;
 }
+/* Blatt 5: Laufwege — aufgebaut wie das Blatt „Laufweg-Parameter" der Vorlage: oben die gelben
+   Meterwerte, darunter je Schritt die Auslöser und der gerundete Laufweg in Spalte J. Gerechnete
+   Schritte stehen als Formel da, gezählte als Festwert mit „manuell". Die Meter-Anzahl im Blatt
+   Arbeitsablauf verweist auf Spalte J — so rechnet eine geänderte gelbe Zelle bis ins Ist durch. */
+function xlsxSheetLaufwege(){
+  const kat=COLS.find(c=>c.key===LW_KAT);
+  const P=XLSX_LW_PARAM_ZEILE, E=XLSX_LW_ERSTE_ZEILE, kopf=E-1;
+  let rows='';
+  rows+=`<row r="1" ht="20" customHeight="1">${xc(1,1,'Laufwege'+(currentProject?' – '+currentProject:''),1)}</row>`;
+  rows+=`<row r="2">${xc(1,2,'Meter je Schritt = Σ Auslöser × Meterwert, auf ganze Meter gerundet  ·  Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;
+  rows+=`<row r="4">${xc(1,4,'Die gelben Zellen sind Eingabewerte. Änderungen wirken sofort auf die Spalte „'+(kat?kat.label:'Meter')
+    +'" im Blatt Arbeitsablauf. Schritte mit „manuell" haben gezählte Meter (Festwert).',2)}</row>`;
+  rows+=`<row r="${P-1}">${xc(1,P-1,'Parameter',9)}${xc(2,P-1,'Meter',9)}${xc(3,P-1,'Bedeutung',9)}</row>`;
+  LW_KEYS.forEach((k,i)=>{
+    const r=P+i;
+    rows+=`<row r="${r}">${xc(1,r,LW_TEXT[k].label,31)}${xc(2,r,xn(lwParams[k]),37,true)}${xc(3,r,LW_TEXT[k].text,33)}</row>`;
+  });
+  rows+=`<row r="${kopf-1}">${xc(1,kopf-1,'Auslöser je Schritt (Anzahl) und daraus errechneter Laufweg',40)}</row>`;
+  const titel=['Nr','Prozessschritt',...LW_KEYS.map(k=>LW_TEXT[k].label),'Meter','Herkunft'];
+  rows+=`<row r="${kopf}" ht="26" customHeight="1">${titel.map((h,i)=>xc(i+1,kopf,h,9)).join('')}</row>`;
+  const sp=j=>colLetter(3+j);   // Spalte des j-ten Auslösers: C … I
+  parts.forEach((p,i)=>{
+    const r=E+i, t=lwTrig(p.id), m=(data[p.id][LW_KAT])||0;
+    let x=xc(1,r,i+1,33,true)+xc(2,r,p.name,33);
+    LW_KEYS.forEach((k,j)=>{ x+=xc(3+j,r,t&&t[k]?t[k]:'',33,true); });
+    if(t){
+      const f='ROUND('+LW_KEYS.map((k,j)=>sp(j)+r+'*$B$'+(P+j)).join('+')+',0)';
+      x+=xcf(10,r,f,33,m)+xc(11,r,'gerechnet',33);
+    } else {
+      x+=xc(10,r,m,33,true)+xc(11,r,'manuell',33);
+    }
+    rows+=`<row r="${r}">${x}</row>`;
+  });
+  const rs=E+parts.length, bis=rs-1, leer=parts.length===0;
+  let x=xc(1,rs,'',35)+xc(2,rs,'∑ Meter gesamt',35);
+  for(let j=0;j<=LW_KEYS.length;j++){   // Auslöser C…I und Meter J
+    const col=3+j, L=colLetter(col);
+    const v=j<LW_KEYS.length ? parts.reduce((s,p)=>s+((lwTrig(p.id)||{})[LW_KEYS[j]]||0),0)
+                             : parts.reduce((s,p)=>s+(data[p.id][LW_KAT]||0),0);
+    x+=leer?xc(col,rs,0,35,true):xcf(col,rs,`SUM(${L}${E}:${L}${bis})`,35,v);
+  }
+  x+=xc(11,rs,'',35);
+  rows+=`<row r="${rs}">${x}</row>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:K${rs}"/>
+<sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="${kopf}" topLeftCell="C${E}" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>
+<sheetFormatPr defaultRowHeight="12"/>
+<cols><col min="1" max="1" width="16" customWidth="1"/><col min="2" max="2" width="60" customWidth="1"/><col min="3" max="10" width="10" customWidth="1"/><col min="11" max="11" width="11" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+</worksheet>`;
+}
 function doExportXlsx(){
   let filename=(document.getElementById('expFilename').value.trim()||(currentProject||'Zeitaufnahme'));
   filename=filename.replace(/\.csv$/i,'');
@@ -4067,18 +4678,19 @@ function doExportXlsx(){
     const filterNamen=`<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'Arbeitsablauf'!${abs(blatt1.filter)}</definedName><definedName name="_xlnm._FilterDatabase" localSheetId="1" hidden="1">'Teileliste'!${abs(blatt2.filter)}</definedName></definedNames>`;
     const files=[
       {name:'[Content_Types].xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet5.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
       {name:'_rels/.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
       {name:'xl/workbook.xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/></sheets>${filterNamen}</workbook>`},
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/><sheet name="Laufwege" sheetId="5" r:id="rId5"/></sheets>${filterNamen}<calcPr fullCalcOnLoad="1"/></workbook>`},
       {name:'xl/_rels/workbook.xml.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet5.xml"/><Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
       {name:'xl/styles.xml',content:xlsxStyles()},
       {name:'xl/worksheets/sheet1.xml',content:blatt1.xml},
       {name:'xl/worksheets/sheet2.xml',content:blatt2.xml},
       {name:'xl/worksheets/sheet3.xml',content:xlsxSheetAuswertung()},
-      {name:'xl/worksheets/sheet4.xml',content:xlsxSheetZeitwerte()}
+      {name:'xl/worksheets/sheet4.xml',content:xlsxSheetZeitwerte()},
+      {name:'xl/worksheets/sheet5.xml',content:xlsxSheetLaufwege()}
     ];
     const bytes=zipStore(files);
     const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
@@ -4121,8 +4733,13 @@ function doExport(){
   const szenCsv = taktSzenario ? {groupKey:taktSzenario.groupKey, extra:taktSzenario.extra,
     moves:Object.fromEntries(parts.map((pt,i)=>[i,pt.id]).filter(([,id])=>taktHas(taktSzenario.moves,id)).map(([i,id])=>[i,taktSzenario.moves[id]]))} : null;
   const metaSzen = ['__SZENARIO__',encodeURIComponent(JSON.stringify(szenCsv))].join(sep);
+  // Laufweg: Meterwerte je Auslöser (warum als Metazeile statt Spalte: siehe CSV_FIX)
+  const metaLwParam = ['__LWPARAM__',...LW_KEYS.map(k=>k+'|'+lwParams[k])].join(sep);
+  // Auslöser je Schritt mit Zeilennummer statt ID — der Import vergibt neue IDs, wie beim Szenario
+  const lwCsv={}; parts.forEach((pt,i)=>{ const t=lwTrig(pt.id); if(t) lwCsv[i]=t; });
+  const metaLw = ['__LW__',encodeURIComponent(JSON.stringify(lwCsv))].join(sep);
   const metaFormat = ['__FORMAT__',CSV_FORMAT].join(sep);
-  const csv='\uFEFF'+[metaFormat,metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,metaMtmGe,metaTakt,metaSzen,hdr,...rows].join('\n');
+  const csv='\uFEFF'+[metaFormat,metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,metaMtmGe,metaTakt,metaSzen,metaLwParam,metaLw,hdr,...rows].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();
@@ -4178,10 +4795,13 @@ function handleImport(evt){
       if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
       taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
       teileOffen={};
+      lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
+      if(parsed.lwTrigger) Object.keys(parsed.lwTrigger).forEach(id=>{ if(data[id]) data[id].__lw=parsed.lwTrigger[id]; });
       undoStack=[];
       rowClipboard=null;
       activePart=parts[0].id;
       ensureKeys();
+      lwNeuRechnen();
       buildGrid(); buildHead(); buildCopySelect(); renderBody(); updateActiveBar();
       setUnit(unit); setMode(mode);
       updateProjLabel();
@@ -4246,10 +4866,13 @@ self.addEventListener('fetch',e=>{
 ═══════════════════════════════════════ */
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
 const isStandalone=window.matchMedia('(display-mode:standalone)').matches||navigator.standalone;
-if(isIOS&&!isStandalone&&!sessionStorage.getItem('ib_dismissed')){
+/* sessionStorage kann (privates Surfen, data:-URL aus dem Kurzbefehl) werfen —
+   dann zeigt der Hinweis eben erneut, statt dass das ganze Skript abbricht. */
+function ibDismissed(){ try{ return !!sessionStorage.getItem('ib_dismissed'); }catch(e){ return false; } }
+if(isIOS&&!isStandalone&&!ibDismissed()){
   setTimeout(()=>document.getElementById('installBanner').classList.add('show'),1500);
   document.getElementById('installBanner').querySelector('.ib-close').addEventListener('click',()=>{
-    sessionStorage.setItem('ib_dismissed','1');
+    try{ sessionStorage.setItem('ib_dismissed','1'); }catch(e){}
   });
 }
 
@@ -4303,6 +4926,8 @@ document.addEventListener('keydown', e=>{
   if(document.getElementById('cfgModal').classList.contains('open')) return;
   if(document.getElementById('expModal').classList.contains('open')) return;
   if(document.getElementById('anaModal').classList.contains('open')) return;
+  if(document.getElementById('mtmModal').classList.contains('open')) return;
+  if(document.getElementById('lwModal').classList.contains('open')) return;
   const key=e.key.toLowerCase();
   const idx=SHORTCUT_POOL.indexOf(key);
   if(idx>=0 && idx<COLS.length){

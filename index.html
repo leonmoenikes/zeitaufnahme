@@ -160,18 +160,19 @@ body:not(.beginner-mode) .simple-only{display:none!important;}
 .start-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--text3);font-size:var(--fs-xs);}
 .start-divider::before,.start-divider::after{content:'';flex:1;height:1px;background:var(--border);}
 .proj-label{font-size:var(--fs-s);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
-.last-action{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;margin-right:6px;max-width:220px;overflow:hidden;text-overflow:ellipsis;}
+.last-action{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .export-indicator{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;margin:0 2px;}
 
 /* ── LEGEND ── */
-.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:var(--sp2);}
 .leg-item{display:flex;align-items:center;gap:5px;font-size:var(--fs-xs);color:var(--text2);}
 .leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
 
-/* ── BUTTON GRID ── */
+/* ── BUTTON GRID ──
+   Kachelgröße ist gesetzt (68 px hoch, Raster ab 100 px) — lesbarer wird es innerhalb dieser Fläche. */
 .grid-wrap{
   flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);
-  padding:8px 12px;
+  padding:var(--sp2) var(--sp3);transition:background-color .2s;
 }
 .btn-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px;
@@ -179,35 +180,75 @@ body:not(.beginner-mode) .simple-only{display:none!important;}
 .cat-btn{
   position:relative;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;padding:8px 4px;border:1px solid var(--border);border-radius:var(--radius);
+  gap:1px;padding:17px 4px 6px;border:1px solid var(--border);border-radius:var(--radius);
   background:var(--surface2);cursor:pointer;min-height:68px;
-  transition:transform .1s;touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  transition:transform .08s;touch-action:manipulation;-webkit-user-select:none;user-select:none;
 }
-.cat-btn:active{transform:scale(0.92);}
+.cat-btn:active{transform:scale(.96);}
 .cat-btn.has-v{border-color:var(--accent);background:var(--accent-dim);}
-.cb-key{
-  position:absolute;top:3px;right:4px;font-size:var(--fs-xs);font-family:var(--mono);
-  color:var(--text3);background:var(--surface);border:1px solid var(--border);
-  border-radius:3px;padding:0 3px;line-height:1.4;pointer-events:none;
-}
-.cb-note-tgl{
-  position:absolute;top:2px;left:3px;font-size:var(--fs-xs);opacity:.3;cursor:pointer;
-  z-index:2;line-height:1;padding:3px;
-}
-.cb-note-tgl.has-note{opacity:1;}
-.cb-lbl{font-size:var(--fs-xs);color:var(--text2);text-align:center;line-height:1.3;}
+/* Name höchstens zweizeilig. Im Erweitert-Modus stehen Tastenkürzel und Notizsymbol in einer eigenen
+   Zeile darüber (padding-top der Kachel), damit sie den Namen nicht verdecken. */
+/* line-height 1.15 und 2 px oben: sonst schneidet das Abschneiden auf zwei Zeilen die Umlautpunkte ab */
+.cb-lbl{order:1;font-size:var(--fs-s);color:var(--text2);text-align:center;line-height:1.15;padding:2px 2px 0;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;-webkit-hyphens:auto;hyphens:auto;}
+.cb-par{order:2;}.cb-cnt{order:4;}.cb-t{order:5;}
 .cb-par{font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);}
-.cb-cnt{font-size:var(--fs-xxl);font-weight:700;font-family:var(--mono);color:var(--text);line-height:1;}
+.cb-cnt{font-size:var(--fs-xl);font-weight:700;color:var(--text);line-height:1;}
 .cat-btn.has-v .cb-cnt{color:var(--accent-bright);}
 .cb-t{font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);}
 .cat-btn.has-v .cb-t{color:var(--accent);}
-body.sub .cat-btn.has-v{border-color:var(--red);background:var(--red-dim);}
+.cb-key{
+  position:absolute;top:3px;right:4px;font-size:var(--fs-xs);font-family:var(--mono);
+  color:var(--text3);background:var(--surface);border:1px solid var(--border);
+  border-radius:3px;padding:0 3px;line-height:1.3;pointer-events:none;
+}
+.cb-note-tgl{
+  position:absolute;top:1px;left:1px;font-size:var(--fs-xs);opacity:.35;cursor:pointer;
+  z-index:2;line-height:1;padding:4px;color:var(--text2);
+}
+.cb-note-tgl.has-note{opacity:1;color:var(--accent-bright);}
 /* Gerechnete Meter: ƒ statt Zählen, gestrichelt, damit die Kachel nicht wie ein Zähler wirkt */
 .cb-lw{display:none;position:absolute;bottom:3px;right:6px;font-size:var(--fs-m);font-style:italic;font-weight:700;
   color:var(--accent-bright);pointer-events:none;}
+.cb-lw-txt{display:none;}
 .cat-btn.lw-calc{border-style:dashed;}
 .cat-btn.lw-calc .cb-lw{display:block;}
 .lw-f{font-style:italic;font-weight:700;color:var(--accent-bright);margin-left:3px;}
+
+/* Einfach-Modus: große Zahl, keine Tastenkürzel (am iPad ohne Tastatur nutzlos), Notiz nur als Punkt —
+   ein 44-px-Notizknopf würde die halbe Kachel belegen; bearbeitet wird im Erweitert-Modus */
+body.beginner-mode .cat-btn{padding:3px 3px 4px;}
+body.beginner-mode .cb-cnt{font-size:var(--fs-xxl);}
+body.beginner-mode .cb-key{display:none;}
+body.beginner-mode .cb-note-tgl{display:none;}
+body.beginner-mode .cb-note-tgl.has-note{display:block;pointer-events:none;top:6px;left:6px;width:7px;height:7px;padding:0;
+  border-radius:50%;background:var(--accent);}
+body.beginner-mode .cb-note-tgl.has-note .ic{display:none;}
+/* „ƒ gerechnet" als eigene Zeile zwischen Name und Zahl — sichtbar statt nur im Tooltip */
+body.beginner-mode .cb-lw{order:3;position:static;font-size:var(--fs-xs);line-height:1.1;}
+body.beginner-mode .cb-lw-txt{display:inline;font-style:normal;font-weight:600;}
+
+/* Tipp-Rückmeldung: kurzer Ring um die Kachel und „+1"/„−1" steigt neben der Zahl auf */
+.cat-btn::after{content:'';position:absolute;right:8px;top:calc(50% - 10px);font-size:var(--fs-l);font-weight:700;
+  opacity:0;pointer-events:none;}
+.cat-btn.tap-add{animation:tapRing .45s ease-out;}
+.cat-btn.tap-sub{animation:tapRingSub .45s ease-out;}
+.cat-btn.tap-add::after{content:'+1';color:var(--accent-bright);animation:tapPlus .7s ease-out;}
+.cat-btn.tap-sub::after{content:'−1';color:var(--red);animation:tapPlus .7s ease-out;}
+@keyframes tapRing{from{box-shadow:0 0 0 4px var(--accent);}to{box-shadow:0 0 0 0 transparent;}}
+@keyframes tapRingSub{from{box-shadow:0 0 0 4px var(--red);}to{box-shadow:0 0 0 0 transparent;}}
+@keyframes tapPlus{0%{opacity:1;transform:translateY(6px);}100%{opacity:0;transform:translateY(-16px);}}
+
+/* Sub-Modus unübersehbar: rote Leiste über den Kacheln, rote Kacheln, getönter Kachelbereich */
+.sub-leiste{display:none;flex-shrink:0;align-items:center;gap:var(--sp3);min-height:44px;padding:4px var(--sp3);
+  background:var(--red);color:var(--on-accent);font-size:var(--fs-m);}
+.sub-leiste b{font-size:var(--fs-l);}
+.sub-leiste .tbtn{margin-left:auto;min-height:36px;background:var(--surface);color:var(--red);border-color:var(--surface);font-weight:600;}
+body.beginner-mode .sub-leiste .tbtn{min-height:44px;}
+body.sub .sub-leiste{display:flex;}
+body.sub .grid-wrap{background:var(--red-dim);}
+body.sub .cat-btn{border-color:var(--red);}
+body.sub .cat-btn.has-v{background:var(--red-dim)!important;}
 body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 
 /* ── NOTIZ-POPUP (Excel-Kommentar-Stil, für Kategorie- und Schritt-Notizen) ── */
@@ -282,15 +323,20 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 }
 .copy-select:focus{outline:none;border-color:var(--accent);}
 
-/* ── ACTIVE BAR ── */
+/* ── ACTIVE BAR ──
+   Gleiches Gelb wie die aktive Tabellenzeile: auf einen Blick klar, worauf die Kacheln zählen */
 .active-bar{
-  flex-shrink:0;display:flex;align-items:center;gap:10px;
-  padding:6px 14px;background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;display:flex;align-items:center;gap:var(--sp3);min-height:44px;
+  padding:4px var(--sp3);background:var(--active);border-bottom:1px solid var(--border2);box-shadow:inset 4px 0 0 var(--yellow);
 }
-.act-lbl{font-size:var(--fs-xs);color:var(--text3);}
-.act-name{font-size:var(--fs-m);font-weight:600;color:var(--accent-bright);}
-.act-time{font-family:var(--mono);font-size:var(--fs-m);color:var(--green);margin-left:auto;}
-.act-time span{color:var(--text3);font-size:var(--fs-xs);}
+.act-lbl{font-size:var(--fs-xs);color:var(--active-text);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.act-nr{font-size:var(--fs-s);font-family:var(--mono);color:var(--active-text);white-space:nowrap;}
+.act-nr:empty{display:none;}
+.act-name{font-size:var(--fs-l);font-weight:700;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.active-bar .last-action{margin-left:auto;font-size:var(--fs-xs);color:var(--active-text);max-width:320px;}
+.act-time{font-family:var(--mono);font-size:var(--fs-xl);font-weight:700;color:var(--text);white-space:nowrap;}
+.act-time span{color:var(--active-text);font-size:var(--fs-xs);font-weight:400;}
+body.sub .active-bar{box-shadow:inset 4px 0 0 var(--red);}
 
 /* ── TABLE ── */
 .tbl-outer{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
@@ -867,6 +913,10 @@ td.nr .teil-caret{width:16px;}
   </div>
 </div>
 
+<!-- SUB-MODUS: rote Leiste, solange jeder Tipp abzieht -->
+<div class="sub-leiste" id="subLeiste"><svg class="ic"><use href="#i-minus"/></svg><span><b>Abziehen aktiv</b> – jeder Tipp auf eine Kachel zieht 1 ab</span>
+  <button class="tbtn" onclick="setMode('add')"><svg class="ic"><use href="#i-plus"/></svg>Zurück zu Add</button></div>
+
 <!-- COUNTER BUTTONS -->
 <div class="grid-wrap">
   <div class="btn-grid" id="btnGrid"></div>
@@ -875,7 +925,8 @@ td.nr .teil-caret{width:16px;}
 
 <!-- ACTIVE PART BAR -->
 <div class="active-bar">
-  <span class="act-lbl">Aktiv:</span>
+  <span class="act-lbl">Aktiv</span>
+  <span class="act-nr" id="actNr"></span>
   <span class="act-name" id="actName">—</span>
   <span class="last-action" id="lastActionIndicator"></span>
   <span class="act-time"><span>∑ </span><span id="actTime">0.000</span> <span id="actUnit">minD</span></span>
@@ -2786,12 +2837,12 @@ function buildGrid(){
     btn.style.borderTop='3px solid '+gCol;
     if(v>0) btn.style.background=gCol+'33';
     btn.innerHTML=(sc?`<span class="cb-key">${sc}</span>`:'')
-      +`<span class="cb-note-tgl${c.note?' has-note':''}" id="nt_${c.key}" title="Notiz">${ic('notiz')}</span>`
+      +`<span class="cb-note-tgl${c.note?' has-note':''}" id="nt_${c.key}" title="${c.note?'Notiz vorhanden':'Notiz'}">${ic('notiz')}</span>`
       +`<span class="cb-lbl">${c.label}</span>`
       +`<span class="cb-par adv-only">${dispParam(c.param)} ${ul()}</span>`
       +`<span class="cb-cnt" id="cv_${c.key}">${v}</span>`
       +`<span class="cb-t adv-only" id="ct_${c.key}">${v>0?disp(v*c.param)+' '+ul():''}</span>`
-      +(c.key===LW_KAT?'<span class="cb-lw">ƒ</span>':'');
+      +(c.key===LW_KAT?'<span class="cb-lw">ƒ<span class="cb-lw-txt"> gerechnet</span></span>':'');
     btn.addEventListener('click',e=>{
       if(e.target.closest('.cb-note-tgl')) return;
       doCount(c.key);
@@ -2846,6 +2897,8 @@ function lwKachel(){
    ACTIVE BAR
 ═══════════════════════════════════════ */
 function updateActiveBar(){
+  const i=parts.findIndex(p=>p.id===activePart), st=activePart&&data[activePart]?String(data[activePart].__extra1||'').trim():'';
+  document.getElementById('actNr').textContent=i>=0?'#'+(i+1)+(st?' · '+st:''):'';
   document.getElementById('actName').textContent=activePart?partName(activePart):'—';
   document.getElementById('actTime').textContent=disp2(calcTotal(activePart));
   document.getElementById('actUnit').textContent=ul();
@@ -3178,7 +3231,8 @@ function doCount(key){
   if(undoStack.length>50) undoStack.shift();
   updGrid(); renderBody(); markDirty();
   const btn=document.getElementById('cb_'+key);
-  if(btn){btn.style.transform='scale(0.90)';setTimeout(()=>btn.style.transform='',130);}
+  /* Rückmeldung neu anstoßen, auch bei schnellem Mehrfachtippen auf dieselbe Kachel */
+  if(btn){ btn.classList.remove('tap-add','tap-sub'); void btn.offsetWidth; btn.classList.add(next>cur?'tap-add':'tap-sub'); }
   const catLabel=(COLS.find(c=>c.key===key)||{}).label||key;
   lastActionText=catLabel+' · '+partName(p)+(next>cur?' (+1)':' (−1)');
   updateLastAction();

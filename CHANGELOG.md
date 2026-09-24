@@ -19,7 +19,7 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > übernommen und umgewandelt.
 
 ### Laufweg-Rechner
-- Neue Kategorie-Gruppe „Laufweg (Meter / Laufweg-Rechner)" in Sand/Ocker. „Meter in total"
+- Neue Kategorie-Gruppe „Walking / Distance" in Sand/Ocker. „Meter in total"
   gehört dazu und steht als letzter Baustein am Ende; die Gruppe hat einen eigenen Anteil in
   Auswertung, Diagramm, Druck und Excel-Export.
   - Bestehende Projekte und ältere CSV-Dateien werden beim Laden automatisch umgestellt;

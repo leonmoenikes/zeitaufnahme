@@ -38,6 +38,8 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   - „Standardwerte" setzt die Meterwerte zurück.
   - „Auto-Zuordnung" setzt die Auslöser aller Schritte aus den vorhandenen Daten (Montagestufe,
     Werkzeug, Kranhub, Code-Scan, Schrittname). Eingetragene Rollwagen-Werte bleiben erhalten.
+    Level-1-Zeilen sind Überschriften ohne eigenen Arbeitsgang und bleiben unangetastet
+    (nur wenn das Projekt Unterebenen nutzt; sonst wird jeder Schritt zugeordnet).
 - Reiter „Je Schritt": je Schritt die sieben Auslöser als Eingabefelder, dazu Meter und minD.
   - Filter nach Station, Montagestufe und „nur Schritte ohne Laufweg"; die Summenzeile
     zählt die sichtbaren Zeilen.
@@ -63,6 +65,7 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   - Spaltenaufbau und `__FORMAT__;3` bleiben unverändert.
   - Ältere Dateien öffnen sich mit Standardwerten und ohne gerechnete Schritte.
   - Ältere App-Versionen überspringen die neuen Zeilen und zeigen dieselbe Ist-Zeit.
+  - Die Meldung nach dem Import nennt die Zahl der Schritte mit Laufweg.
 
 ### Behoben (Laufweg-Rechner)
 - Tastenkürzel der Kategorien zählten auch, während das Fenster „Bausteine" offen war.

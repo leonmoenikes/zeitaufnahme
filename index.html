@@ -2470,7 +2470,11 @@ const CSV_FIX=11;
 function importHinweis(parsed,ok){
   if(parsed.teileFehler) toast('⚠ Bei '+parsed.teileFehler+' Prozessschritt(en) war die Teile-Spalte unlesbar – dort ohne Teile übernommen',6000);
   else if(parsed.format<CSV_FORMAT) toast('ℹ Projekt aus älterem Format übernommen – Bauteile wurden in Prozessschritte umgewandelt',6000);
-  else toast(ok);
+  else {
+    /* Sichtbar machen, dass die Laufweg-Auslöser mit der Datei zurückgekommen sind */
+    const nLw=parsed.lwTrigger?Object.keys(parsed.lwTrigger).length:0;
+    toast(ok+(nLw?' · '+nLw+' Schritte mit Laufweg':''));
+  }
 }
 /* Gemeinsamer CSV-Parser für Start-Import und laufenden Import */
 function parseImportedCSV(text){
@@ -3959,8 +3963,13 @@ function lwAutoTrig(id){
 }
 function lwAutoZuordnung(){
   if(!confirm('Auslöser für alle Prozessschritte aus den vorhandenen Daten setzen? Bereits eingetragene Rollwagen-Werte bleiben erhalten.')) return;
-  let n=0;
+  /* Level-1-Zeilen sind Überschriften ohne eigenen Arbeitsgang und bekommen keinen Laufweg; sie bleiben
+     unangetastet. Nutzt ein Projekt gar keine Unterebenen (neue Schritte starten auf Level 1),
+     gibt es keine Überschriften — dann wird jeder Schritt zugeordnet. */
+  const mitEbenen=parts.some(p=>(data[p.id].__level||1)>1);
+  let n=0, ueber=0;
   parts.forEach(p=>{
+    if(mitEbenen && (data[p.id].__level||1)===1){ ueber++; return; }
     const alt=lwTrig(p.id), neu=lwAutoTrig(p.id);
     if(JSON.stringify(alt)===JSON.stringify(neu)) return;
     if(neu) data[p.id].__lw=neu; else delete data[p.id].__lw;   // ohne Auslöser: Meter behält den letzten Wert
@@ -3968,7 +3977,8 @@ function lwAutoZuordnung(){
   });
   lwNachAenderung();
   setLwTab(lwTab);
-  toast('✓ Auto-Zuordnung: '+n+' Prozessschritt'+(n===1?'':'e')+' geändert');
+  toast('✓ Auto-Zuordnung: '+n+' Prozessschritt'+(n===1?'':'e')+' geändert'
+    +(ueber?' · '+ueber+' Überschrift'+(ueber===1?'':'en')+' (Level 1) ausgelassen':''),5000);
 }
 
 /* ── Reiter „Je Schritt" ──

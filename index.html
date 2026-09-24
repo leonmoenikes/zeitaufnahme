@@ -253,15 +253,17 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 
 /* ── NOTIZ-POPUP (Excel-Kommentar-Stil, für Kategorie- und Schritt-Notizen) ── */
 /* ── SPALTEN-MENÜ & SPALTENFILTER ── */
-.col-popup{
-  display:none;position:fixed;z-index:650;width:230px;max-height:60vh;overflow-y:auto;
-  background:var(--surface);border:1px solid var(--border2);border-radius:8px;
-  box-shadow:var(--sh-pop);padding:8px;
+.col-popup,.note-popup{
+  display:none;position:fixed;z-index:650;width:240px;max-height:60vh;overflow-y:auto;
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
+  box-shadow:var(--sh-pop);padding:var(--sp2);
 }
 .col-popup.open{display:block;}
-.col-popup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;}
-.col-popup-title{font-size:var(--fs-xs);font-weight:700;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.col-popup-close{flex-shrink:0;background:none;border:none;color:var(--text3);font-size:var(--fs-l);cursor:pointer;padding:0 4px;line-height:1;}
+.col-popup-head,.note-popup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;}
+.col-popup-title,.note-popup-title{font-size:var(--fs-s);font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.col-popup-close,.note-popup-close{flex-shrink:0;background:none;border:none;border-radius:var(--r-s);color:var(--text3);
+  font-size:var(--fs-l);cursor:pointer;width:28px;height:28px;padding:0;line-height:1;}
+.col-popup-close:active,.note-popup-close:active{color:var(--text);background:var(--surface2);}
 .col-opt{display:flex;align-items:center;gap:7px;padding:5px 4px;font-size:var(--fs-s);color:var(--text);cursor:pointer;border-radius:5px;}
 .col-opt:active{background:var(--surface2);}
 .col-opt input{width:15px;height:15px;flex-shrink:0;margin:0;}
@@ -294,16 +296,8 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .flt-ico.on{opacity:1;color:var(--accent-bright);font-weight:700;}
 .data-tbl thead th.flt-active{box-shadow:inset 0 -3px 0 var(--accent);}
 
-.note-popup{
-  display:none;position:fixed;z-index:600;width:230px;
-  background:var(--surface);border:1px solid var(--border2);border-radius:8px;
-  box-shadow:var(--sh-pop);padding:8px;
-}
+.note-popup{z-index:600;}
 .note-popup.open{display:block;}
-.note-popup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;}
-.note-popup-title{font-size:var(--fs-xs);font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.note-popup-close{flex-shrink:0;background:none;border:none;color:var(--text3);font-size:var(--fs-l);cursor:pointer;padding:0 4px;line-height:1;}
-.note-popup-close:active{color:var(--text);}
 .note-popup-textarea{
   width:100%;min-height:74px;font-size:var(--fs-s);padding:6px 8px;border:1px solid var(--border2);
   border-radius:var(--r-s);background:var(--surface2);color:var(--text);resize:vertical;
@@ -506,25 +500,29 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
   box-shadow:var(--sh-modal);max-height:calc(100vh - 40px);overflow:hidden;
   margin:auto;
 }
-.mh{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);gap:10px;}
-.mh-title{font-size:var(--fs-m);font-weight:600;flex:1;}
-.mclose{background:none;border:none;color:var(--text2);cursor:pointer;font-size:var(--fs-xl);padding:0 4px;}
-.mbody{flex:1;overflow-y:auto;padding:12px 18px;-webkit-overflow-scrolling:touch;}
+.mh{display:flex;align-items:center;padding:var(--sp2) var(--sp2) var(--sp2) var(--sp4);border-bottom:1px solid var(--border);gap:var(--sp2);min-height:60px;flex-shrink:0;}
+.mh-title{font-size:var(--fs-l);font-weight:600;flex:1;min-width:0;}
+.mh-title .ic{color:var(--accent-bright);}
+/* Ein Schließen-Knopf für alle Fenster: 44 × 44, auch am Laptop — bleibt immer an derselben Stelle */
+.mclose{background:none;border:1px solid transparent;border-radius:var(--radius);color:var(--text2);cursor:pointer;
+  font-size:var(--fs-xl);width:44px;height:44px;padding:0;flex-shrink:0;}
+.mclose:active{background:var(--surface2);color:var(--text);}
+.mbody{flex:1;overflow-y:auto;padding:var(--sp3) var(--sp4) var(--sp4);-webkit-overflow-scrolling:touch;}
 .prow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border);}
 .prow:last-child{border-bottom:none;}
 .plbl{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 9px;color:var(--text);font-size:var(--fs-m);}
 .plbl:focus{outline:none;border-color:var(--accent);}
-.pval{width:78px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 9px;color:var(--accent-bright);font-family:var(--mono);font-size:var(--fs-m);text-align:right;}
+.pval{width:92px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 9px;color:var(--accent-bright);font-family:var(--mono);font-size:var(--fs-m);text-align:right;}
 .pval:focus{outline:none;border-color:var(--accent);}
 .punit{font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;}
-.pgrp{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 6px;color:var(--text);font-size:var(--fs-xs);max-width:110px;}
+.pgrp{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 6px;color:var(--text);font-size:var(--fs-xs);max-width:150px;}
 .pgrp:focus{outline:none;border-color:var(--accent);}
 .pdel{background:none;border:1px solid var(--border);border-radius:var(--r-s);color:var(--text3);cursor:pointer;padding:6px 9px;font-size:var(--fs-m);}
 .pdel:active{border-color:var(--red);color:var(--red);background:var(--red-dim);}
 .pnote{flex-basis:100%;margin-top:2px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 9px;color:var(--text2);font-size:var(--fs-xs);}
 .pnote:focus{outline:none;border-color:var(--accent);color:var(--text);}
 .pnote::placeholder{color:var(--text3);}
-.mfooter{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.mfooter,.exp-btns{padding:var(--sp3) var(--sp4);border-top:1px solid var(--border);display:flex;gap:var(--sp2);flex-shrink:0;}
 .btn-add-row{flex:1;padding:9px;border:1px dashed var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-size:var(--fs-m);}
 .btn-save{padding:9px 20px;border-radius:var(--radius);background:var(--accent);border:none;color:var(--on-accent);font-weight:600;font-size:var(--fs-m);cursor:pointer;}
 
@@ -638,8 +636,8 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
 .toast.show{transform:translateX(-50%) translateY(0);}
 
 /* ── EXPORT MODAL ── */
-.exp-modal{max-width:420px;}
-.exp-row{display:flex;flex-direction:column;gap:6px;padding:16px 18px;}
+.exp-modal{max-width:440px;}
+.exp-row{display:flex;flex-direction:column;gap:6px;padding:var(--sp4);}
 .exp-label{font-size:var(--fs-s);color:var(--text2);}
 .exp-input{
   font-size:var(--fs-l);padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);
@@ -647,12 +645,11 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
 }
 .exp-input:focus{outline:none;border-color:var(--accent);}
 .exp-hint{font-size:var(--fs-xs);color:var(--text3);}
-.exp-btns{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--border);}
 .exp-cancel{flex:1;padding:9px;border:1px solid var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-size:var(--fs-m);}
 .exp-go{flex:2;padding:9px;border-radius:var(--radius);background:var(--accent);border:none;color:var(--on-accent);font-weight:600;font-size:var(--fs-m);cursor:pointer;}
 
 /* ── AUSWERTUNG ── */
-.ana-modal{max-width:520px;}
+.ana-modal{max-width:640px;}
 .ana-soll-row{padding:4px 0 16px;}
 .ana-soll-input-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
 .verteil-presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
@@ -791,6 +788,47 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
 .mtm-use .mtm-dot{display:inline-block;}
 .takt-fuss{font-size:var(--fs-xs);color:var(--text3);margin-top:var(--sp2);}
 
+
+/* ── FENSTER & POPUPS: Info-Box, breite Bildschirme, Einfach-Modus ── */
+.info-tgl{padding:6px 10px;}
+.info-tgl[aria-expanded="true"]{background:var(--accent-dim);border-color:var(--accent);color:var(--accent-bright);}
+.info-box{white-space:pre-line;font-size:var(--fs-s);line-height:1.5;color:var(--text2);background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--r-s);padding:var(--sp2) var(--sp3);margin:0 0 var(--sp3);}
+.ana-kpi .ana-kpi-sub{font-family:var(--sans);}
+.takt-chart-col .ana-chart-head.mt5{margin-top:var(--sp5);}
+@media (min-width:1280px){
+  /* Auswertung: links Eingaben und Kennzahlen, rechts Diagramm und Legende, darunter die Top 10 */
+  .ana-modal{max-width:1120px;}
+  .ana-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:var(--sp5);align-items:start;}
+  .ana-links .ana-kpi-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
+  .ana-links .ana-kpi{min-width:0;}
+  .ana-links .ana-kpi:last-child{grid-column:1/-1;}
+  .ana-rechts{border-left:1px solid var(--border);padding-left:var(--sp5);}
+  .ana-rechts .ana-legend{max-width:520px;margin:0 auto;}
+  /* Taktabgleich: Tabelle und Balken nebeneinander */
+  .takt-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:var(--sp5);align-items:start;}
+  .takt-chart-col .ana-chart-head.mt5{margin-top:0;}
+  .mtm-modal{max-width:1000px;}
+  /* Zeiten: eine Zeile je Kategorie, Notiz steht mit in der Zeile */
+  #cfgModal .modal{max-width:1000px;}
+  #cfgModal .prow{flex-wrap:nowrap;}
+  #cfgModal .plbl{flex:1 1 220px;min-width:0;}
+  #cfgModal .pgrp{max-width:180px;}
+  #cfgModal .pval{width:108px;}
+  #cfgModal .pnote{flex:1 1 260px;flex-basis:260px;margin-top:0;order:5;min-width:0;}
+  #cfgModal .pdel{order:6;}
+}
+/* Einfach-Modus: alle Bedienelemente in Fenstern und Popups mind. 44 × 44 */
+body.beginner-mode :is(.exp-go,.exp-cancel,.btn-save,.btn-add-row,.pdel){min-height:44px;}
+body.beginner-mode .exp-input{min-height:44px;}
+body.beginner-mode :is(.col-popup,.note-popup){width:290px;padding:var(--sp3);}
+body.beginner-mode :is(.col-popup-close,.note-popup-close){width:44px;height:44px;}
+body.beginner-mode .col-opt{min-height:44px;font-size:var(--fs-m);}
+body.beginner-mode .col-opt input{width:20px;height:20px;}
+body.beginner-mode .col-rename{min-width:44px;min-height:44px;}
+body.beginner-mode :is(.flt-search,.flt-range input){min-height:44px;font-size:var(--fs-m);}
+body.beginner-mode .col-popup-actions .tbtn{font-size:var(--fs-m);}
+body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
 
 /* ── DRUCKANSICHT DER AUSWERTUNG ──
    Bewusst eigene Farbwerte statt der Theme-Variablen: Papier ist weiß,
@@ -976,6 +1014,8 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
       </div>
       <div class="ana-scope-note" id="anaScopeNote"></div>
       <div id="anaPanelUeberblick">
+      <div class="ana-grid">
+      <div class="ana-links">
       <div class="ana-soll-row">
         <label class="exp-label">Sollzeit gesamte Baugruppe</label>
         <div class="ana-soll-input-row">
@@ -1006,23 +1046,31 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
         <div class="ana-kpi"><span class="ana-kpi-lbl">Ist</span><span class="ana-kpi-val" id="anaIst">0.000</span></div>
         <div class="ana-kpi" title="Ist-Zeit inkl. Verteilzeit-Zuschlag">
           <span class="ana-kpi-lbl">Ist inkl. VZ</span><span class="ana-kpi-val" id="anaIstVz">–</span>
+          <span class="ana-kpi-sub">Ist × (1 + VZ %)</span>
         </div>
         <div class="ana-kpi"><span class="ana-kpi-lbl">Soll</span><span class="ana-kpi-val" id="anaSoll">–</span></div>
-        <div class="ana-kpi"><span class="ana-kpi-lbl">Abweichung</span><span class="ana-kpi-val" id="anaDiff">–</span></div>
+        <div class="ana-kpi"><span class="ana-kpi-lbl">Abweichung</span><span class="ana-kpi-val" id="anaDiff">–</span>
+          <span class="ana-kpi-sub">Ist inkl. VZ − Soll</span></div>
         <div class="ana-kpi" title="Gesamtzeit ÷ Summe der angepackten Teile (Summe aller Teilemengen)">
           <span class="ana-kpi-lbl">Ø Zeit/Stk.</span><span class="ana-kpi-val" id="anaAvgPiece">–</span>
+          <span class="ana-kpi-sub">Ist ÷ Anzahl Teile</span>
         </div>
         <div class="ana-kpi"><span class="ana-kpi-lbl">Anzahl aller Teile</span><span class="ana-kpi-val" id="anaTotalQty">–</span></div>
         <div class="ana-kpi" title="(Ist-Zeit inkl. Verteilzeit ÷ 100) × Stundensatz">
           <span class="ana-kpi-lbl">Montagekosten</span><span class="ana-kpi-val" id="anaCost">–</span>
+          <span class="ana-kpi-sub">Ist inkl. VZ ÷ 100 × €/hD</span>
         </div>
       </div>
+      </div>
+      <div class="ana-rechts">
       <div class="ana-chart-head">
         <span class="ana-chart-title" id="anaChartTitle">Zeitanteil je Kategorie-Gruppe</span>
         <button class="tbtn" onclick="toggleAnaDrill()" id="anaDrillBtn"><svg class="ic"><use href="#i-rechts"/></svg>Kategorien anzeigen</button>
       </div>
       <div class="ana-chart-wrap" id="anaChartWrap"></div>
       <div class="ana-legend" id="anaLegend"></div>
+      </div>
+      </div>
 
       <div class="ana-top-head">
         <span class="ana-chart-title">Top 10 Prozessschritte (Gesamtzeit)</span>
@@ -1049,11 +1097,15 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
           </div>
         </div>
         <div id="taktKpiWrap"></div>
+        <div class="takt-grid">
         <div id="taktTableWrap"></div>
+        <div class="takt-chart-col">
         <div class="ana-chart-head mt5">
           <span class="ana-chart-title" id="taktChartTitle">Zeit je Station [min]</span>
         </div>
         <div id="taktChartWrap"></div>
+        </div>
+        </div>
         <div id="taktSzenWrap"></div>
       </div>
 
@@ -1128,7 +1180,7 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
       <input class="exp-input" id="expFilename" type="text" placeholder="z.B. Linie3_Getriebe_Welle"/>
       <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (5 Blätter)</span>
     </div>
-    <div class="exp-btns">
+    <div class="exp-btns mfooter">
       <button class="exp-cancel" onclick="closeExpModal()">Abbrechen</button>
       <button class="exp-go" onclick="doExportXlsx()"><svg class="ic"><use href="#i-tabelle"/></svg>Excel (.xlsx)</button>
       <button class="exp-go" onclick="doExport()"><svg class="ic"><use href="#i-export"/></svg>CSV</button>
@@ -4049,7 +4101,9 @@ function renderLwParam(){
       +`<span class="punit">m</span><span class="lw-par-text">${escHtml(LW_TEXT[k].text)}</span></div>`;
   });
   h+='<div class="takt-szen-btns"><button class="tbtn" onclick="lwStandardwerte()">'+ic('reset')+'Standardwerte</button>'
-    +`<button class="tbtn" onclick="lwAutoZuordnung()" title="${escAttr(LW_AUTO_HINWEIS)}">${ic('blitz')}Auto-Zuordnung</button></div>`
+    +`<button class="tbtn" onclick="lwAutoZuordnung()" title="${escAttr(LW_AUTO_HINWEIS)}">${ic('blitz')}Auto-Zuordnung</button>`
+    +`<button class="tbtn info-tgl" id="lwAutoInfoBtn" aria-expanded="false" onclick="lwAutoInfo()">${ic('info')}Was macht das?</button></div>`
+    +`<div class="info-box hidden" id="lwAutoInfo">${escHtml(LW_AUTO_HINWEIS)}</div>`
     +'<div class="mtm-sec-title">Kennzahlen</div><div id="lwKpi"></div>';
   el.innerHTML=h;
   el.querySelectorAll('input[data-k]').forEach(inp=>{
@@ -4322,9 +4376,30 @@ function lwZeigeSchritt(id){
   if(tr) tr.scrollIntoView({block:'center'});
 }
 
-/* Esc schließt das Fenster — auch aus einem Eingabefeld heraus */
+function lwAutoInfo(){
+  const box=document.getElementById('lwAutoInfo'), btn=document.getElementById('lwAutoInfoBtn');
+  const auf=box.classList.toggle('hidden')===false;
+  btn.setAttribute('aria-expanded',auf?'true':'false');
+}
+
+/* Esc schließt das oberste offene Popup oder Fenster — auch aus einem Eingabefeld heraus.
+   Reihenfolge: erst Menü und Popups, dann die Fenster von oben (zuletzt im DOM) nach unten */
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape' && lwOffen()){ e.preventDefault(); closeLw(); }
+  if(e.key!=='Escape') return;
+  const offen=id=>{ const el=document.getElementById(id); return !!el && el.classList.contains('open'); };
+  if(offen('mehrMenue')) closeMehrMenue();
+  else if(offen('notePopup')) closeNotePopup();
+  else if(offen('colPopup')) closeColPopup();
+  else if(offen('expModal')) closeExpModal();
+  else if(lwOffen()) closeLw();
+  else if(offen('mtmModal')) closeMtm();
+  else if(offen('cfgModal')) closeCfg();
+  else if(offen('anaModal')) closeAnalysis();
+  else return;
+  e.preventDefault();
+  /* Fokus aus dem geschlossenen Feld nehmen — sonst blockiert es die Tasten-Kurzbefehle */
+  const f=document.activeElement;
+  if(f && f!==document.body && !f.offsetParent && f.blur) f.blur();
 });
 
 /* ═══════════════════════════════════════

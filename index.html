@@ -1041,6 +1041,7 @@ const GROUPS = {
   process:  {name:"Process",                color:"#75A67C"},
   trace:    {name:"Tracebility",            color:"#B8DCAB"},
   safety:   {name:"Safety & Quality",   color:"#9FD8EE"},
+  laufweg:  {name:"Laufweg (Meter / Laufweg-Rechner)", color:"#D9C58B"},   // eigene Gruppe, damit der Laufweg in der Auswertung für sich steht
 };
 
 /* ═══════════════════════════════════════
@@ -1075,7 +1076,6 @@ let COLS = [
   {key:"bearing",     label:"Ø Bearing assembly",    param:0.873333, group:"process"},
   {key:"hydr_pipe",   label:"Ø Hydr. Pipe",          param:1.835,    group:"process"},
   {key:"harness",     label:"Ø Harness (Sockets)",   param:0.404333, group:"process"},
-  {key:"meter",       label:"Meter in total",        param:0.0325,   group:"process"},
   {key:"clean_seal",  label:"Clean & Seal 400cm²",param:0.375,   group:"process"},
   {key:"oil_grease",  label:"Ø Ölen / Fetten",       param:0.156,    group:"process"},   // Katalog-Baustein, Grundelement #36
   // Tracebility
@@ -1085,6 +1085,8 @@ let COLS = [
   {key:"screw_mech",  label:"Screw lock mech.",      param:2.085,    group:"safety"},
   {key:"qgate",       label:"Quality gate",          param:5.13,     group:"safety"},
   {key:"qs_check",    label:"Ø QS check",            param:0.845,    group:"safety"},
+  // Laufweg — gezählt oder aus dem Laufweg-Rechner
+  {key:"meter",       label:"Meter in total",        param:0.0325,   group:"laufweg"},
 ];
 
 let parts = [];
@@ -1117,6 +1119,16 @@ const SHORTCUT_POOL = "1234567890qwertzuiopasdfghjkl".split('');
    Deklaration nicht erreichbar ist.
 ═══════════════════════════════════════ */
 const LW_KAT='meter';   // Kategorie, in die der gerechnete Laufweg geschrieben wird
+const LW_GRUPPE='laufweg';
+/* „Meter in total" gehört zur Gruppe Laufweg und steht am Ende. Ältere Stände und CSVs (Gruppe
+   Process, mitten in der Liste) werden beim Laden umgestellt: an den Schluss, Gruppe Laufweg.
+   Steht der Baustein schon in der Gruppe, bleibt seine Position unangetastet — so lässt sich
+   die Reihenfolge danach weiterhin frei ändern. Gezählte Werte hängen am Schlüssel, nicht an der Position. */
+function lwKatUmstellen(cols){
+  const i=cols.findIndex(c=>c.key===LW_KAT);
+  if(i<0||cols[i].group===LW_GRUPPE) return cols;
+  return [...cols.slice(0,i),...cols.slice(i+1),{...cols[i],group:LW_GRUPPE}];
+}
 const LW_KEYS=['base','tool','rollwagen','crane','scan','bereitstellen','komm'];
 const LW_DEF={base:2, tool:2, rollwagen:4, crane:6, scan:3, bereitstellen:8, komm:1.5};
 const LW_TEXT={
@@ -2415,7 +2427,7 @@ function handleStartImport(evt){
     try{
       const parsed=parseImportedCSV(e.target.result);
       if(!parsed||parsed.parts.length===0){ toast('⚠ Keine Prozessschritte gefunden oder CSV ungültig'); return; }
-      COLS=parsed.cols;
+      COLS=lwKatUmstellen(parsed.cols);
       parts=parsed.parts;
       data=parsed.data;
       currentProject=parsed.projectName||deriveNameFromFilename(file.name);
@@ -4204,7 +4216,7 @@ function loadState(){
     if(!raw) return false;
     const s=JSON.parse(raw);
     if(!s.parts || s.parts.length===0) return false;
-    if(s.COLS)   COLS=s.COLS;
+    if(s.COLS)   COLS=lwKatUmstellen(s.COLS);
     if(s.parts)  parts=s.parts;
     if(s.data)   data=s.data;
     if(s.activePart && parts.some(p=>p.id===s.activePart)) activePart=s.activePart;
@@ -4319,6 +4331,11 @@ function xlsxAblaufLage(){ return {firstCatCol:12, ersteZeile:6, summenZeile:6+p
 /* Blatt Laufwege: Meterwerte in B7:B13, Schritte ab Zeile 17 (wie im Blatt „Laufweg-Parameter" der Vorlage) */
 const XLSX_LW_PARAM_ZEILE=7, XLSX_LW_ERSTE_ZEILE=17;
 const XLSX_GROUP_ORDER=['admin','handling','process','trace','safety'];
+/* Später dazugekommene Gruppen: Füllungen und Styles werden hinten angehängt, damit die festen
+   Style-Indizes der übrigen Zellen (15 ff.) gleich bleiben */
+const XLSX_GROUP_EXTRA=['laufweg'];
+function xlsxGrpKopfStyle(g){ const i=XLSX_GROUP_ORDER.indexOf(g), j=XLSX_GROUP_EXTRA.indexOf(g); return i>=0?4+i:(j>=0?41+2*j:4); }
+function xlsxSpKopfStyle(g){ const i=XLSX_GROUP_ORDER.indexOf(g), j=XLSX_GROUP_EXTRA.indexOf(g); return i>=0?10+i:(j>=0?42+2*j:10); }
 function xlsxStyles(){
   const groupFills=XLSX_GROUP_ORDER.map(k=>((GROUPS[k]||{}).color||'#dddddd').replace('#','FF'));
   const levelFills=['FFFFFFFF','FFEEF3FB','FFD8E6F7','FFB9D0F0','FF97B8E8','FF7AA3DE','FF5C8BD1'];
@@ -4328,8 +4345,9 @@ function xlsxStyles(){
     .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFEDF1F8"/><bgColor indexed="64"/></patternFill></fill>'])
     .concat(levelFills.map(c=>`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`))
     .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFF7F7F7"/><bgColor indexed="64"/></patternFill></fill>'])
-    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFFFF9D6"/><bgColor indexed="64"/></patternFill></fill>']);
-  // Fill-Indizes: 0 none,1 gray,2 dark,3-7 Gruppen,8 zeitwert,9-15 Level1-7,16 kpi,17 gelb (Eingabe)
+    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFFFF9D6"/><bgColor indexed="64"/></patternFill></fill>'])
+    .concat(XLSX_GROUP_EXTRA.map(k=>`<fill><patternFill patternType="solid"><fgColor rgb="${((GROUPS[k]||{}).color||'#dddddd').replace('#','FF')}"/><bgColor indexed="64"/></patternFill></fill>`));
+  // Fill-Indizes: 0 none,1 gray,2 dark,3-7 Gruppen,8 zeitwert,9-15 Level1-7,16 kpi,17 gelb (Eingabe),18 ff. weitere Gruppen
   const fonts=[
     '<font><sz val="9"/><name val="Arial"/></font>',
     '<font><b/><sz val="15"/><name val="Arial"/></font>',
@@ -4366,6 +4384,10 @@ function xlsxStyles(){
   push({f:4,fl:8,b:1,n:166});
   push({b:1,n:167});                          // 39 Prozent mit einer Nachkommastelle
   push({f:6});                                // 40 Abschnittstitel fett
+  XLSX_GROUP_EXTRA.forEach((k,j)=>{           // 41/42 ff.: Gruppenkopf und Spaltenkopf weiterer Gruppen
+    push({f:6,fl:18+j,b:1,al:'horizontal="center" vertical="center"'});
+    push({f:4,fl:18+j,b:1,al:'horizontal="center" vertical="center" wrapText="1"'});
+  });
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 <numFmts count="4"><numFmt numFmtId="164" formatCode="0.000"/><numFmt numFmtId="165" formatCode="#,##0.00&quot; €&quot;"/><numFmt numFmtId="166" formatCode="0.000##"/><numFmt numFmtId="167" formatCode="0.0"/></numFmts>
@@ -4389,7 +4411,6 @@ function xlsxSheetArbeitsablauf(){
   const firstCatCol=fixedCols.length+1;             // 1-basiert
   const noteCol=firstCatCol+nCat*2;
   const lastCol=noteCol;
-  const gIdx=k=>Math.max(0,XLSX_GROUP_ORDER.indexOf(k));
   let rows='',merges=[];
 
   // Zeile 1: Titel
@@ -4405,7 +4426,7 @@ function xlsxSheetArbeitsablauf(){
   while(i2<nCat){
     const g=COLS[i2].group; let run=0;
     while(i2+run<nCat && COLS[i2+run].group===g) run++;
-    const st=4+gIdx(g);
+    const st=xlsxGrpKopfStyle(g);
     r3+=xc(c,3,(GROUPS[g]||{}).name||g,st);
     for(let k=1;k<run*2;k++) r3+=xc(c+k,3,'',st);
     if(run*2>1) merges.push(`${colLetter(c)}3:${colLetter(c+run*2-1)}3`);
@@ -4418,7 +4439,7 @@ function xlsxSheetArbeitsablauf(){
   fixedCols.forEach((h,i)=>{ r4+=xc(i+1,4,h,9); });
   c=firstCatCol;
   COLS.forEach(col=>{
-    const st=10+gIdx(col.group);
+    const st=xlsxSpKopfStyle(col.group);
     r4+=xc(c,4,col.label,st); r4+=xc(c+1,4,'['+u+']',st); c+=2;
   });
   r4+=xc(noteCol,4,'Notiz',9);
@@ -4600,10 +4621,9 @@ function xlsxSheetZeitwerte(){
   rows+=`<row r="${rn}">${xc(1,rn,'Basis der Berechnung · Einheit: '+u,2)}</row>`;rn++;
   rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Gruppe',9)}${xc(2,rn,'Kategorie',9)}${xc(3,rn,'Zeitwert ['+u+']',9)}${xc(4,rn,'Notiz',9)}</row>`;rn++;
-  const gIdx=k=>Math.max(0,XLSX_GROUP_ORDER.indexOf(k));
   COLS.forEach(col=>{
     const st=17;
-    rows+=`<row r="${rn}">${xc(1,rn,(GROUPS[col.group]||{}).name||col.group,4+gIdx(col.group))}${xc(2,rn,col.label,st)}${xc(3,rn,dispParam(col.param),24,true)}${xc(4,rn,col.note||'',st)}</row>`;rn++;
+    rows+=`<row r="${rn}">${xc(1,rn,(GROUPS[col.group]||{}).name||col.group,xlsxGrpKopfStyle(col.group))}${xc(2,rn,col.label,st)}${xc(3,rn,dispParam(col.param),24,true)}${xc(4,rn,col.note||'',st)}</row>`;rn++;
   });
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -4780,7 +4800,7 @@ function handleImport(evt){
 
       if(!confirm(`CSV importieren?\n„${file.name}"\n\nAchtung: Aktuelle Daten werden überschrieben.`)) return;
 
-      COLS=parsed.cols;
+      COLS=lwKatUmstellen(parsed.cols);
       parts=parsed.parts;
       data=parsed.data;
       projectDescription=parsed.description||'';

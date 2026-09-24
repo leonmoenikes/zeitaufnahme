@@ -18,6 +18,57 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Laufweg-Rechner
+- Neuer Knopf „🚶 Laufwege" (Modus Erweitert). Die Kategorie „Meter in total" kann je
+  Prozessschritt gerechnet statt gezählt werden:
+  Meter = Σ Auslöser × Meterwert, auf ganze Meter gerundet.
+- Sieben Auslöser mit zentralen Meterwerten:
+  - Grundweg 2 m
+  - Werkzeug 2 m
+  - Rollwagen 4 m
+  - Kranhub 6 m
+  - Scan 3 m
+  - Bereitstellen 8 m
+  - Kommissionieren 1,5 m je Teil
+- Reiter „Parameter":
+  - Die Meterwerte stehen als gelbe Eingabefelder da; eine Änderung rechnet sofort alle
+    gerechneten Schritte, die Tabelle und die Auswertung neu.
+  - Kennzahlen: Σ Meter, Zeit in minD und min, Anteil am Ist, Schritte mit und ohne
+    Laufweg sowie Summe und Anteil je Auslöser.
+  - „Standardwerte" setzt die Meterwerte zurück.
+  - „Auto-Zuordnung" setzt die Auslöser aller Schritte aus den vorhandenen Daten (Montagestufe,
+    Werkzeug, Kranhub, Code-Scan, Schrittname). Eingetragene Rollwagen-Werte bleiben erhalten.
+- Reiter „Je Schritt": je Schritt die sieben Auslöser als Eingabefelder, dazu Meter und minD.
+  - Filter nach Station, Montagestufe und „nur Schritte ohne Laufweg"; die Summenzeile
+    zählt die sichtbaren Zeilen.
+  - Ein Wert größer 0 schaltet den Schritt aufs Rechnen um. Alle Auslöser auf 0 schaltet ihn
+    zurück aufs Zählen; die Meterzahl bleibt auf dem letzten Stand.
+  - Schritte ohne Auslöser sind grau hinterlegt.
+- Gerechnete Schritte zeigen an der Meter-Kachel und in der Tabelle ein ƒ.
+  - Tippen auf die Kachel (oder ihr Tastenkürzel) öffnet die Zeile des Schritts im Reiter
+    „Je Schritt", statt zu zählen.
+  - Undo, „Anzahl kopieren" und „Alle Zähler zurücksetzen" lassen gerechnete Meter unangetastet.
+  - Meterwert- und Auslöseränderungen stehen nicht im Undo-Verlauf; der Weg zurück bei den
+    Meterwerten ist „Standardwerte".
+- Excel-Export mit fünftem Blatt „Laufwege" im Aufbau des Blatts „Laufweg-Parameter": gelbe
+  Meterwerte, je Schritt die Auslöser und der Meter als ROUND-Formel. Gezählte Schritte stehen
+  dort als Festwert mit „manuell".
+- Die Blätter „Arbeitsablauf" und „Auswertung" rechnen jetzt mit Formeln statt fester Zahlen:
+  - Zeit = Anzahl × Zeitwert aus Zeile 5; Gesamt und die Summenzeile sind Summen.
+  - Die Meter-Anzahl gerechneter Schritte verweist auf das Blatt „Laufwege".
+  - Ist, Kosten und Anteile in der Auswertung verweisen auf den Arbeitsablauf.
+  - Eine geänderte gelbe Zelle rechnet in Excel bis ins Ist durch.
+  - Zeile 5 zeigt die Zeitwerte jetzt mit voller Genauigkeit (0,0325 statt 0,033).
+- CSV: zwei neue Metazeilen `__LWPARAM__` (Meterwerte) und `__LW__` (Auslöser je Datenzeile).
+  - Spaltenaufbau und `__FORMAT__;3` bleiben unverändert.
+  - Ältere Dateien öffnen sich mit Standardwerten und ohne gerechnete Schritte.
+  - Ältere App-Versionen überspringen die neuen Zeilen und zeigen dieselbe Ist-Zeit.
+
+### Behoben (Laufweg-Rechner)
+- Tastenkürzel der Kategorien zählten auch, während das Fenster „Bausteine" offen war.
+- Der Installationshinweis auf dem iPad greift auf den Sitzungsspeicher nur noch
+  abgesichert zu (privates Surfen, Aufruf als data:-URL).
+
 ### Hinzugefügt (Standardkategorien)
 - „Ø Ölen / Fetten" (0,156 minD, Process, Katalog-Grundelement #36) gehört jetzt fest zu
   den Kategorien eines neuen Projekts, am Ende der Process-Gruppe. Die Tastenkürzel der

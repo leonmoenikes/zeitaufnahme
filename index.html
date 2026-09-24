@@ -1123,10 +1123,11 @@ let lwParams={...LW_DEF};
 function lwTrig(id){ const d=data[id]; return (d && d.__lw && typeof d.__lw==='object') ? d.__lw : null; }
 function lwHat(id){ return !!lwTrig(id); }
 /* Math.round rundet positive Zahlen kaufmännisch — wie ROUND(…;0) in Excel, damit Tool und
-   Excel-Export auf dieselbe Meterzahl kommen (1,5 m × 3 = 4,5 → 5). */
+   Excel-Export auf dieselbe Meterzahl kommen (1,5 m × 3 = 4,5 → 5). toPrecision schneidet
+   Gleitkomma-Rauschen ab, wie Excel mit seinen 15 Stellen (4,1 × 15 = 61,4999… → 61,5 → 62). */
 function lwMeter(id){
   const t=lwTrig(id); if(!t) return 0;
-  return Math.round(LW_KEYS.reduce((s,k)=>s+(t[k]||0)*(lwParams[k]||0),0));
+  return Math.round(+LW_KEYS.reduce((s,k)=>s+(t[k]||0)*(lwParams[k]||0),0).toPrecision(12));
 }
 /* Nach jeder Parameter- oder Auslöseränderung alle gerechneten Schritte neu setzen */
 function lwNeuRechnen(){

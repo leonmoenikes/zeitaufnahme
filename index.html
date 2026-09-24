@@ -978,7 +978,7 @@ td.nr .teil-caret{width:16px;}
     <div class="exp-row">
       <label class="exp-label">Dateiname</label>
       <input class="exp-input" id="expFilename" type="text" placeholder="z.B. Linie3_Getriebe_Welle"/>
-      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (4 Blätter)</span>
+      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (5 Blätter)</span>
     </div>
     <div class="exp-btns">
       <button class="exp-cancel" onclick="closeExpModal()">Abbrechen</button>
@@ -4233,6 +4233,20 @@ function xc(col,row,v,st,num){
   if(num) return `<c r="${ref}"${sAttr}><v>${v}</v></c>`;
   return `<c r="${ref}"${sAttr} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
 }
+/* Formelzelle mit zwischengespeichertem Ergebnis: Excel rechnet beim Öffnen neu (fullCalcOnLoad),
+   Vorschau-Programme ohne Rechenkern zeigen trotzdem die Werte */
+function xcf(col,row,f,st,v){
+  const ref=colLetter(col)+row;
+  const sAttr=st?` s="${st}"`:'';
+  return `<c r="${ref}"${sAttr}><f>${xmlEsc(f)}</f>${(v===''||v===null||v===undefined)?'':`<v>${v}</v>`}</c>`;
+}
+/* Zahl ohne Gleitkomma-Rauschen (0.0325*0.6 → 0.0195 statt 0.019499999999999997) */
+function xn(x){ return String(+(+x).toPrecision(12)); }
+/* Lage der Daten im Blatt Arbeitsablauf — Auswertung und Laufwege verweisen darauf.
+   Muss zu xlsxSheetArbeitsablauf passen: 11 feste Spalten, Zeitwerte in Zeile 5, Daten ab Zeile 6. */
+function xlsxAblaufLage(){ return {firstCatCol:12, ersteZeile:6, summenZeile:6+parts.length}; }
+/* Blatt Laufwege: Meterwerte in B7:B13, Schritte ab Zeile 17 (wie im Blatt „Laufweg-Parameter" der Vorlage) */
+const XLSX_LW_PARAM_ZEILE=7, XLSX_LW_ERSTE_ZEILE=17;
 const XLSX_GROUP_ORDER=['admin','handling','process','trace','safety'];
 function xlsxStyles(){
   const groupFills=XLSX_GROUP_ORDER.map(k=>((GROUPS[k]||{}).color||'#dddddd').replace('#','FF'));
@@ -4242,8 +4256,9 @@ function xlsxStyles(){
     .concat(groupFills.map(c=>`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`))
     .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFEDF1F8"/><bgColor indexed="64"/></patternFill></fill>'])
     .concat(levelFills.map(c=>`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`))
-    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFF7F7F7"/><bgColor indexed="64"/></patternFill></fill>']);
-  // Fill-Indizes: 0 none,1 gray,2 dark,3-7 Gruppen,8 zeitwert,9-15 Level1-7,16 kpi
+    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFF7F7F7"/><bgColor indexed="64"/></patternFill></fill>'])
+    .concat(['<fill><patternFill patternType="solid"><fgColor rgb="FFFFF9D6"/><bgColor indexed="64"/></patternFill></fill>']);
+  // Fill-Indizes: 0 none,1 gray,2 dark,3-7 Gruppen,8 zeitwert,9-15 Level1-7,16 kpi,17 gelb (Eingabe)
   const fonts=[
     '<font><sz val="9"/><name val="Arial"/></font>',
     '<font><b/><sz val="15"/><name val="Arial"/></font>',
@@ -4274,9 +4289,15 @@ function xlsxStyles(){
   push({b:1,n:165});                          // 34 KPI-Euro
   push({f:6,fl:8,b:1});                       // 35 Summenzeile Text
   push({f:6,fl:8,b:1,n:164});                 // 36 Summenzeile Zahl
+  push({fl:17,b:1});                          // 37 Eingabewert gelb (Meterwerte im Blatt Laufwege)
+  /* 38 Zeitwert mit voller Genauigkeit: die Zeitspalten rechnen mit Zeile 5 — bei „0.000"
+     stünde dort 0.033 statt 0.0325 und jede Kategoriezeit wiche vom Programm ab */
+  push({f:4,fl:8,b:1,n:166});
+  push({b:1,n:167});                          // 39 Prozent mit einer Nachkommastelle
+  push({f:6});                                // 40 Abschnittstitel fett
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<numFmts count="2"><numFmt numFmtId="164" formatCode="0.000"/><numFmt numFmtId="165" formatCode="#,##0.00&quot; €&quot;"/></numFmts>
+<numFmts count="4"><numFmt numFmtId="164" formatCode="0.000"/><numFmt numFmtId="165" formatCode="#,##0.00&quot; €&quot;"/><numFmt numFmtId="166" formatCode="0.000##"/><numFmt numFmtId="167" formatCode="0.0"/></numFmts>
 <fonts count="${fonts.length}">${fonts.join('')}</fonts>
 <fills count="${fillsXml.length}">${fillsXml.join('')}</fills>
 <borders count="${borders.length}">${borders.join('')}</borders>
@@ -4336,12 +4357,14 @@ function xlsxSheetArbeitsablauf(){
   for(let i=2;i<=fixedCols.length;i++) r5+=xc(i,5,'',15);
   merges.push(`A5:${colLetter(fixedCols.length)}5`);
   c=firstCatCol;
-  COLS.forEach(col=>{ r5+=xc(c,5,dispParam(col.param),16,true); r5+=xc(c+1,5,'',16); c+=2; });
+  const fU=u==='minD'?1:MIND_FACTOR;   // Formeln rechnen in der Export-Einheit
+  COLS.forEach(col=>{ r5+=xc(c,5,xn(col.param*fU),38,true); r5+=xc(c+1,5,'',16); c+=2; });
   r5+=xc(noteCol,5,'',15);
   rows+=`<row r="5">${r5}</row>`;
-  // Datenzeilen ab 6
+  // Datenzeilen ab 6 — Zeit = Anzahl × Zeitwert aus Zeile 5, Gesamt = Summe der Zeiten (wie in der Vorlage)
   let rn=6;
-  parts.forEach(p=>{
+  const zeitRefs=r=>COLS.map((col,ci)=>colLetter(firstCatCol+ci*2+1)+r).join(',');
+  parts.forEach((p,pi)=>{
     const d=data[p.id], lvl=Math.min(7,Math.max(1,d.__level||1));
     const sT=17+(lvl-1), sN=24+(lvl-1);
     let r=xc(1,rn,lvl,sN===0?0:sT,true);
@@ -4354,13 +4377,14 @@ function xlsxSheetArbeitsablauf(){
     r+=xc(8,rn,d.__extra2||'',sT);
     r+=xc(9,rn,d.__extra3||'',sT);
     r+=xc(10,rn,stepQty(p.id),sT,true);
-    // Gesamt als Formel-freie Zahl (Zwischenwerte stehen daneben)
-    r+=xc(11,rn,disp(calcTotal(p.id)),sN,true);
+    r+=nCat?xcf(11,rn,'SUM('+zeitRefs(rn)+')',sN,xn(calcTotal(p.id)*fU)):xc(11,rn,0,sN,true);
     c=firstCatCol;
     COLS.forEach(col=>{
       const q=d[col.key]||0;
-      r+=xc(c,rn,q,sT,true);
-      r+=xc(c+1,rn,disp(q*col.param),sN,true);
+      /* Gerechnete Meter holen ihre Anzahl aus dem Blatt Laufwege — dort ändern rechnet bis hierher durch */
+      if(col.key===LW_KAT && lwHat(p.id)) r+=xcf(c,rn,"'Laufwege'!J"+(XLSX_LW_ERSTE_ZEILE+pi),sT,q);
+      else r+=xc(c,rn,q,sT,true);
+      r+=xcf(c+1,rn,colLetter(c)+rn+'*'+colLetter(c)+'$5',sN,xn(q*col.param*fU));
       c+=2;
     });
     r+=xc(noteCol,rn,d.__note||'',sT);
@@ -4371,12 +4395,16 @@ function xlsxSheetArbeitsablauf(){
   let rs=xc(1,rn,'',35)+xc(2,rn,'∑ Gesamt',35)+xc(3,rn,'',35);
   for(let i=4;i<=9;i++) rs+=xc(i,rn,'',35);
   const totQty=parts.reduce((s,p)=>s+stepQty(p.id),0);
-  rs+=xc(10,rn,totQty,35,true);
-  rs+=xc(11,rn,disp(parts.reduce((s,p)=>s+calcTotal(p.id),0)),36,true);
+  const bis=rn-1, sp=(col)=>`SUM(${colLetter(col)}6:${colLetter(col)}${bis})`;
+  const leer=parts.length===0;   // ohne Datenzeilen gäbe es keinen gültigen Bereich
+  rs+=leer?xc(10,rn,0,35,true):xcf(10,rn,sp(10),35,totQty);
+  rs+=leer?xc(11,rn,0,36,true):xcf(11,rn,sp(11),36,xn(parts.reduce((s,p)=>s+calcTotal(p.id),0)*fU));
   c=firstCatCol;
   COLS.forEach(col=>{
     const q=parts.reduce((s,p)=>s+(data[p.id][col.key]||0),0);
-    rs+=xc(c,rn,q,35,true); rs+=xc(c+1,rn,disp(q*col.param),36,true); c+=2;
+    rs+=leer?xc(c,rn,0,35,true):xcf(c,rn,sp(c),35,q);
+    rs+=leer?xc(c+1,rn,0,36,true):xcf(c+1,rn,sp(c+1),36,xn(q*col.param*fU));
+    c+=2;
   });
   rs+=xc(noteCol,rn,'',35);
   rows+=`<row r="${rn}">${rs}</row>`;
@@ -4443,18 +4471,31 @@ function xlsxSheetAuswertung(){
   rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Auswertung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Export: '+new Date().toLocaleString('de-DE')+(projectDescription?'  ·  '+projectDescription:''),2)}</row>`;rn++;
   rn++;
-  const kpi=(label,val,style,isNum)=>{rows+=`<row r="${rn}">${xc(1,rn,label,31)}${xc(2,rn,val,style,isNum)}</row>`;rn++;};
-  kpi('Ist ['+u+']', disp(ist), 32, true);
-  kpi('Verteilzeit-Faktor [%]', verteilzeitFactor||0, 33, true);
-  kpi('Ist inkl. Verteilzeit ['+u+']', disp(istVz), 32, true);
-  kpi('Sollzeit ['+u+']', sollzeit? disp(sollzeit):'–', sollzeit?32:33, !!sollzeit);
-  kpi('Abweichung ['+u+']', sollzeit? disp(istVz-sollzeit):'–', sollzeit?32:33, !!sollzeit);
-  kpi('Abweichung [%]', sollzeit? ((istVz-sollzeit)/sollzeit*100).toFixed(1):'–', 33, !!sollzeit);
+  const kpi=(label,val,style,isNum)=>{rows+=`<row r="${rn}">${xc(1,rn,label,31)}${xc(2,rn,val,style,isNum)}</row>`;return rn++;};
+  /* Kennzahlen als Formeln auf das Blatt Arbeitsablauf: ändert man dort — oder einen Meterwert
+     im Blatt Laufwege —, ziehen Ist, Kosten und Anteile hier nach. Eingaben (Verteilzeit, Soll,
+     Stundensatz) bleiben Zahlen, auf die die Formeln verweisen. */
+  const kpiF=(label,f,style,v)=>{rows+=`<row r="${rn}">${xc(1,rn,label,31)}${xcf(2,rn,f,style,v)}</row>`;return rn++;};
+  const lage=xlsxAblaufLage(), S=lage.summenZeile, AA="'Arbeitsablauf'!";
+  const fU=u==='minD'?1:MIND_FACTOR;
+  const rIst=kpiF('Ist ['+u+']', AA+'K'+S, 32, xn(ist*fU));
+  const rVz=kpi('Verteilzeit-Faktor [%]', verteilzeitFactor||0, 33, true);
+  const rIstVz=kpiF('Ist inkl. Verteilzeit ['+u+']', `B${rIst}*(1+B${rVz}/100)`, 32, xn(istVz*fU));
+  const rSoll=kpi('Sollzeit ['+u+']', sollzeit? disp(sollzeit):'–', sollzeit?32:33, !!sollzeit);
+  if(sollzeit){
+    kpiF('Abweichung ['+u+']', `B${rIstVz}-B${rSoll}`, 32, xn((istVz-sollzeit)*fU));
+    kpiF('Abweichung [%]', `ROUND((B${rIstVz}-B${rSoll})/B${rSoll}*100,1)`, 39, ((istVz-sollzeit)/sollzeit*100).toFixed(1));
+  } else { kpi('Abweichung ['+u+']','–',33,false); kpi('Abweichung [%]','–',33,false); }
   kpi('Prozessschritte', fParts.length, 33, true);
-  kpi('Anzahl aller Teile', totQty, 33, true);
-  kpi('Ø Zeit je Teil ['+u+']', totQty>0? disp(ist/totQty):'–', totQty>0?32:33, totQty>0);
-  kpi('Stundensatz [€/hD]', hourlyRate||0, 34, true);
-  kpi('Montagekosten [€]', hourlyRate>0? ((istVz/100)*hourlyRate).toFixed(2):'–', hourlyRate>0?34:33, hourlyRate>0);
+  const rTeile=kpiF('Anzahl aller Teile', AA+'J'+S, 33, totQty);
+  if(totQty>0) kpiF('Ø Zeit je Teil ['+u+']', `B${rIst}/B${rTeile}`, 32, xn(ist*fU/totQty));
+  else kpi('Ø Zeit je Teil ['+u+']','–',33,false);
+  const rSatz=kpi('Stundensatz [€/hD]', hourlyRate||0, 34, true);
+  /* Kosten immer aus minD (100 minD = 1 hD) — bei Einheit min erst zurückrechnen */
+  if(hourlyRate>0) kpiF('Montagekosten [€]', `ROUND(B${rIstVz}${u==='minD'?'':'/'+MIND_FACTOR}/100*B${rSatz},2)`, 34, ((istVz/100)*hourlyRate).toFixed(2));
+  else kpi('Montagekosten [€]','–',33,false);
+  const aRef=ci=>AA+colLetter(lage.firstCatCol+ci*2+1)+S;   // Zeitsumme einer Kategorie
+  const anteil=(r,v)=>xcf(3,r,`IF($B$${rIst}>0,ROUND(B${r}/$B$${rIst}*100,1),0)`,39,gSum>0?(v/gSum*100).toFixed(1):'0');
   rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Zeitanteil je Kategorie-Gruppe',6===6?31:31)}${xc(2,rn,'['+u+']',31)}${xc(3,rn,'Anteil [%]',31)}</row>`;rn++;
   const gTot={};Object.keys(GROUPS).forEach(g=>gTot[g]=0);
@@ -4462,13 +4503,15 @@ function xlsxSheetAuswertung(){
   const gSum=Object.values(gTot).reduce((s,v)=>s+v,0);
   Object.entries(GROUPS).forEach(([k,g])=>{
     const v=gTot[k]||0;
-    rows+=`<row r="${rn}">${xc(1,rn,g.name,33)}${xc(2,rn,disp(v),32,true)}${xc(3,rn,gSum>0?(v/gSum*100).toFixed(1):'0.0',33)}</row>`;rn++;
+    const refs=COLS.map((col,ci)=>col.group===k?aRef(ci):'').filter(Boolean);
+    const zelle=refs.length?xcf(2,rn,refs.join('+'),32,xn(v*fU)):xc(2,rn,0,32,true);
+    rows+=`<row r="${rn}">${xc(1,rn,g.name,33)}${zelle}${anteil(rn,v)}</row>`;rn++;
   });
   rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Zeitanteil je Kategorie',31)}${xc(2,rn,'['+u+']',31)}${xc(3,rn,'Anteil [%]',31)}</row>`;rn++;
-  COLS.forEach(col=>{
+  COLS.forEach((col,ci)=>{
     const v=fParts.reduce((s,p)=>s+(data[p.id][col.key]||0)*col.param,0);
-    rows+=`<row r="${rn}">${xc(1,rn,col.label,33)}${xc(2,rn,disp(v),32,true)}${xc(3,rn,gSum>0?(v/gSum*100).toFixed(1):'0.0',33)}</row>`;rn++;
+    rows+=`<row r="${rn}">${xc(1,rn,col.label,33)}${xcf(2,rn,aRef(ci),32,xn(v*fU))}${anteil(rn,v)}</row>`;rn++;
   });
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -4499,6 +4542,58 @@ function xlsxSheetZeitwerte(){
 <sheetData>${rows}</sheetData>
 </worksheet>`;
 }
+/* Blatt 5: Laufwege — aufgebaut wie das Blatt „Laufweg-Parameter" der Vorlage: oben die gelben
+   Meterwerte, darunter je Schritt die Auslöser und der gerundete Laufweg in Spalte J. Gerechnete
+   Schritte stehen als Formel da, gezählte als Festwert mit „manuell". Die Meter-Anzahl im Blatt
+   Arbeitsablauf verweist auf Spalte J — so rechnet eine geänderte gelbe Zelle bis ins Ist durch. */
+function xlsxSheetLaufwege(){
+  const kat=COLS.find(c=>c.key===LW_KAT);
+  const P=XLSX_LW_PARAM_ZEILE, E=XLSX_LW_ERSTE_ZEILE, kopf=E-1;
+  let rows='';
+  rows+=`<row r="1" ht="20" customHeight="1">${xc(1,1,'Laufwege'+(currentProject?' – '+currentProject:''),1)}</row>`;
+  rows+=`<row r="2">${xc(1,2,'Meter je Schritt = Σ Auslöser × Meterwert, auf ganze Meter gerundet  ·  Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;
+  rows+=`<row r="4">${xc(1,4,'Die gelben Zellen sind Eingabewerte. Änderungen wirken sofort auf die Spalte „'+(kat?kat.label:'Meter')
+    +'" im Blatt Arbeitsablauf. Schritte mit „manuell" haben gezählte Meter (Festwert).',2)}</row>`;
+  rows+=`<row r="${P-1}">${xc(1,P-1,'Parameter',9)}${xc(2,P-1,'Meter',9)}${xc(3,P-1,'Bedeutung',9)}</row>`;
+  LW_KEYS.forEach((k,i)=>{
+    const r=P+i;
+    rows+=`<row r="${r}">${xc(1,r,LW_TEXT[k].label,31)}${xc(2,r,xn(lwParams[k]),37,true)}${xc(3,r,LW_TEXT[k].text,33)}</row>`;
+  });
+  rows+=`<row r="${kopf-1}">${xc(1,kopf-1,'Auslöser je Schritt (Anzahl) und daraus errechneter Laufweg',40)}</row>`;
+  const titel=['Nr','Prozessschritt',...LW_KEYS.map(k=>LW_TEXT[k].label),'Meter','Herkunft'];
+  rows+=`<row r="${kopf}" ht="26" customHeight="1">${titel.map((h,i)=>xc(i+1,kopf,h,9)).join('')}</row>`;
+  const sp=j=>colLetter(3+j);   // Spalte des j-ten Auslösers: C … I
+  parts.forEach((p,i)=>{
+    const r=E+i, t=lwTrig(p.id), m=(data[p.id][LW_KAT])||0;
+    let x=xc(1,r,i+1,33,true)+xc(2,r,p.name,33);
+    LW_KEYS.forEach((k,j)=>{ x+=xc(3+j,r,t&&t[k]?t[k]:'',33,true); });
+    if(t){
+      const f='ROUND('+LW_KEYS.map((k,j)=>sp(j)+r+'*$B$'+(P+j)).join('+')+',0)';
+      x+=xcf(10,r,f,33,m)+xc(11,r,'gerechnet',33);
+    } else {
+      x+=xc(10,r,m,33,true)+xc(11,r,'manuell',33);
+    }
+    rows+=`<row r="${r}">${x}</row>`;
+  });
+  const rs=E+parts.length, bis=rs-1, leer=parts.length===0;
+  let x=xc(1,rs,'',35)+xc(2,rs,'∑ Meter gesamt',35);
+  for(let j=0;j<=LW_KEYS.length;j++){   // Auslöser C…I und Meter J
+    const col=3+j, L=colLetter(col);
+    const v=j<LW_KEYS.length ? parts.reduce((s,p)=>s+((lwTrig(p.id)||{})[LW_KEYS[j]]||0),0)
+                             : parts.reduce((s,p)=>s+(data[p.id][LW_KAT]||0),0);
+    x+=leer?xc(col,rs,0,35,true):xcf(col,rs,`SUM(${L}${E}:${L}${bis})`,35,v);
+  }
+  x+=xc(11,rs,'',35);
+  rows+=`<row r="${rs}">${x}</row>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:K${rs}"/>
+<sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="${kopf}" topLeftCell="C${E}" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>
+<sheetFormatPr defaultRowHeight="12"/>
+<cols><col min="1" max="1" width="16" customWidth="1"/><col min="2" max="2" width="60" customWidth="1"/><col min="3" max="10" width="10" customWidth="1"/><col min="11" max="11" width="11" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+</worksheet>`;
+}
 function doExportXlsx(){
   let filename=(document.getElementById('expFilename').value.trim()||(currentProject||'Zeitaufnahme'));
   filename=filename.replace(/\.csv$/i,'');
@@ -4512,18 +4607,19 @@ function doExportXlsx(){
     const filterNamen=`<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'Arbeitsablauf'!${abs(blatt1.filter)}</definedName><definedName name="_xlnm._FilterDatabase" localSheetId="1" hidden="1">'Teileliste'!${abs(blatt2.filter)}</definedName></definedNames>`;
     const files=[
       {name:'[Content_Types].xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet5.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
       {name:'_rels/.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
       {name:'xl/workbook.xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/></sheets>${filterNamen}</workbook>`},
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/><sheet name="Laufwege" sheetId="5" r:id="rId5"/></sheets>${filterNamen}<calcPr fullCalcOnLoad="1"/></workbook>`},
       {name:'xl/_rels/workbook.xml.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet5.xml"/><Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
       {name:'xl/styles.xml',content:xlsxStyles()},
       {name:'xl/worksheets/sheet1.xml',content:blatt1.xml},
       {name:'xl/worksheets/sheet2.xml',content:blatt2.xml},
       {name:'xl/worksheets/sheet3.xml',content:xlsxSheetAuswertung()},
-      {name:'xl/worksheets/sheet4.xml',content:xlsxSheetZeitwerte()}
+      {name:'xl/worksheets/sheet4.xml',content:xlsxSheetZeitwerte()},
+      {name:'xl/worksheets/sheet5.xml',content:xlsxSheetLaufwege()}
     ];
     const bytes=zipStore(files);
     const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});

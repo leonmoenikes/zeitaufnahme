@@ -305,11 +305,6 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
   padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);
   flex-wrap:wrap;
 }
-.copy-select{
-  font-size:var(--fs-s);padding:6px 8px;border:1px solid var(--border2);border-radius:var(--radius);
-  background:var(--surface2);color:var(--text);max-width:170px;
-}
-.copy-select:focus{outline:none;border-color:var(--accent);}
 
 /* ── ACTIVE BAR ──
    Gleiches Gelb wie die aktive Tabellenzeile: auf einen Blick klar, worauf die Kacheln zählen */
@@ -1010,9 +1005,6 @@ body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
   <button class="tbtn" id="teileAllBtn" onclick="toggleAlleTeile()"><svg class="ic"><use href="#i-unten"/></svg>Alle aufklappen</button>
   <button class="tbtn" onclick="openColMenu(this)" id="colMenuBtn"><svg class="ic"><use href="#i-spalten"/></svg>Spalten</button>
   <button class="tbtn" id="filterClearBtn" onclick="clearAllFilters()" style="display:none;"><svg class="ic"><use href="#i-x"/></svg>Filter zurücksetzen</button>
-  <div class="sep adv-only"></div>
-  <select class="copy-select adv-only" id="copyTargetCat"></select>
-  <button class="tbtn adv-only" onclick="copyAnzahlToCategory()"><svg class="ic"><use href="#i-kopieren"/></svg>Anzahl kopieren</button>
 </div>
 
 <!-- TABLE -->
@@ -1840,17 +1832,6 @@ function bindFilterIcons(){
 
 
 /* ═══════════════════════════════════════
-   ANZAHL → KATEGORIE KOPIEREN
-═══════════════════════════════════════ */
-function buildCopySelect(){
-  const sel=document.getElementById('copyTargetCat');
-  if(!sel) return;
-  const prevVal=sel.value;
-  sel.innerHTML=COLS.map(c=>`<option value="${c.key}">${c.label}</option>`).join('');
-  if(COLS.some(c=>c.key===prevVal)) sel.value=prevVal;
-}
-
-/* ═══════════════════════════════════════
    AUSWERTUNG (Soll/Ist, Diagramm, Top-10, Vergleich)
    Bezieht sich immer nur auf die aktuell gefilterten Prozessschritte.
 ═══════════════════════════════════════ */
@@ -2571,23 +2552,6 @@ function renderAnaLegend(items,total){
     </div>`;
   }).join('');
 }
-function copyAnzahlToCategory(){
-  const sel=document.getElementById('copyTargetCat');
-  const key=sel.value;
-  if(!key){ toast('⚠ Keine Kategorie ausgewählt'); return; }
-  const targets=getFilteredParts();
-  if(targets.length===0){ toast('⚠ Keine (gefilterten) Prozessschritte gefunden'); return; }
-  const catLabel=(COLS.find(c=>c.key===key)||{}).label||key;
-  /* Gerechnete Meter bleiben unangetastet — sie kämen beim nächsten Rechenlauf ohnehin zurück */
-  const gerechnet=key===LW_KAT?targets.filter(p=>lwHat(p.id)).length:0;
-  const ziele=key===LW_KAT?targets.filter(p=>!lwHat(p.id)):targets;
-  if(ziele.length===0){ toast('⚠ Alle gewählten Prozessschritte haben gerechnete Laufwege'); return; }
-  if(!confirm(`Anzahl-Werte in "${catLabel}" für ${ziele.length} Prozessschritt(e) übernehmen?\n\nBestehende Werte in dieser Kategorie werden dabei überschrieben.`
-    +(gerechnet?`\n\n${gerechnet} Prozessschritt(e) mit gerechnetem Laufweg bleiben unverändert.`:''))) return;
-  ziele.forEach(p=>{ data[p.id][key]=stepQty(p.id); });
-  updGrid();renderBody();markDirty();
-  toast(`✓ Anzahl → "${catLabel}" für ${ziele.length} Prozessschritt(e) übernommen`);
-}
 
 /* ═══════════════════════════════════════
    PROJEKT-VERWALTUNG (Start-Maske)
@@ -2619,7 +2583,7 @@ function startNewProject(){
   updateProjLabel();
   updateExportIndicator();
   updateLastAction();
-  buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();updateActiveBar();setUnit(unit);setMode(mode);
+  buildLegend();buildGrid();buildHead();renderBody();updateActiveBar();setUnit(unit);setMode(mode);
   saveState();
   toast('✓ Projekt "'+name+'" erstellt');
   if(descInput) descInput.value='';
@@ -2672,7 +2636,7 @@ function handleStartImport(evt){
       updateProjLabel();
       updateExportIndicator();
       updateLastAction();
-      buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();updateActiveBar();setUnit(unit);setMode(mode);
+      buildLegend();buildGrid();buildHead();renderBody();updateActiveBar();setUnit(unit);setMode(mode);
       saveState();
       importHinweis(parsed,'✓ Projekt "'+currentProject+'" geladen');
     }catch(err){
@@ -3565,7 +3529,7 @@ function saveCfg(){
   });
   if(!newCols.length){toast('Mindestens eine Kategorie nötig');return;}
   COLS=newCols;ensureKeys();closeCfg();
-  buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();markDirty();toast('Gespeichert');
+  buildLegend();buildGrid();buildHead();renderBody();markDirty();toast('Gespeichert');
 }
 
 /* ═══════════════════════════════════════
@@ -3643,7 +3607,7 @@ function setMtmTab(t){
 function mtmToggleBs(i){ const k=mtmEntries()[i].key; mtmOpenBs=mtmOpenBs===k?null:k; mtmOpenGe=null; renderMtmHerkunft(); }
 function mtmToggleGe(nr){ mtmOpenGe=mtmOpenGe===nr?null:nr; renderMtmHerkunft(); }
 function mtmApplyCols(){
-  ensureKeys();buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();markDirty();
+  ensureKeys();buildLegend();buildGrid();buildHead();renderBody();markDirty();
 }
 
 /* Aufgeklapptes Grundelement: die MTM-Codes, aus denen es sich rechnet */
@@ -5066,7 +5030,7 @@ function handleImport(evt){
       activePart=parts[0].id;
       ensureKeys();
       lwNeuRechnen();
-      buildGrid(); buildHead(); buildCopySelect(); renderBody(); updateActiveBar();
+      buildGrid(); buildHead(); renderBody(); updateActiveBar();
       setUnit(unit); setMode(mode);
       updateProjLabel();
       hasUnsavedChanges=false;
@@ -5150,7 +5114,6 @@ document.body.classList.toggle('beginner-mode', uiMode==='beginner');
 buildLegend();
 buildGrid();
 buildHead();
-buildCopySelect();
 renderBody();
 updateActiveBar();
 setUnit(unit);

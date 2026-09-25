@@ -103,7 +103,7 @@ bleiben unverändert. Alle Funktionen sind dort, wo sie waren; neu angeordnet is
 - Gerechnete Schritte zeigen an der Meter-Kachel und in der Tabelle ein ƒ.
   - Tippen auf die Kachel (oder ihr Tastenkürzel) öffnet die Zeile des Schritts im Reiter
     „Je Schritt", statt zu zählen.
-  - Undo, „Anzahl kopieren" und „Alle Zähler zurücksetzen" lassen gerechnete Meter unangetastet.
+  - Undo und „Alle Zähler zurücksetzen" lassen gerechnete Meter unangetastet.
   - Meterwert- und Auslöseränderungen stehen nicht im Undo-Verlauf; der Weg zurück bei den
     Meterwerten ist „Standardwerte".
 - Excel-Export mit fünftem Blatt „Laufwege" im Aufbau des Blatts „Laufweg-Parameter": gelbe
@@ -267,6 +267,8 @@ bleiben unverändert. Alle Funktionen sind dort, wo sie waren; neu angeordnet is
   über zwei Seiten gerissen.
 
 ### Entfernt
+- „Anzahl kopieren" mit der Kategorie-Auswahl daneben (Werkzeugleiste über der Tabelle,
+  Modus Erweitert) ist entfallen.
 - Dunkelmodus wieder ausgebaut: Umschalt-Button, dunkle Farbpalette, die
   zugehörigen `body.dark-mode`-Regeln und die gespeicherte Einstellung sind
   entfallen. Die Oberfläche ist wieder durchgehend hell. Ein eventuell noch

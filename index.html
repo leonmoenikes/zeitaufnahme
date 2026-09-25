@@ -33,58 +33,104 @@ document.currentScript.parentNode.appendChild(link);
 
 <style>
 :root {
-  --bg:#f0f2f7; --surface:#fff; --surface2:#f5f7fb;
+  /* Flächen und Linien */
+  --bg:#f0f2f7; --surface:#fff; --surface2:#f5f7fb; --surface3:#eef1f6;
   --border:#dde1ed; --border2:#c5cbe0;
-  --accent:#2f6de0; --accent-dim:#e8eefb; --accent-bright:#1a55c8;
+  /* Text — --text3 dunkler als früher, damit 11-px-Beschriftungen lesbar bleiben */
+  --text:#1a1e2e; --text2:#4a5070; --text3:#6b7290;
+  /* Akzent */
+  --accent:#2f6de0; --accent-dim:#e8eefb; --accent-bright:#1a55c8; --on-accent:#fff;
+  /* Semantik: Erfolg, Warnung, Fehler */
   --green:#0f9e6a; --green-dim:#e6f7f1;
+  --yellow:#b07a00; --warn-bg:#fdf6df; --warn-line:#c9b878; --warn-text:#5a4a10;
   --red:#d93636; --red-dim:#fdeaea;
-  --yellow:#b07a00;
-  --text:#1a1e2e; --text2:#4a5070; --text3:#8a90a8;
-  --mono:'Courier New',monospace; --sans:system-ui,-apple-system,sans-serif;
-  --radius:8px;
+  /* Fachlich belegt, bitte nicht ändern: Gelb der aktiven Zeile, Kopfzeilen und Eingabezellen wie in der Excel-Vorlage */
+  --active:#fff3cd; --active-text:#7a5c00;
+  --head:#44506b; --head-line:var(--head-line);
+  --xl-input:#fff9d6; --xl-input-line:#e2cf7d;
+  --sum-bg:#dde5f5; --bar:#5b8bd0;
+  /* Schrift: sechs Stufen, keine Inhaltsschrift unter 11 px */
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --fs-xs:11px; --fs-s:12px; --fs-m:13px; --fs-l:15px; --fs-xl:18px; --fs-xxl:26px;
+  /* Abstände, Radien, Schatten */
+  --sp1:4px; --sp2:8px; --sp3:12px; --sp4:16px; --sp5:24px;
+  --r-s:6px; --radius:8px; --r-l:12px;
+  --sh-pop:0 12px 40px rgba(0,0,0,.28); --sh-modal:0 24px 80px rgba(0,0,0,.45);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{-webkit-tap-highlight-color:transparent;height:100%;}
 body{
   font-family:var(--sans);background:var(--bg);color:var(--text);
   height:100%;display:flex;flex-direction:column;overflow:hidden;
-  padding-top:var(--safe-top);padding-bottom:var(--safe-bot);
-  font-size:14px;
+  padding:var(--safe-top) var(--safe-r) var(--safe-bot) var(--safe-l);
+  font-size:var(--fs-m);font-variant-numeric:tabular-nums;
 }
 
 /* ── TOPBAR ── */
 .topbar{
   flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);
-  padding:8px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:var(--sp2) var(--sp3);display:flex;align-items:center;gap:var(--sp2);flex-wrap:wrap;
 }
-.topbar-title{font-size:15px;font-weight:700;color:var(--accent-bright);white-space:nowrap;margin-right:4px;}
+.tb-gruppe{display:flex;align-items:center;gap:var(--sp1);min-width:0;}
+.tb-kopf{flex-shrink:1;}
+.topbar-title{font-size:var(--fs-l);font-weight:700;color:var(--accent-bright);white-space:nowrap;}
+.topbar-title .ic{width:20px;height:20px;}
 .sep{width:1px;height:26px;background:var(--border);flex-shrink:0;}
 .tbtn{
-  font-size:12px;padding:6px 11px;border:1px solid var(--border2);border-radius:var(--radius);
-  background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;
+  font-size:var(--fs-s);min-height:32px;padding:0 10px;border:1px solid var(--border2);border-radius:var(--radius);
+  background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;
   -webkit-user-select:none;user-select:none;
 }
 .tbtn:active{background:var(--surface2);}
 .tbtn.danger{color:var(--red);}
-.toggle-group{display:flex;border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;}
+.tbtn.tb-ic{padding:0;width:32px;}
+.tb-export{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600;}
+.tb-export:active{background:var(--accent-bright);}
+.toggle-group{display:flex;border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;flex-shrink:0;}
 .tg-btn{
-  padding:6px 12px;border:none;background:transparent;
-  font-size:12px;cursor:pointer;color:var(--text3);
+  min-height:30px;padding:0 12px;border:none;background:transparent;
+  font-size:var(--fs-s);cursor:pointer;color:var(--text3);
   -webkit-user-select:none;user-select:none;
 }
-.tg-btn.on-add{background:var(--accent-dim);color:var(--accent-bright);}
-.tg-btn.on-sub{background:var(--red-dim);color:var(--red);}
+.tg-btn.on-add{background:var(--accent-dim);color:var(--accent-bright);font-weight:600;}
+.tg-btn.on-sub{background:var(--red);color:var(--on-accent);font-weight:600;}
 .tg-btn.on-unit{background:var(--green-dim);color:var(--green);}
-.tg-btn.on-mode{background:var(--accent);color:#fff;}
+.tg-btn.on-mode{background:var(--accent);color:var(--on-accent);}
+/* Einfach-Modus am iPad: jede Schaltfläche mindestens 44 px */
+body.beginner-mode :is(.tbtn,.tg-btn){min-height:44px;font-size:var(--fs-m);}
+body.beginner-mode .topbar .tbtn.tb-ic{width:44px;}
+body.beginner-mode .tb-addsub .tg-btn{min-width:92px;font-size:var(--fs-l);}
+body.beginner-mode .tb-export{padding:0 18px;}
+/* Menü „Weitere Aktionen" */
+.tb-mehr{position:relative;}
+.mehr-menue{display:none;position:absolute;right:0;top:calc(100% + 6px);z-index:300;min-width:240px;padding:var(--sp1);
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--sh-pop);}
+.mehr-menue.open{display:block;}
+.mehr-menue button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;padding:0 var(--sp3);border:none;background:none;
+  border-radius:var(--r-s);font-size:var(--fs-m);color:var(--text);cursor:pointer;text-align:left;}
+body.beginner-mode .mehr-menue button{min-height:48px;}
+.mehr-menue button.danger{color:var(--red);}
+.mehr-menue button:active{background:var(--surface2);}
+/* Hover nur auf Geräten mit Maus — am iPad bliebe er nach dem Tippen hängen */
+@media (hover:hover){
+  .tbtn:hover,.mehr-menue button:hover{background:var(--surface2);border-color:var(--text3);}
+  .tg-btn:not([class*=" on-"]):hover{background:var(--surface2);color:var(--text2);}
+  .tb-export:hover{background:var(--accent-bright);border-color:var(--accent-bright);}
+}
+button:focus-visible,[tabindex]:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 /* Beginner-Modus: Advanced-Elemente ausblenden (nur Anzeige, keine Daten betroffen) */
 body.beginner-mode .adv-only{display:none!important;}
-.simple-only{display:none;}
-body.beginner-mode .simple-only{display:inline-block;}
-@media (max-width: 700px){
-  .mode-toggle .tg-label{display:none;}
-}
+body:not(.beginner-mode) .simple-only{display:none!important;}
+/* Platz in der Topbar: Schriftzug nur auf breiten Bildschirmen; am Laptop darunter Projekt/Import und
+   Moduswahl nur als Symbol (mit Tooltip — dort gibt es Hover). Im Einfach-Modus bleiben alle Beschriftungen. */
+@media (max-width:1799px){ body:not(.beginner-mode) .tb-titel{display:none;} }
+@media (max-width:1679px){ body:not(.beginner-mode) :is(.mode-toggle .tg-label,.tb-lbl){display:none;} }
+@media (max-width:1279px){ body.beginner-mode .tb-titel{display:none;} }
 .spacer{flex:1;}
 
 /* ── START SCREEN (Projekt-Auswahl) ── */
@@ -95,31 +141,32 @@ body.beginner-mode .simple-only{display:inline-block;}
 }
 .start-screen.open{display:flex;}
 .start-card{
-  background:var(--surface);border:1px solid var(--border2);border-radius:12px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-l);
   width:100%;max-width:420px;padding:26px 22px;box-shadow:0 24px 80px rgba(0,0,0,.15);
 }
-.start-title{font-size:20px;font-weight:700;color:var(--accent-bright);margin-bottom:4px;text-align:center;}
-.start-sub{font-size:12px;color:var(--text3);text-align:center;margin-bottom:22px;}
-.start-lbl{font-size:12px;color:var(--text2);margin-bottom:6px;display:block;}
-.start-input{width:100%;font-size:15px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface2);color:var(--text);margin-bottom:10px;}
+.start-title{font-size:var(--fs-xl);font-weight:700;color:var(--accent-bright);margin-bottom:4px;text-align:center;}
+.start-sub{font-size:var(--fs-s);color:var(--text3);text-align:center;margin-bottom:22px;}
+.start-lbl{font-size:var(--fs-s);color:var(--text2);margin-bottom:6px;display:block;}
+.start-input{width:100%;font-size:var(--fs-l);padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface2);color:var(--text);margin-bottom:10px;}
 .start-input:focus{outline:none;border-color:var(--accent);}
-.start-btn{width:100%;padding:11px;border-radius:var(--radius);border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;}
+.start-btn{width:100%;padding:11px;border-radius:var(--radius);border:none;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:var(--fs-m);cursor:pointer;}
 .start-btn.secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border2);}
-.start-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--text3);font-size:11px;}
+.start-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--text3);font-size:var(--fs-xs);}
 .start-divider::before,.start-divider::after{content:'';flex:1;height:1px;background:var(--border);}
-.proj-label{font-size:11px;color:var(--text3);white-space:nowrap;margin-right:2px;}
-.last-action{font-size:10px;color:var(--text3);white-space:nowrap;margin-right:6px;max-width:220px;overflow:hidden;text-overflow:ellipsis;}
-.export-indicator{font-size:10px;color:var(--text3);white-space:nowrap;margin:0 2px;}
+.proj-label{font-size:var(--fs-s);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
+.last-action{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.export-indicator{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;margin:0 2px;}
 
 /* ── LEGEND ── */
-.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
-.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:var(--sp2);}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:var(--fs-xs);color:var(--text2);}
 .leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
 
-/* ── BUTTON GRID ── */
+/* ── BUTTON GRID ──
+   Kachelgröße ist gesetzt (68 px hoch, Raster ab 100 px) — lesbarer wird es innerhalb dieser Fläche. */
 .grid-wrap{
   flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);
-  padding:8px 12px;
+  padding:var(--sp2) var(--sp3);transition:background-color .2s;
 }
 .btn-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px;
@@ -127,94 +174,127 @@ body.beginner-mode .simple-only{display:inline-block;}
 .cat-btn{
   position:relative;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;padding:8px 4px;border:1px solid var(--border);border-radius:var(--radius);
+  gap:1px;padding:17px 4px 6px;border:1px solid var(--border);border-radius:var(--radius);
   background:var(--surface2);cursor:pointer;min-height:68px;
-  transition:transform .1s;touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  transition:transform .08s;touch-action:manipulation;-webkit-user-select:none;user-select:none;
 }
-.cat-btn:active{transform:scale(0.92);}
+.cat-btn:active{transform:scale(.96);}
 .cat-btn.has-v{border-color:var(--accent);background:var(--accent-dim);}
+/* Name höchstens zweizeilig. Im Erweitert-Modus stehen Tastenkürzel und Notizsymbol in einer eigenen
+   Zeile darüber (padding-top der Kachel), damit sie den Namen nicht verdecken. */
+/* line-height 1.15 und 2 px oben: sonst schneidet das Abschneiden auf zwei Zeilen die Umlautpunkte ab */
+.cb-lbl{order:1;font-size:var(--fs-s);color:var(--text2);text-align:center;line-height:1.15;padding:2px 2px 0;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;-webkit-hyphens:auto;hyphens:auto;}
+.cb-par{order:2;}.cb-cnt{order:4;}.cb-t{order:5;}
+.cb-par{font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);}
+.cb-cnt{font-size:var(--fs-xl);font-weight:700;color:var(--text);line-height:1;}
+.cat-btn.has-v .cb-cnt{color:var(--accent-bright);}
+.cb-t{font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);}
+.cat-btn.has-v .cb-t{color:var(--accent);}
 .cb-key{
-  position:absolute;top:3px;right:4px;font-size:9px;font-family:var(--mono);
+  position:absolute;top:3px;right:4px;font-size:var(--fs-xs);font-family:var(--mono);
   color:var(--text3);background:var(--surface);border:1px solid var(--border);
-  border-radius:3px;padding:0 3px;line-height:1.4;pointer-events:none;
+  border-radius:3px;padding:0 3px;line-height:1.3;pointer-events:none;
 }
 .cb-note-tgl{
-  position:absolute;top:2px;left:3px;font-size:10px;opacity:.3;cursor:pointer;
-  z-index:2;line-height:1;padding:3px;
+  position:absolute;top:1px;left:1px;font-size:var(--fs-xs);opacity:.35;cursor:pointer;
+  z-index:2;line-height:1;padding:4px;color:var(--text2);
 }
-.cb-note-tgl.has-note{opacity:1;}
-.cb-lbl{font-size:10px;color:var(--text2);text-align:center;line-height:1.3;}
-.cb-par{font-size:9px;color:var(--text3);font-family:var(--mono);}
-.cb-cnt{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1;}
-.cat-btn.has-v .cb-cnt{color:var(--accent-bright);}
-.cb-t{font-size:9px;color:var(--text3);font-family:var(--mono);}
-.cat-btn.has-v .cb-t{color:var(--accent);}
-body.sub .cat-btn.has-v{border-color:var(--red);background:var(--red-dim);}
+.cb-note-tgl.has-note{opacity:1;color:var(--accent-bright);}
 /* Gerechnete Meter: ƒ statt Zählen, gestrichelt, damit die Kachel nicht wie ein Zähler wirkt */
-.cb-lw{display:none;position:absolute;bottom:3px;right:6px;font-size:13px;font-style:italic;font-weight:700;
-  color:var(--accent-bright);font-family:Georgia,serif;pointer-events:none;}
+.cb-lw{display:none;position:absolute;bottom:3px;right:6px;font-size:var(--fs-m);font-style:italic;font-weight:700;
+  color:var(--accent-bright);pointer-events:none;}
+.cb-lw-txt{display:none;}
 .cat-btn.lw-calc{border-style:dashed;}
 .cat-btn.lw-calc .cb-lw{display:block;}
-.lw-f{font-style:italic;font-weight:700;color:var(--accent-bright);font-family:Georgia,serif;margin-left:3px;}
+.lw-f{font-style:italic;font-weight:700;color:var(--accent-bright);margin-left:3px;}
+
+/* Einfach-Modus: große Zahl, keine Tastenkürzel (am iPad ohne Tastatur nutzlos), Notiz nur als Punkt —
+   ein 44-px-Notizknopf würde die halbe Kachel belegen; bearbeitet wird im Erweitert-Modus */
+body.beginner-mode .cat-btn{padding:3px 3px 4px;}
+body.beginner-mode .cb-cnt{font-size:var(--fs-xxl);}
+body.beginner-mode .cb-key{display:none;}
+body.beginner-mode .cb-note-tgl{display:none;}
+body.beginner-mode .cb-note-tgl.has-note{display:block;pointer-events:none;top:6px;left:6px;width:7px;height:7px;padding:0;
+  border-radius:50%;background:var(--accent);}
+body.beginner-mode .cb-note-tgl.has-note .ic{display:none;}
+/* „ƒ gerechnet" als eigene Zeile zwischen Name und Zahl — sichtbar statt nur im Tooltip */
+body.beginner-mode .cb-lw{order:3;position:static;font-size:var(--fs-xs);line-height:1.1;}
+body.beginner-mode .cb-lw-txt{display:inline;font-style:normal;font-weight:600;}
+
+/* Tipp-Rückmeldung: kurzer Ring um die Kachel und „+1"/„−1" steigt neben der Zahl auf */
+.cat-btn::after{content:'';position:absolute;right:8px;top:calc(50% - 10px);font-size:var(--fs-l);font-weight:700;
+  opacity:0;pointer-events:none;}
+.cat-btn.tap-add{animation:tapRing .45s ease-out;}
+.cat-btn.tap-sub{animation:tapRingSub .45s ease-out;}
+.cat-btn.tap-add::after{content:'+1';color:var(--accent-bright);animation:tapPlus .7s ease-out;}
+.cat-btn.tap-sub::after{content:'−1';color:var(--red);animation:tapPlus .7s ease-out;}
+@keyframes tapRing{from{box-shadow:0 0 0 4px var(--accent);}to{box-shadow:0 0 0 0 transparent;}}
+@keyframes tapRingSub{from{box-shadow:0 0 0 4px var(--red);}to{box-shadow:0 0 0 0 transparent;}}
+@keyframes tapPlus{0%{opacity:1;transform:translateY(6px);}100%{opacity:0;transform:translateY(-16px);}}
+
+/* Sub-Modus unübersehbar: rote Leiste über den Kacheln, rote Kacheln, getönter Kachelbereich */
+.sub-leiste{display:none;flex-shrink:0;align-items:center;gap:var(--sp3);min-height:44px;padding:4px var(--sp3);
+  background:var(--red);color:var(--on-accent);font-size:var(--fs-m);}
+.sub-leiste b{font-size:var(--fs-l);}
+.sub-leiste .tbtn{margin-left:auto;min-height:36px;background:var(--surface);color:var(--red);border-color:var(--surface);font-weight:600;}
+body.beginner-mode .sub-leiste .tbtn{min-height:44px;}
+body.sub .sub-leiste{display:flex;}
+body.sub .grid-wrap{background:var(--red-dim);}
+body.sub .cat-btn{border-color:var(--red);}
+body.sub .cat-btn.has-v{background:var(--red-dim)!important;}
 body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
-.cb-note-panel{display:none;}
 
 /* ── NOTIZ-POPUP (Excel-Kommentar-Stil, für Kategorie- und Schritt-Notizen) ── */
 /* ── SPALTEN-MENÜ & SPALTENFILTER ── */
-.col-popup{
-  display:none;position:fixed;z-index:650;width:230px;max-height:60vh;overflow-y:auto;
-  background:var(--surface);border:1px solid var(--border2);border-radius:8px;
-  box-shadow:0 12px 40px rgba(0,0,0,.28);padding:8px;
+.col-popup,.note-popup{
+  display:none;position:fixed;z-index:650;width:240px;max-height:60vh;overflow-y:auto;
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
+  box-shadow:var(--sh-pop);padding:var(--sp2);
 }
 .col-popup.open{display:block;}
-.col-popup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;}
-.col-popup-title{font-size:11px;font-weight:700;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.col-popup-close{flex-shrink:0;background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;padding:0 4px;line-height:1;}
-.col-opt{display:flex;align-items:center;gap:7px;padding:5px 4px;font-size:12px;color:var(--text);cursor:pointer;border-radius:5px;}
+.col-popup-head,.note-popup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;}
+.col-popup-title,.note-popup-title{font-size:var(--fs-s);font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.col-popup-close,.note-popup-close{flex-shrink:0;background:none;border:none;border-radius:var(--r-s);color:var(--text3);
+  font-size:var(--fs-l);cursor:pointer;width:28px;height:28px;padding:0;line-height:1;}
+.col-popup-close:active,.note-popup-close:active{color:var(--text);background:var(--surface2);}
+.col-opt{display:flex;align-items:center;gap:7px;padding:5px 4px;font-size:var(--fs-s);color:var(--text);cursor:pointer;border-radius:5px;}
 .col-opt:active{background:var(--surface2);}
 .col-opt input{width:15px;height:15px;flex-shrink:0;margin:0;}
 .col-opt span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.col-rename{margin-left:auto;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;padding:0 3px;flex-shrink:0;}
+.col-rename{margin-left:auto;background:none;border:none;color:var(--text3);font-size:var(--fs-s);cursor:pointer;padding:0 3px;flex-shrink:0;}
 .col-rename:active{color:var(--accent-bright);}
 .col-popup-sep{height:1px;background:var(--border);margin:6px 0;}
 .col-popup-actions{display:flex;gap:6px;margin-top:8px;}
-.col-popup-actions .tbtn{flex:1;font-size:11px;padding:5px 6px;text-align:center;}
-.col-popup-actions .tbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.col-popup-actions .tbtn{flex:1;font-size:var(--fs-xs);padding:5px 6px;text-align:center;}
+.col-popup-actions .tbtn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600;}
 .flt-search{
-  width:100%;font-size:12px;padding:5px 8px;margin-bottom:6px;box-sizing:border-box;
-  border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);
+  width:100%;font-size:var(--fs-s);padding:5px 8px;margin-bottom:6px;box-sizing:border-box;
+  border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);
 }
 .flt-search:focus{outline:none;border-color:var(--accent);}
 .flt-range{display:flex;align-items:center;gap:5px;margin-bottom:6px;}
 .flt-range input{
-  width:100%;min-width:0;font-size:12px;padding:5px 6px;box-sizing:border-box;
-  border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);
+  width:100%;min-width:0;font-size:var(--fs-s);padding:5px 6px;box-sizing:border-box;
+  border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);
 }
 .flt-range input:focus{outline:none;border-color:var(--accent);}
-.flt-range span{font-size:11px;color:var(--text3);}
+.flt-range span{font-size:var(--fs-xs);color:var(--text3);}
 /* Filter-Icon im Spaltenkopf */
 .data-tbl thead th{position:relative;}
 .flt-ico{
-  display:inline-block;margin-left:3px;font-size:9px;opacity:.45;cursor:pointer;
+  display:inline-block;margin-left:3px;font-size:var(--fs-xs);opacity:.45;cursor:pointer;
   -webkit-user-select:none;user-select:none;
 }
 .flt-ico:active{opacity:1;}
 .flt-ico.on{opacity:1;color:var(--accent-bright);font-weight:700;}
 .data-tbl thead th.flt-active{box-shadow:inset 0 -3px 0 var(--accent);}
 
-.note-popup{
-  display:none;position:fixed;z-index:600;width:230px;
-  background:var(--surface);border:1px solid var(--border2);border-radius:8px;
-  box-shadow:0 12px 40px rgba(0,0,0,.4);padding:8px;
-}
+.note-popup{z-index:600;}
 .note-popup.open{display:block;}
-.note-popup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;}
-.note-popup-title{font-size:11px;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.note-popup-close{flex-shrink:0;background:none;border:none;color:var(--text3);font-size:15px;cursor:pointer;padding:0 4px;line-height:1;}
-.note-popup-close:active{color:var(--text);}
 .note-popup-textarea{
-  width:100%;min-height:74px;font-size:12px;padding:6px 8px;border:1px solid var(--border2);
-  border-radius:6px;background:var(--surface2);color:var(--text);resize:vertical;
+  width:100%;min-height:74px;font-size:var(--fs-s);padding:6px 8px;border:1px solid var(--border2);
+  border-radius:var(--r-s);background:var(--surface2);color:var(--text);resize:vertical;
   font-family:var(--sans);box-sizing:border-box;
 }
 .note-popup-textarea:focus{outline:none;border-color:var(--accent);}
@@ -225,131 +305,115 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
   padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);
   flex-wrap:wrap;
 }
-.filter-input{
-  flex:1;min-width:140px;font-size:13px;padding:7px 10px;
-  border:1px solid var(--border2);border-radius:var(--radius);
-  background:var(--surface2);color:var(--text);
-}
-.filter-input:focus{outline:none;border-color:var(--accent);}
-.copy-select{
-  font-size:12px;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--radius);
-  background:var(--surface2);color:var(--text);max-width:170px;
-}
-.copy-select:focus{outline:none;border-color:var(--accent);}
 
-/* ── ACTIVE BAR ── */
+/* ── ACTIVE BAR ──
+   Gleiches Gelb wie die aktive Tabellenzeile: auf einen Blick klar, worauf die Kacheln zählen */
 .active-bar{
-  flex-shrink:0;display:flex;align-items:center;gap:10px;
-  padding:6px 14px;background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;display:flex;align-items:center;gap:var(--sp3);min-height:44px;
+  padding:4px var(--sp3);background:var(--active);border-bottom:1px solid var(--border2);box-shadow:inset 4px 0 0 var(--yellow);
 }
-.act-lbl{font-size:11px;color:var(--text3);}
-.act-name{font-size:13px;font-weight:600;color:var(--accent-bright);}
-.act-time{font-family:var(--mono);font-size:13px;color:var(--green);margin-left:auto;}
-.act-time span{color:var(--text3);font-size:11px;}
+.act-lbl{font-size:var(--fs-xs);color:var(--active-text);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.act-nr{font-size:var(--fs-s);font-family:var(--mono);color:var(--active-text);white-space:nowrap;}
+.act-nr:empty{display:none;}
+.act-name{font-size:var(--fs-l);font-weight:700;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.active-bar .last-action{margin-left:auto;font-size:var(--fs-xs);color:var(--active-text);max-width:320px;}
+.act-time{font-family:var(--mono);font-size:var(--fs-xl);font-weight:700;color:var(--text);white-space:nowrap;}
+.act-time span{color:var(--active-text);font-size:var(--fs-xs);font-weight:400;}
+body.sub .active-bar{box-shadow:inset 4px 0 0 var(--red);}
 
-/* ── TABLE ── */
+/* ── TABLE ──
+   Erweitert (Laptop): kompakte Zeilen, ruhige Linien, viele Spalten auf einen Blick.
+   Einfach (iPad): Zeilen 44 px, jede Bedienfläche mindestens 44 × 44 px (Block am Ende). */
 .tbl-outer{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
-.data-tbl{border-collapse:separate;border-spacing:0;font-size:11px;min-width:100%;table-layout:auto;}
+.data-tbl{--nr-w:32px;--lv-w:38px;border-collapse:separate;border-spacing:0;font-size:var(--fs-s);min-width:100%;table-layout:auto;}
 .data-tbl thead th{
   position:sticky;top:0;z-index:10;background:var(--surface);
-  border-bottom:1px solid var(--border2);padding:7px 5px;white-space:nowrap;
-  font-weight:500;color:var(--text2);font-family:var(--mono);font-size:10px;text-align:center;
+  border-bottom:2px solid var(--border2);padding:6px;white-space:nowrap;line-height:1.2;
+  font-weight:600;color:var(--text2);font-size:var(--fs-xs);text-align:center;vertical-align:bottom;
 }
-.data-tbl thead th:first-child{text-align:left;padding-left:12px;}
-body.beginner-mode .data-tbl thead th{border-right:1px solid var(--border2);}
-.th-t{color:var(--accent);}
+.th-t{color:var(--accent);font-family:var(--mono);font-weight:500;}
 .th-tot{color:var(--green);}
-/* sticky Nr.-Spalte (ganz vorne) */
+/* Fixiert beim seitlichen Blättern: Nr., Lvl, Prozessschritt (left der beiden letzten setzt der Code) */
 .data-tbl th.nr,.data-tbl td.nr{
   position:sticky;left:0;z-index:5;background:var(--surface);
-  border-right:1px solid var(--border);width:32px;min-width:32px;max-width:32px;
-  text-align:center;color:#3a3f52;font-weight:600;font-family:var(--mono);font-size:10px;
+  width:var(--nr-w);min-width:var(--nr-w);max-width:var(--nr-w);padding-left:0;padding-right:0;
+  text-align:center;color:var(--text2);font-weight:600;font-family:var(--mono);font-size:var(--fs-xs);
 }
-.data-tbl thead th.nr{z-index:15;}
-/* sticky Level-Spalte (left wird im Code gesetzt) */
 .data-tbl th.level,.data-tbl td.level{
-  position:sticky;left:32px;z-index:5;background:var(--surface);
-  border-right:1px solid var(--border);width:38px;min-width:38px;max-width:38px;
-  text-align:center;
+  position:sticky;left:var(--nr-w);z-index:5;background:var(--surface);
+  width:var(--lv-w);min-width:var(--lv-w);max-width:var(--lv-w);padding:0;text-align:center;
 }
-.data-tbl thead th.level{z-index:15;}
+/* Schatten an der Kante, unter der die übrigen Spalten beim Blättern verschwinden */
+.data-tbl th.cn,.data-tbl td.cn{
+  position:sticky;left:70px;z-index:5;background:var(--surface);min-width:220px;
+  box-shadow:1px 0 0 var(--border2),6px 0 6px -6px rgba(26,30,46,.3);
+}
+.data-tbl thead :is(th.nr,th.level,th.cn){z-index:15;}
 .level-select{
-  background:transparent;border:none;outline:none;text-align:center;
-  font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text);width:100%;
+  background:transparent;border:none;outline:none;text-align:center;height:22px;
+  font-family:var(--mono);font-size:var(--fs-s);font-weight:700;color:var(--text);width:100%;
 }
 .level-select:focus{outline:none;background:var(--surface2);}
 /* Sachnummer und Bauteilbenennung — zugeklappt Anzeige, in den Unterzeilen Eingabe */
 .data-tbl th.sachnr,.data-tbl td.sachnr{
-  border-right:1px solid var(--border);width:88px;min-width:88px;max-width:88px;
-  text-align:center;font-family:var(--mono);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  width:92px;min-width:92px;max-width:92px;
+  text-align:center;font-family:var(--mono);font-size:var(--fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .data-tbl th.teilname,.data-tbl td.teilname{
-  border-right:1px solid var(--border);min-width:150px;max-width:220px;
-  text-align:left;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  min-width:150px;max-width:220px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .data-tbl tbody td.teilname{font-family:var(--sans);color:var(--text2);}
 .sachnr-input{
   background:transparent;border:none;outline:none;text-align:center;
-  font-family:var(--mono);font-size:10px;color:var(--text);width:100%;
+  font-family:var(--mono);font-size:var(--fs-xs);color:var(--text);width:100%;
   border-bottom:1px solid transparent;
 }
 .sachnr-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
-/* sticky name col (left wird im Code gesetzt — hängt an der Sichtbarkeit von Lvl) */
-.data-tbl th.cn,.data-tbl td.cn{
-  position:sticky;left:70px;z-index:5;background:var(--surface);
-  border-right:1px solid var(--border);min-width:195px;
-}
-.data-tbl thead th.cn{z-index:15;}
-/* Level-Farbcodierung (Struktur-/Hierarchieerkennung) — Aktive-Zeile-Hervorhebung hat via !important weiterhin Vorrang */
-/* Level-Farbcodierung: nur bis einschließlich Spalte "Anzahl" (qty) — danach neutral */
-.data-tbl tbody tr.lvl-1 td.nr,.data-tbl tbody tr.lvl-1 td.level,.data-tbl tbody tr.lvl-1 td.sachnr,.data-tbl tbody tr.lvl-1 td.teilname,.data-tbl tbody tr.lvl-1 td.cn,.data-tbl tbody tr.lvl-1 td.extra,.data-tbl tbody tr.lvl-1 td.qty{background:#ffffff;}
-.data-tbl tbody tr.lvl-2 td.nr,.data-tbl tbody tr.lvl-2 td.level,.data-tbl tbody tr.lvl-2 td.sachnr,.data-tbl tbody tr.lvl-2 td.teilname,.data-tbl tbody tr.lvl-2 td.cn,.data-tbl tbody tr.lvl-2 td.extra,.data-tbl tbody tr.lvl-2 td.qty{background:#eef3fb;}
-.data-tbl tbody tr.lvl-3 td.nr,.data-tbl tbody tr.lvl-3 td.level,.data-tbl tbody tr.lvl-3 td.sachnr,.data-tbl tbody tr.lvl-3 td.teilname,.data-tbl tbody tr.lvl-3 td.cn,.data-tbl tbody tr.lvl-3 td.extra,.data-tbl tbody tr.lvl-3 td.qty{background:#d8e6f7;}
-.data-tbl tbody tr.lvl-4 td.nr,.data-tbl tbody tr.lvl-4 td.level,.data-tbl tbody tr.lvl-4 td.sachnr,.data-tbl tbody tr.lvl-4 td.teilname,.data-tbl tbody tr.lvl-4 td.cn,.data-tbl tbody tr.lvl-4 td.extra,.data-tbl tbody tr.lvl-4 td.qty{background:#b9d0f0;}
-.data-tbl tbody tr.lvl-5 td.nr,.data-tbl tbody tr.lvl-5 td.level,.data-tbl tbody tr.lvl-5 td.sachnr,.data-tbl tbody tr.lvl-5 td.teilname,.data-tbl tbody tr.lvl-5 td.cn,.data-tbl tbody tr.lvl-5 td.extra,.data-tbl tbody tr.lvl-5 td.qty{background:#97b8e8;}
-.data-tbl tbody tr.lvl-6 td.nr,.data-tbl tbody tr.lvl-6 td.level,.data-tbl tbody tr.lvl-6 td.sachnr,.data-tbl tbody tr.lvl-6 td.teilname,.data-tbl tbody tr.lvl-6 td.cn,.data-tbl tbody tr.lvl-6 td.extra,.data-tbl tbody tr.lvl-6 td.qty{background:#7aa3de;}
-.data-tbl tbody tr.lvl-7 td.nr,.data-tbl tbody tr.lvl-7 td.level,.data-tbl tbody tr.lvl-7 td.sachnr,.data-tbl tbody tr.lvl-7 td.teilname,.data-tbl tbody tr.lvl-7 td.cn,.data-tbl tbody tr.lvl-7 td.extra,.data-tbl tbody tr.lvl-7 td.qty{background:#5c8bd1;}
+/* Level-Farben (fachlich belegt) bis einschließlich „Anzahl" — die aktive Zeile hat per !important Vorrang */
+.data-tbl tr.lvl-1{--lvl:#ffffff}.data-tbl tr.lvl-2{--lvl:#eef3fb}.data-tbl tr.lvl-3{--lvl:#d8e6f7}.data-tbl tr.lvl-4{--lvl:#b9d0f0}.data-tbl tr.lvl-5{--lvl:#97b8e8}.data-tbl tr.lvl-6{--lvl:#7aa3de}.data-tbl tr.lvl-7{--lvl:#5c8bd1}
+.data-tbl tbody tr[class*="lvl-"] :is(td.nr,td.level,td.sachnr,td.teilname,td.cn,td.extra,td.qty){background:var(--lvl);}
 /* Zusatzspalten (optional ein-/ausblendbar, Inhalte bleiben beim Export erhalten) */
 .data-tbl td.extra{text-align:center;}
 .extra-input{
   background:transparent;border:none;outline:none;text-align:center;
-  font-family:var(--sans);font-size:10px;color:var(--text);width:100%;min-width:70px;
+  font-family:var(--sans);font-size:var(--fs-s);color:var(--text);width:100%;min-width:70px;
   border-bottom:1px solid transparent;
 }
 .extra-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
 .cn-wrap{display:flex;align-items:center;gap:0;}
-/* Aufklapp-Symbol und Unterzeilen (Teile) */
-.teil-caret{flex-shrink:0;width:24px;height:26px;border:none;background:none;padding:0;
-  color:var(--text2);font-size:11px;cursor:pointer;}
+.cn-wrap .ni{flex:1;min-width:50px;}
+/* Aufklapp-Symbol der Teile */
+.teil-caret{flex-shrink:0;width:22px;height:22px;border:none;background:none;padding:0;
+  color:var(--text2);font-size:var(--fs-s);cursor:pointer;border-radius:var(--r-s);}
 .teil-caret.leer{opacity:.35;}
+td.nr .teil-caret{width:18px;}
 .data-tbl tbody td.teil-toggle{cursor:pointer;}
 .data-tbl tbody td.teil-toggle:active{background:var(--accent-dim)!important;}
-td.nr .teil-caret{width:16px;}
-.data-tbl tbody tr.teil td{background:#f7f9fc;border-bottom:1px dashed var(--border);padding-top:2px;padding-bottom:2px;}
-.data-tbl tbody tr.teil.hit td.sachnr,.data-tbl tbody tr.teil.hit td.teilname{background:#fff3cd;}
-.data-tbl tbody tr.teil td.teil-rest{background:var(--surface);border-bottom:none;}
-.teil-mark{display:inline-block;padding-left:26px;color:var(--text3);font-size:12px;}
+/* Unterzeilen mit Teilen: heller, eingerückt, mit Verbindungslinie zum Prozessschritt */
+.data-tbl tbody tr.teil td{background:var(--surface2);padding-top:2px;padding-bottom:2px;color:var(--text2);}
+.data-tbl tbody tr.teil.hit td.sachnr,.data-tbl tbody tr.teil.hit td.teilname{background:var(--active);}
+.data-tbl tbody tr.teil td.teil-rest{background:var(--surface);border-bottom-color:transparent;}
+.teil-mark{display:inline-block;width:14px;height:12px;margin:0 6px 0 30px;vertical-align:middle;transform:translateY(-5px);
+  border-left:2px solid var(--border2);border-bottom:2px solid var(--border2);border-bottom-left-radius:6px;}
 .teil-name-in{background:transparent;border:none;outline:none;width:100%;min-width:130px;
-  font-family:var(--sans);font-size:11px;color:var(--text);border-bottom:1px solid var(--border);padding:3px 2px;}
-.teil-name-in:focus,.data-tbl tr.teil .sachnr-input:focus,.data-tbl tr.teil .qi:focus{border-bottom-color:var(--accent);background:#fff;}
+  font-family:var(--sans);font-size:var(--fs-s);color:var(--text);border-bottom:1px solid var(--border);padding:3px 2px;}
+.teil-name-in:focus,.data-tbl tr.teil .sachnr-input:focus,.data-tbl tr.teil .qi:focus{border-bottom-color:var(--accent);background:var(--surface);}
 .data-tbl tr.teil .sachnr-input,.data-tbl tr.teil .qi{border-bottom:1px solid var(--border);padding:3px 2px;}
-.teil-add{background:none;border:1px dashed var(--border2);border-radius:6px;color:var(--accent-bright);
-  font-size:11px;padding:4px 10px;cursor:pointer;margin-left:26px;white-space:nowrap;}
+.teil-add{background:none;border:none;border-radius:var(--r-s);color:var(--accent-bright);
+  font-size:var(--fs-s);padding:3px 8px;cursor:pointer;margin-left:44px;white-space:nowrap;}
 .teil-add:active{background:var(--accent-dim);}
-.cn-wrap .ni{flex:1;min-width:50px;}
 /* Zeilen-Aktionen: eigene Spalte, damit sie auch bei ausgeblendeter Prozessschritt-Spalte erreichbar bleiben */
 .data-tbl th.acts,.data-tbl td.acts{white-space:nowrap;text-align:center;padding-left:2px;padding-right:2px;}
 .row-icon-btn{
-  flex-shrink:0;width:20px;height:20px;line-height:20px;border:none;background:transparent;
-  color:var(--text3);font-size:11px;cursor:pointer;border-radius:4px;padding:0;
+  flex-shrink:0;width:22px;height:22px;border:none;background:transparent;
+  color:var(--text3);font-size:var(--fs-s);cursor:pointer;border-radius:var(--r-s);padding:0;
 }
 .row-icon-btn:active{background:var(--surface2);}
 .row-icon-btn.active{color:var(--accent-bright);}
 .row-icon-btn.danger:active{background:var(--red-dim);color:var(--red);}
-/* sum/total col (jetzt Spalte 2, nicht mehr sticky) */
+/* Summe je Schritt */
 .data-tbl td.ct{font-weight:600;color:var(--text2);text-align:center;background:var(--surface2);}
 .data-tbl th.ct{color:var(--green);background:var(--surface2);}
-/* qty (Stückzahl) col - informativ, fließt nicht in Berechnung ein */
 .data-tbl th.th-qty{color:var(--text2);}
 .data-tbl td.qty{text-align:center;}
 /* Linker Block bis einschließlich ∑ nur so breit wie sein Inhalt. Ist die Tabelle schmaler als
@@ -363,146 +427,167 @@ td.nr .teil-caret{width:16px;}
 .data-tbl th.ct,.data-tbl td.ct{width:1px;}
 .qi{
   background:transparent;border:none;outline:none;text-align:center;
-  font-family:var(--mono);font-size:11px;color:var(--text);
+  font-family:var(--mono);font-size:var(--fs-s);color:var(--text);
   width:100%;min-width:50px;border-bottom:1px solid transparent;
 }
 .qi:focus{border-bottom-color:var(--accent);background:var(--surface2);}
 .data-tbl tbody td{
-  padding:5px 5px;text-align:center;border-bottom:1px solid var(--border);
+  padding:2px 6px;text-align:center;border-bottom:1px solid var(--border);
   color:var(--text3);font-family:var(--mono);
 }
 .data-tbl tbody td.cn{
   text-align:left;padding-left:0;color:var(--text);
-  font-family:var(--sans);font-size:12px;font-weight:500;
+  font-family:var(--sans);font-size:var(--fs-s);font-weight:500;
 }
 .data-tbl tbody td.ct{font-weight:600;color:var(--text2);text-align:center;}
 .data-tbl tbody tr{cursor:pointer;}
 .data-tbl tbody tr:active td{background:var(--surface2)!important;}
+/* Zeile unter der Maus leicht hinterlegt — über Level- und Gruppenfarbe gelegt, nicht statt ihrer */
+@media (hover:hover){
+  .data-tbl tbody tr:not(.teil):not(.sum-row):hover td{background-image:linear-gradient(rgba(47,109,224,.07),rgba(47,109,224,.07));}
+  .row-icon-btn:hover,.teil-caret:hover{background:var(--surface3);color:var(--text);}
+}
 /* Aktive Zeile: bewusst warmer Ton + Randakzent, damit sie nicht mit der blauen Level-Färbung verwechselt wird */
-.data-tbl tbody tr.ar td{background:#fff3cd!important;}
+.data-tbl tbody tr.ar td{background:var(--active)!important;}
 .data-tbl tbody tr.ar td:first-child{box-shadow:inset 3px 0 0 var(--yellow);}
-.data-tbl tbody tr.ar td.cn{color:#7a5c00;font-weight:600;}
-.data-tbl tbody tr.ar td.ct{color:#7a5c00;}
-.vnz{background:#edf2fc!important;color:var(--accent-bright)!important;}
-.tnz{background:#eef1f6;color:#2b3244;}  /* Rückfall — die Kategoriefarbe wird je Zelle inline gesetzt */
+.data-tbl tbody tr.ar td.cn{color:var(--active-text);font-weight:600;box-shadow:1px 0 0 var(--border2),6px 0 6px -6px rgba(26,30,46,.3);}
+.data-tbl tbody tr.ar td.ct{color:var(--active-text);}
+.vnz{background:var(--accent-dim)!important;color:var(--accent-bright)!important;font-weight:600;}
+.tnz{background:var(--surface3);color:var(--text);}  /* Rückfall — die Kategoriefarbe wird je Zelle inline gesetzt */
 .sum-row td{background:var(--surface2)!important;color:var(--text)!important;font-weight:600;border-top:1px solid var(--border2)!important;}
 .sum-row td.ct{color:var(--yellow)!important;}
-/* inline name edit */
+/* Prozessschritt direkt editierbar */
 .ni{
   background:transparent;border:none;outline:none;
-  color:var(--accent-bright);font-family:var(--sans);font-size:12px;font-weight:500;
-  width:100%;min-width:70px;padding:2px 4px 2px 10px;
+  color:var(--accent-bright);font-family:var(--sans);font-size:var(--fs-s);font-weight:500;
+  width:100%;min-width:70px;padding:2px 4px 2px 6px;
   border-bottom:1px solid transparent;
 }
 .ni:focus{border-bottom-color:var(--accent);}
+/* Einfach-Modus am iPad: jede Bedienfläche mindestens 44 × 44 px — optisch bleiben die Symbole klein */
+body.beginner-mode .data-tbl{--nr-w:44px;--lv-w:48px;}
+body.beginner-mode .data-tbl tbody td{height:44px;padding-top:0;padding-bottom:0;}
+body.beginner-mode .data-tbl thead th{height:48px;}
+body.beginner-mode .data-tbl thead th:has(.flt-ico){cursor:pointer;}
+body.beginner-mode .level-select{height:44px;font-size:var(--fs-m);}
+body.beginner-mode :is(.row-icon-btn,.teil-caret){width:44px;height:44px;font-size:var(--fs-m);}
+body.beginner-mode :is(.ni,.extra-input){height:44px;font-size:var(--fs-m);}
+body.beginner-mode tr.teil :is(.sachnr-input,.teil-name-in,.qi){height:44px;font-size:var(--fs-m);}
+body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
 
 /* ── MODAL ── */
 .modal-bg{
   display:none;position:fixed;inset:0;z-index:200;
   background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
-  align-items:flex-start;justify-content:center;padding:env(safe-area-inset-top,16px) 12px 12px;
+  align-items:flex-start;justify-content:center;
+  padding:calc(var(--safe-top) + 16px) calc(var(--safe-r) + 12px) calc(var(--safe-bot) + 12px) calc(var(--safe-l) + 12px);
   overflow-y:auto;
 }
 .modal-bg.open{display:flex;}
 .modal{
-  background:var(--surface);border:1px solid var(--border2);border-radius:12px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-l);
   width:100%;max-width:580px;display:flex;flex-direction:column;
-  box-shadow:0 24px 80px rgba(0,0,0,.5);max-height:calc(100vh - 40px);overflow:hidden;
+  box-shadow:var(--sh-modal);max-height:calc(100vh - 40px);
+  max-height:calc(100dvh - 28px - var(--safe-top) - var(--safe-bot));overflow:hidden;
   margin:auto;
 }
-.mh{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);gap:10px;}
-.mh-title{font-size:14px;font-weight:600;flex:1;}
-.mclose{background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;padding:0 4px;}
-.mbody{flex:1;overflow-y:auto;padding:12px 18px;-webkit-overflow-scrolling:touch;}
+.mh{display:flex;align-items:center;padding:var(--sp2) var(--sp2) var(--sp2) var(--sp4);border-bottom:1px solid var(--border);gap:var(--sp2);min-height:60px;flex-shrink:0;}
+.mh-title{font-size:var(--fs-l);font-weight:600;flex:1;min-width:0;}
+.mh-title .ic{color:var(--accent-bright);}
+/* Ein Schließen-Knopf für alle Fenster: 44 × 44, auch am Laptop — bleibt immer an derselben Stelle */
+.mclose{background:none;border:1px solid transparent;border-radius:var(--radius);color:var(--text2);cursor:pointer;
+  font-size:var(--fs-xl);width:44px;height:44px;padding:0;flex-shrink:0;}
+.mclose:active{background:var(--surface2);color:var(--text);}
+.mbody{flex:1;overflow-y:auto;padding:var(--sp3) var(--sp4) var(--sp4);-webkit-overflow-scrolling:touch;}
 .prow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border);}
 .prow:last-child{border-bottom:none;}
-.plbl{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:13px;}
+.plbl{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 9px;color:var(--text);font-size:var(--fs-m);}
 .plbl:focus{outline:none;border-color:var(--accent);}
-.pval{width:78px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--accent-bright);font-family:var(--mono);font-size:13px;text-align:right;}
+.pval{width:92px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 9px;color:var(--accent-bright);font-family:var(--mono);font-size:var(--fs-m);text-align:right;}
 .pval:focus{outline:none;border-color:var(--accent);}
-.punit{font-family:var(--mono);font-size:10px;color:var(--text3);white-space:nowrap;}
-.pgrp{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 6px;color:var(--text);font-size:11px;max-width:110px;}
+.punit{font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;}
+.pgrp{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 6px;color:var(--text);font-size:var(--fs-xs);max-width:150px;}
 .pgrp:focus{outline:none;border-color:var(--accent);}
-.pdel{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);cursor:pointer;padding:6px 9px;font-size:13px;}
+.pdel{background:none;border:1px solid var(--border);border-radius:var(--r-s);color:var(--text3);cursor:pointer;padding:6px 9px;font-size:var(--fs-m);}
 .pdel:active{border-color:var(--red);color:var(--red);background:var(--red-dim);}
-.pnote{flex-basis:100%;margin-top:2px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text2);font-size:11px;}
+.pnote{flex-basis:100%;margin-top:2px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:6px 9px;color:var(--text2);font-size:var(--fs-xs);}
 .pnote:focus{outline:none;border-color:var(--accent);color:var(--text);}
 .pnote::placeholder{color:var(--text3);}
-.mfooter{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;}
-.btn-add-row{flex:1;padding:9px;border:1px dashed var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-size:13px;}
-.btn-save{padding:9px 20px;border-radius:var(--radius);background:var(--accent);border:none;color:#fff;font-weight:600;font-size:13px;cursor:pointer;}
+.mfooter,.exp-btns{padding:var(--sp3) var(--sp4);border-top:1px solid var(--border);display:flex;gap:var(--sp2);flex-shrink:0;}
+.btn-add-row{flex:1;padding:9px;border:1px dashed var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-size:var(--fs-m);}
+.btn-save{padding:9px 20px;border-radius:var(--radius);background:var(--accent);border:none;color:var(--on-accent);font-weight:600;font-size:var(--fs-m);cursor:pointer;}
 
 /* ── BAUSTEIN-RECHNER ── */
 .mtm-modal{max-width:820px;}
-.mtm-hint{font-size:11px;color:var(--text3);margin:2px 0 10px;}
+.mtm-hint{font-size:var(--fs-xs);color:var(--text3);margin:2px 0 10px;}
 /* Touch-Ziele mind. 40px hoch — Bedienung am iPad, teils mit Handschuh */
 .mtm-row{
   display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 6px;
-  border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;
+  border-bottom:1px solid var(--border);cursor:pointer;font-size:var(--fs-s);
 }
 .mtm-row:active{background:var(--surface2);}
-.mtm-caret{width:14px;flex-shrink:0;color:var(--text3);font-size:10px;}
+.mtm-caret{width:14px;flex-shrink:0;color:var(--text3);font-size:var(--fs-xs);}
 .mtm-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
 .mtm-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
 .mtm-val{font-family:var(--mono);color:var(--text);flex-shrink:0;width:82px;text-align:right;}
-.mtm-state{font-size:10px;flex-shrink:0;width:104px;text-align:right;color:var(--text3);}
+.mtm-state{font-size:var(--fs-xs);flex-shrink:0;width:104px;text-align:right;color:var(--text3);}
 .mtm-state.neu{color:var(--yellow);}
 .mtm-state.diff{color:var(--red);}
 .mtm-sub{padding:2px 0 8px 28px;border-bottom:1px solid var(--border);}
-.mtm-ge{display:flex;align-items:center;gap:8px;min-height:36px;padding:3px 4px;font-size:11px;cursor:pointer;}
+.mtm-ge{display:flex;align-items:center;gap:8px;min-height:36px;padding:3px 4px;font-size:var(--fs-xs);cursor:pointer;}
 .mtm-ge:active{background:var(--surface2);}
-.mtm-formula{font-size:10px;color:var(--text3);font-family:var(--mono);padding:4px 4px 6px;}
-.mtm-codes{width:100%;border-collapse:collapse;font-size:10px;margin:2px 0 6px;}
+.mtm-formula{font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);padding:4px 4px 6px;}
+.mtm-codes{width:100%;border-collapse:collapse;font-size:var(--fs-xs);margin:2px 0 6px;}
 .mtm-codes th{background:var(--surface2);color:var(--text2);text-align:right;padding:3px 5px;border:1px solid var(--border);font-weight:600;}
 .mtm-codes th:first-child,.mtm-codes th:nth-child(2){text-align:left;}
 .mtm-codes td{border:1px solid var(--border);padding:3px 5px;text-align:right;font-family:var(--mono);color:var(--text2);}
 .mtm-codes td.txt{text-align:left;font-family:var(--sans);}
 .mtm-take{
   flex-shrink:0;border:1px solid var(--accent);background:var(--accent-dim);color:var(--accent-bright);
-  border-radius:var(--radius);padding:7px 10px;font-size:11px;cursor:pointer;min-height:36px;
+  border-radius:var(--radius);padding:7px 10px;font-size:var(--fs-xs);cursor:pointer;min-height:36px;
 }
 .mtm-build{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--border);}
 .mtm-build .plbl{min-width:150px;}
-.mtm-w{width:70px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 9px;color:var(--text);font-family:var(--mono);font-size:13px;text-align:right;}
+.mtm-w{width:70px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-s);padding:8px 9px;color:var(--text);font-family:var(--mono);font-size:var(--fs-m);text-align:right;}
 .mtm-w:focus{outline:none;border-color:var(--accent);}
 .mtm-sel{
-  flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;
-  padding:9px 8px;color:var(--text);font-size:12px;min-height:40px;
+  flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-s);
+  padding:9px 8px;color:var(--text);font-size:var(--fs-s);min-height:40px;
 }
 .mtm-result{
   display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
   margin:12px 0;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface2);
 }
-.mtm-result-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent-bright);}
+.mtm-result-val{font-family:var(--mono);font-size:var(--fs-xl);font-weight:700;color:var(--accent-bright);}
 .mtm-uses{display:flex;flex-wrap:wrap;gap:6px;padding:2px 4px 6px;}
-.mtm-use{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text2);font-size:11px;cursor:pointer;text-align:left;}
+.mtm-use{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-s);padding:7px 10px;color:var(--text2);font-size:var(--fs-xs);cursor:pointer;text-align:left;}
 .mtm-use:active{background:var(--accent-dim);}
 #mtmGeSearch,#mtmPickQ{flex:1;}
-.mtm-tag{flex-shrink:0;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-bright);
+.mtm-tag{flex-shrink:0;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.04em;color:var(--accent-bright);
   border:1px solid var(--accent);border-radius:4px;padding:1px 4px;}
 .mtm-pick{border:1px solid var(--accent);background:var(--accent-dim);color:var(--accent-bright);
-  border-radius:6px;padding:4px 9px;font-size:12px;cursor:pointer;line-height:1.2;}
-.mtm-codes td .mtm-w{width:58px;padding:4px 5px;font-size:11px;}
+  border-radius:var(--r-s);padding:4px 9px;font-size:var(--fs-s);cursor:pointer;line-height:1.2;}
+.mtm-codes td .mtm-w{width:58px;padding:4px 5px;font-size:var(--fs-xs);}
 .mtm-codes td.act{text-align:center;padding:2px 4px;}
-.mtm-sec-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 4px;}
+.mtm-sec-title{font-size:var(--fs-xs);font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 4px;}
 
 /* ── LAUFWEG-RECHNER ── */
 .lw-modal{max-width:1060px;}
 .lw-par{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-bottom:1px solid var(--border);}
-.lw-par-lbl{width:136px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--text);}
+.lw-par-lbl{width:136px;flex-shrink:0;font-size:var(--fs-m);font-weight:600;color:var(--text);}
 .lw-par .pval{min-height:38px;}
-.lw-par-text{flex:1;min-width:160px;font-size:11px;color:var(--text2);}
+.lw-par-text{flex:1;min-width:160px;font-size:var(--fs-xs);color:var(--text2);}
 /* Gelb wie die Eingabezellen im Excel-Blatt „Laufweg-Parameter": gelb = hier wird eingegeben, der Rest rechnet */
-.lw-gelb{background:#fff9d6!important;border-color:#e2cf7d!important;color:var(--text)!important;}
+.lw-gelb{background:var(--xl-input)!important;border-color:var(--xl-input-line)!important;color:var(--text)!important;}
 .lw-gelb.bad{border-color:var(--red)!important;}
-.lw-note{font-size:10px;color:var(--text3);margin-top:6px;}
-.lw-sel{min-height:34px;font-size:12px;max-width:200px;}
+.lw-note{font-size:var(--fs-xs);color:var(--text3);margin-top:6px;}
+.lw-sel{min-height:34px;font-size:var(--fs-s);max-width:200px;}
 /* Eigener Scrollbereich, damit Kopfzeile, Summenzeile und Schrittname beim Blättern stehen bleiben */
-.lw-wrap{overflow:auto;max-height:calc(100vh - 250px);border:1px solid var(--border);border-radius:6px;-webkit-overflow-scrolling:touch;}
-.lw-tbl{border-collapse:separate;border-spacing:0;font-size:11px;width:100%;}
-.lw-tbl th{position:sticky;top:0;z-index:2;background:#44506b;color:#fff;font-weight:600;padding:5px 4px;
-  border-right:1px solid #333d54;text-align:center;vertical-align:bottom;line-height:1.2;}
-.lw-th-m{display:block;font-weight:400;font-size:9px;opacity:.8;font-family:var(--mono);}
+.lw-wrap{overflow:auto;max-height:calc(100vh - 250px);border:1px solid var(--border);border-radius:var(--r-s);-webkit-overflow-scrolling:touch;}
+.lw-tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs-xs);width:100%;}
+.lw-tbl th{position:sticky;top:0;z-index:2;background:var(--head);color:var(--on-accent);font-weight:600;padding:5px 4px;
+  border-right:1px solid var(--head-line);text-align:center;vertical-align:bottom;line-height:1.2;}
+.lw-th-m{display:block;font-weight:400;font-size:var(--fs-xs);opacity:.8;font-family:var(--mono);}
 .lw-tbl td{padding:2px 5px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:right;
   font-family:var(--mono);background:var(--surface);white-space:nowrap;}
 .lw-tbl td.lw-txt{text-align:left;font-family:var(--sans);}
@@ -510,23 +595,23 @@ td.nr .teil-caret{width:16px;}
 .lw-tbl th.lw-name{z-index:3;}
 .lw-tbl td.lw-inz{padding:2px 3px;text-align:center;}
 .lw-in{width:46px;min-height:32px;padding:4px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
-  color:var(--text);font-family:var(--mono);font-size:12px;text-align:right;}
+  color:var(--text);font-family:var(--mono);font-size:var(--fs-s);text-align:right;}
 .lw-in:focus{outline:none;border-color:var(--accent);}
 .lw-in.bad{border-color:var(--red);}
 .lw-tbl tr.lw-grau td{color:var(--text3);background:var(--surface2);}
 .lw-tbl tr.lw-grau .lw-in{background:var(--surface);}
 .lw-tbl tr.lw-akt td{background:var(--accent-dim);}
 .lw-tbl tr.lw-akt td.lw-name{box-shadow:inset 3px 0 0 var(--accent);}
-.lw-tbl tfoot td{position:sticky;bottom:0;z-index:1;background:#dde5f5;font-weight:700;border-top:2px solid var(--accent);}
+.lw-tbl tfoot td{position:sticky;bottom:0;z-index:1;background:var(--sum-bg);font-weight:700;border-top:2px solid var(--accent);}
 .lw-tbl tfoot td.lw-name{z-index:3;}
 .lw-auf{display:inline-block;width:22px;min-height:24px;border:none;background:none;color:var(--accent-bright);
-  cursor:pointer;font-size:12px;padding:0;margin-right:2px;vertical-align:middle;}
+  cursor:pointer;font-size:var(--fs-s);padding:0;margin-right:2px;vertical-align:middle;}
 .lw-auf.leer{visibility:hidden;}
 .lw-tbl tr.lw-lvl1 td.lw-name{font-weight:700;}
 /* Unterzeile mit den Teilen: der Inhalt klebt links, damit er beim seitlichen Blättern sichtbar bleibt */
 .lw-tbl tr.lw-teile td{background:var(--surface2);text-align:left;font-family:var(--sans);padding:4px 6px 8px;white-space:normal;}
 .lw-teile-box{position:sticky;left:0;display:inline-block;max-width:720px;}
-.lw-teile-box table{border-collapse:collapse;font-size:11px;}
+.lw-teile-box table{border-collapse:collapse;font-size:var(--fs-xs);}
 .lw-teile-box th{position:static;background:none;color:var(--text3);font-weight:600;text-align:left;padding:2px 10px 2px 0;border:none;}
 .lw-teile-box td{background:none!important;border:none;border-bottom:1px dashed var(--border);padding:2px 10px 2px 0;font-family:var(--sans);white-space:nowrap;}
 .lw-teile-box td.mg{text-align:right;font-family:var(--mono);}
@@ -536,33 +621,32 @@ td.nr .teil-caret{width:16px;}
   position:fixed;bottom:calc(20px + var(--safe-bot));left:50%;
   transform:translateX(-50%) translateY(80px);
   background:var(--surface2);border:1px solid var(--border2);color:var(--text);
-  padding:9px 18px;border-radius:999px;font-size:13px;
+  padding:9px 18px;border-radius:999px;font-size:var(--fs-m);
   transition:transform .25s;z-index:400;pointer-events:none;white-space:nowrap;
 }
 .toast.show{transform:translateX(-50%) translateY(0);}
 
 /* ── EXPORT MODAL ── */
-.exp-modal{max-width:420px;}
-.exp-row{display:flex;flex-direction:column;gap:6px;padding:16px 18px;}
-.exp-label{font-size:12px;color:var(--text2);}
+.exp-modal{max-width:440px;}
+.exp-row{display:flex;flex-direction:column;gap:6px;padding:var(--sp4);}
+.exp-label{font-size:var(--fs-s);color:var(--text2);}
 .exp-input{
-  font-size:15px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);
+  font-size:var(--fs-l);padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);
   background:var(--surface2);color:var(--text);width:100%;
 }
 .exp-input:focus{outline:none;border-color:var(--accent);}
-.exp-hint{font-size:11px;color:var(--text3);}
-.exp-btns{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--border);}
-.exp-cancel{flex:1;padding:9px;border:1px solid var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-size:13px;}
-.exp-go{flex:2;padding:9px;border-radius:var(--radius);background:var(--accent);border:none;color:#fff;font-weight:600;font-size:13px;cursor:pointer;}
+.exp-hint{font-size:var(--fs-xs);color:var(--text3);}
+.exp-cancel{flex:1;padding:9px;border:1px solid var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-size:var(--fs-m);}
+.exp-go{flex:2;padding:9px;border-radius:var(--radius);background:var(--accent);border:none;color:var(--on-accent);font-weight:600;font-size:var(--fs-m);cursor:pointer;}
 
 /* ── AUSWERTUNG ── */
-.ana-modal{max-width:520px;}
+.ana-modal{max-width:640px;}
 .ana-soll-row{padding:4px 0 16px;}
 .ana-soll-input-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
 .verteil-presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
-.verteil-presets .tbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.verteil-presets .tbtn.active{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
 .ana-soll-input-row input{flex:1;}
-.ana-scope-note{font-size:11px;color:var(--accent-bright);background:var(--accent-dim);border-radius:6px;padding:6px 9px;margin-bottom:12px;display:none;}
+.ana-scope-note{font-size:var(--fs-xs);color:var(--accent-bright);background:var(--accent-dim);border-radius:var(--r-s);padding:6px 9px;margin-bottom:12px;display:none;}
 .ana-scope-note.show{display:block;}
 .ana-kpi-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
 .ana-kpi{flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;}
@@ -570,18 +654,18 @@ td.nr .teil-caret{width:16px;}
 .ana-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border);}
 .ana-tab{
   background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;
-  padding:7px 12px;font-size:13px;color:var(--text3);cursor:pointer;
+  padding:7px 12px;font-size:var(--fs-m);color:var(--text3);cursor:pointer;
 }
 .ana-tab.on{color:var(--accent-bright);border-bottom-color:var(--accent);font-weight:600;}
-.takt-hint{font-size:10px;color:var(--text3);}
+.takt-hint{font-size:var(--fs-xs);color:var(--text3);}
 .takt-sel{
   background:var(--surface2);border:1px solid var(--border2);border-radius:5px;
-  padding:3px 5px;color:var(--text);font-size:10px;margin-left:3px;max-width:150px;
+  padding:3px 5px;color:var(--text);font-size:var(--fs-xs);margin-left:3px;max-width:150px;
 }
-.takt-tbl{border-collapse:collapse;width:100%;font-size:11px;}
+.takt-tbl{border-collapse:collapse;width:100%;font-size:var(--fs-xs);}
 .takt-tbl th{
-  background:#44506b;color:#fff;font-weight:600;padding:6px 5px;text-align:center;
-  border:1px solid #333d54;vertical-align:bottom;   /* Köpfe dürfen umbrechen — das Fenster ist schmal */
+  background:var(--head);color:var(--on-accent);font-weight:600;padding:6px 5px;text-align:center;
+  border:1px solid var(--head-line);vertical-align:bottom;   /* Köpfe dürfen umbrechen — das Fenster ist schmal */
 }
 #taktTableWrap{overflow-x:auto;}
 .takt-tbl td{padding:5px 7px;border:1px solid var(--border);text-align:right;font-family:var(--mono);}
@@ -589,12 +673,12 @@ td.nr .teil-caret{width:16px;}
 .takt-tbl tr:nth-child(even) td{background:var(--surface2);}
 .takt-tbl td.tk-pos{color:var(--red);}
 .takt-tbl td.tk-neg{color:var(--green);}
-.takt-tbl tr.tk-sum td{background:#dde5f5;font-weight:700;border-top:2px solid var(--accent);}
+.takt-tbl tr.tk-sum td{background:var(--sum-bg);font-weight:700;border-top:2px solid var(--accent);}
 .takt-bars{display:flex;flex-direction:column;gap:5px;}
-.takt-bar-row{display:flex;align-items:center;gap:8px;font-size:11px;}
+.takt-bar-row{display:flex;align-items:center;gap:8px;font-size:var(--fs-xs);}
 .takt-bar-name{width:110px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
 .takt-bar-track{flex:1;height:16px;background:var(--surface2);border-radius:4px;position:relative;}
-.takt-bar-fill{height:100%;border-radius:4px;background:#5b8bd0;}
+.takt-bar-fill{height:100%;border-radius:4px;background:var(--bar);}
 .takt-bar-fill.tk-max{background:var(--red);}
 .takt-bar-avg{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--yellow);}
 .takt-bar-val{width:82px;text-align:right;flex-shrink:0;white-space:nowrap;font-family:var(--mono);color:var(--text2);}
@@ -604,37 +688,37 @@ td.nr .teil-caret{width:16px;}
 .takt-bar-fill.tk-ohne{background:var(--border2);}
 .takt-bar-takt{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--red);pointer-events:none;}
 .takt-bar-ghost{position:absolute;top:0;left:0;height:100%;border:1.5px dashed var(--text2);border-radius:4px;box-sizing:border-box;pointer-events:none;}
-.takt-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:10px;color:var(--text3);margin-top:8px;}
+.takt-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--fs-xs);color:var(--text3);margin-top:8px;}
 .takt-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:4px 0 12px;padding:8px 10px;
   background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);}
-.takt-ctl-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);}
-.takt-in{width:88px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:8px;
-  color:var(--text);font-family:var(--mono);font-size:13px;text-align:right;}
+.takt-ctl-item{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);color:var(--text2);}
+.takt-in{width:88px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-s);padding:8px;
+  color:var(--text);font-family:var(--mono);font-size:var(--fs-m);text-align:right;}
 .takt-in:focus{outline:none;border-color:var(--accent);}
 .takt-chk{cursor:pointer;}
 .takt-chk input{width:18px;height:18px;margin:0;}
 .takt-view{margin-left:auto;}
-.ana-kpi-sub{display:block;font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--mono);}
-.takt-note{font-size:11px;padding:8px 10px;border:1px solid #c9b878;background:#fdf6df;border-radius:6px;margin:8px 0;color:#5a4a10;}
+.ana-kpi-sub{display:block;font-size:var(--fs-xs);color:var(--text3);margin-top:3px;font-family:var(--mono);}
+.takt-note{font-size:var(--fs-xs);padding:8px 10px;border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:var(--r-s);margin:8px 0;color:var(--warn-text);}
 .takt-szen{margin-top:20px;}
 .takt-szen-btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 10px;}
-.takt-st-row{display:flex;align-items:center;gap:8px;min-height:42px;padding:4px 6px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;}
+.takt-st-row{display:flex;align-items:center;gap:8px;min-height:42px;padding:4px 6px;border-bottom:1px solid var(--border);cursor:pointer;font-size:var(--fs-s);}
 .takt-st-row:active{background:var(--surface2);}
 .takt-st-row.leer{cursor:default;color:var(--text3);}
 .takt-st-name{flex:1;min-width:0;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .takt-st-row.leer .takt-st-name{color:var(--text3);font-weight:500;}
-.takt-st-meta{font-family:var(--mono);font-size:11px;color:var(--text2);white-space:nowrap;}
+.takt-st-meta{font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);white-space:nowrap;}
 .takt-st-meta.over{color:var(--red);font-weight:700;}
 .takt-parts{padding:2px 0 8px 24px;border-bottom:1px solid var(--border);}
-.takt-part{display:flex;align-items:center;gap:8px;min-height:42px;font-size:11px;border-bottom:1px dashed var(--border);padding:0 4px;}
+.takt-part{display:flex;align-items:center;gap:8px;min-height:42px;font-size:var(--fs-xs);border-bottom:1px dashed var(--border);padding:0 4px;}
 .takt-part.moved{background:var(--accent-dim);}
 .takt-part-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
-.takt-part-from{font-size:10px;color:var(--accent-bright);white-space:nowrap;}
+.takt-part-from{font-size:var(--fs-xs);color:var(--accent-bright);white-space:nowrap;}
 .takt-part-t{font-family:var(--mono);color:var(--text2);width:84px;text-align:right;flex-shrink:0;}
-.takt-part select{max-width:190px;min-height:36px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;
-  padding:4px 6px;font-size:11px;color:var(--text);}
+.takt-part select{max-width:190px;min-height:36px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-s);
+  padding:4px 6px;font-size:var(--fs-xs);color:var(--text);}
 .ana-top-head{margin-top:20px;margin-bottom:8px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-.ana-top-row{display:flex;align-items:center;gap:8px;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);}
+.ana-top-row{display:flex;align-items:center;gap:8px;font-size:var(--fs-xs);padding:4px 0;border-bottom:1px solid var(--border);}
 .ana-top-rank{color:var(--text3);width:18px;flex-shrink:0;}
 .ana-top-name{width:150px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
 /* Balken: Länge = Gesamtzeit im Verhältnis zu Platz 1, Segmente = Kategorie-Gruppen */
@@ -642,15 +726,15 @@ td.nr .teil-caret{width:16px;}
 .ana-top-stack{display:flex;height:100%;border-radius:3px;overflow:hidden;}
 .ana-top-seg{display:block;height:100%;}
 .ana-top-val{font-family:var(--mono);color:var(--text2);flex-shrink:0;width:86px;text-align:right;}
-.ana-kpi-lbl{display:block;font-size:10px;color:var(--text3);margin-bottom:4px;}
-.ana-kpi-val{display:block;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);}
+.ana-kpi-lbl{display:block;font-size:var(--fs-xs);color:var(--text3);margin-bottom:4px;}
+.ana-kpi-val{display:block;font-family:var(--mono);font-size:var(--fs-m);font-weight:700;color:var(--text);}
 .ana-kpi-val.over{color:var(--red);}
 .ana-kpi-val.under{color:var(--green);}
 .ana-chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap;}
-.ana-chart-title{font-size:12px;color:var(--text2);font-weight:600;}
+.ana-chart-title{font-size:var(--fs-s);color:var(--text2);font-weight:600;}
 .ana-chart-wrap{display:flex;justify-content:center;margin-bottom:14px;}
 .ana-legend{display:flex;flex-direction:column;gap:7px;}
-.ana-bar-row{display:flex;align-items:center;gap:8px;font-size:11px;}
+.ana-bar-row{display:flex;align-items:center;gap:8px;font-size:var(--fs-xs);}
 .ana-leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
 .ana-leg-name{width:120px;flex-shrink:0;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ana-bar-track{flex:1;height:14px;background:var(--surface2);border-radius:4px;overflow:hidden;}
@@ -669,12 +753,101 @@ td.nr .teil-caret{width:16px;}
 /* ── PWA INSTALL BANNER ── */
 .install-banner{
   display:none;position:fixed;bottom:calc(60px + var(--safe-bot));left:12px;right:12px;
-  background:var(--accent);color:#fff;border-radius:10px;padding:12px 16px;
-  font-size:13px;line-height:1.5;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.3);
+  background:var(--accent);color:var(--on-accent);border-radius:10px;padding:12px 16px;
+  font-size:var(--fs-m);line-height:1.5;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.3);
 }
 .install-banner.show{display:block;}
-.install-banner strong{display:block;font-size:14px;margin-bottom:4px;}
-.ib-close{float:right;background:none;border:none;color:#fff;font-size:18px;cursor:pointer;margin:-4px -4px 0 8px;}
+.install-banner strong{display:block;font-size:var(--fs-m);margin-bottom:4px;}
+.ib-close{float:right;background:none;border:none;color:var(--on-accent);font-size:var(--fs-xl);cursor:pointer;margin:-4px -4px 0 8px;}
+/* ── ICONS ── */
+.icon-sprite{position:absolute;width:0;height:0;overflow:hidden;}
+.ic{width:1.25em;height:1.25em;flex-shrink:0;vertical-align:-.25em;fill:none;stroke:currentColor;
+  stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+.tbtn,.tg-btn,.btn-save,.btn-add-row,.exp-go,.exp-cancel,.mtm-take,.mtm-pick,.pdel,.row-icon-btn,.teil-add,.mclose,.teil-caret,.lw-auf,.col-rename,.note-popup-close,.col-popup-close,.ib-close{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.start-btn{display:flex;align-items:center;justify-content:center;gap:8px;}
+.topbar-title,.start-title,.mh-title{display:flex;align-items:center;gap:8px;}
+/* Kleine Hilfsklassen statt fester Inline-Styles */
+.hidden{display:none!important;}
+.scroll-x{overflow-x:auto;}
+.leer-hinweis{color:var(--text3);font-size:var(--fs-xs);padding:var(--sp2);}
+.mt5{margin-top:var(--sp5);}
+.mb0{margin-bottom:0!important;}
+.mtm-hint.fehler{color:var(--red);}
+.mtm-build.ohne-linie{border-bottom:none;}
+.mtm-row.fix{cursor:default;}
+.mtm-use .mtm-dot{display:inline-block;}
+.takt-fuss{font-size:var(--fs-xs);color:var(--text3);margin-top:var(--sp2);}
+
+
+/* ── FENSTER & POPUPS: Info-Box, breite Bildschirme, Einfach-Modus ── */
+.info-tgl{padding:6px 10px;}
+.info-tgl[aria-expanded="true"]{background:var(--accent-dim);border-color:var(--accent);color:var(--accent-bright);}
+.info-box{white-space:pre-line;font-size:var(--fs-s);line-height:1.5;color:var(--text2);background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--r-s);padding:var(--sp2) var(--sp3);margin:0 0 var(--sp3);}
+.ana-kpi .ana-kpi-sub{font-family:var(--sans);}
+.takt-chart-col .ana-chart-head.mt5{margin-top:var(--sp5);}
+@media (min-width:1280px){
+  /* Auswertung: links Eingaben und Kennzahlen, rechts Diagramm und Legende, darunter die Top 10 */
+  .ana-modal{max-width:1120px;}
+  .ana-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:var(--sp5);align-items:start;}
+  .ana-links .ana-kpi-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}
+  .ana-links .ana-kpi{min-width:0;}
+  .ana-links .ana-kpi:last-child{grid-column:1/-1;}
+  .ana-rechts{border-left:1px solid var(--border);padding-left:var(--sp5);}
+  .ana-rechts .ana-legend{max-width:520px;margin:0 auto;}
+  /* Taktabgleich: Tabelle und Balken nebeneinander */
+  .takt-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:var(--sp5);align-items:start;}
+  .takt-chart-col .ana-chart-head.mt5{margin-top:0;}
+  .mtm-modal{max-width:1000px;}
+  /* Zeiten: eine Zeile je Kategorie, Notiz steht mit in der Zeile */
+  #cfgModal .modal{max-width:1000px;}
+  #cfgModal .prow{flex-wrap:nowrap;}
+  #cfgModal .plbl{flex:1 1 220px;min-width:0;}
+  #cfgModal .pgrp{max-width:180px;}
+  #cfgModal .pval{width:108px;}
+  #cfgModal .pnote{flex:1 1 260px;flex-basis:260px;margin-top:0;order:5;min-width:0;}
+  #cfgModal .pdel{order:6;}
+}
+/* Einfach-Modus: alle Bedienelemente in Fenstern und Popups mind. 44 × 44 */
+body.beginner-mode :is(.exp-go,.exp-cancel,.btn-save,.btn-add-row,.pdel){min-height:44px;}
+body.beginner-mode .exp-input{min-height:44px;}
+body.beginner-mode :is(.col-popup,.note-popup){width:290px;padding:var(--sp3);}
+body.beginner-mode :is(.col-popup-close,.note-popup-close){width:44px;height:44px;}
+body.beginner-mode .col-opt{min-height:44px;font-size:var(--fs-m);}
+body.beginner-mode .col-opt input{width:20px;height:20px;}
+body.beginner-mode .col-rename{min-width:44px;min-height:44px;}
+body.beginner-mode :is(.flt-search,.flt-range input){min-height:44px;font-size:var(--fs-m);}
+body.beginner-mode .col-popup-actions .tbtn{font-size:var(--fs-m);}
+body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
+
+/* ── BREAKPOINTS ──
+   Drei Stufen: ≤ 900 px (iPad hoch), 901–1279 px (iPad quer), ≥ 1280 px (Laptop).
+   Topbar-Stufen für Schriftzug und Beschriftungen stehen oben bei der Topbar. */
+@media (max-width:900px){
+  .topbar{gap:6px;padding:var(--sp2) 10px;}
+  body.beginner-mode .tb-addsub .tg-btn{min-width:76px;}
+  body.beginner-mode .proj-label{max-width:92px;}
+  .modal-bg{padding:calc(var(--safe-top) + 8px) calc(var(--safe-r) + 8px) calc(var(--safe-bot) + 8px) calc(var(--safe-l) + 8px);}
+  .modal{max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px - var(--safe-top) - var(--safe-bot));}
+  .mh{padding-left:var(--sp3);}
+  .mbody{padding:var(--sp3);}
+  .mfooter,.exp-btns{padding:var(--sp3);}
+  .ana-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .ana-tab{white-space:nowrap;flex-shrink:0;}
+  .lw-par{flex-wrap:wrap;}
+  .lw-par-text{flex-basis:100%;min-width:0;padding-bottom:4px;}
+}
+/* Laptop bis 1679 px: langer Projektname darf die Topbar im Erweitert-Modus nicht umbrechen */
+@media (max-width:1679px){ body:not(.beginner-mode) .proj-label{max-width:150px;} }
+@media (min-width:1280px) and (max-width:1439px){
+  body:not(.beginner-mode) .topbar{gap:6px;}
+  body:not(.beginner-mode) .proj-label{max-width:130px;}
+}
+@media (min-width:1280px){
+  /* Mehr Platz für den Namen des Prozessschritts */
+  .data-tbl th.cn,.data-tbl td.cn{min-width:280px;}
+}
 
 /* ── DRUCKANSICHT DER AUSWERTUNG ──
    Bewusst eigene Farbwerte statt der Theme-Variablen: Papier ist weiß,
@@ -695,7 +868,7 @@ td.nr .teil-caret{width:16px;}
 .pr-kpis{display:flex;flex-wrap:wrap;gap:5px;break-inside:avoid;page-break-inside:avoid;}
 .pr-kpi{flex:1 1 112px;border:1px solid #c5cbe0;border-radius:4px;padding:5px 7px;}
 .pr-kpi-lbl{display:block;font-size:8px;letter-spacing:.04em;text-transform:uppercase;color:#5a6076;}
-.pr-kpi-val{display:block;font-size:12px;font-weight:700;font-family:var(--mono);color:#1a1e2e;margin-top:2px;}
+.pr-kpi-val{display:block;font-size:12px;font-weight:700;font-family:'Courier New',monospace;color:#1a1e2e;margin-top:2px;}
 .pr-kpi-val.over{color:#b32020;}
 .pr-kpi-val.under{color:#0c7a52;}
 .pr-cols{display:flex;gap:14px;align-items:flex-start;}
@@ -705,7 +878,7 @@ td.nr .teil-caret{width:16px;}
 .pr-tbl tr{break-inside:avoid;page-break-inside:avoid;}
 .pr-tbl th{background:#e7ecf6;border:1px solid #9aa0b5;padding:3px 5px;text-align:right;font-weight:700;color:#1a1e2e;}
 .pr-tbl th:first-child{text-align:left;}
-.pr-tbl td{border:1px solid #c5cbe0;padding:3px 5px;text-align:right;font-family:var(--mono);color:#1a1e2e;}
+.pr-tbl td{border:1px solid #c5cbe0;padding:3px 5px;text-align:right;font-family:'Courier New',monospace;color:#1a1e2e;}
 .pr-tbl td.pr-txt{text-align:left;font-family:var(--sans);}
 .pr-tbl tbody tr:nth-child(even) td{background:#f7f9fc;}
 .pr-tbl tr.pr-sum td{background:#eef1f7;font-weight:700;}
@@ -739,58 +912,77 @@ td.nr .teil-caret{width:16px;}
 </style>
 </head>
 <body>
+<!-- Icons: ein Satz Inline-SVGs im gleichen Strichstil statt Emojis, die je Gerät anders aussehen -->
+<svg class="icon-sprite" aria-hidden="true"><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol><symbol id="i-import" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol><symbol id="i-export" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol><symbol id="i-projekt" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7"/></symbol><symbol id="i-zeiten" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM12 7v5l3 2"/></symbol><symbol id="i-bausteine" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></symbol><symbol id="i-laufwege" viewBox="0 0 24 24"><path d="M6 17a2 2 0 1 0 0 4a2 2 0 0 0 0-4zM18 3a2 2 0 1 0 0 4a2 2 0 0 0 0-4zM8 19h8.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H16"/></symbol><symbol id="i-auswertung" viewBox="0 0 24 24"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/></symbol><symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5M4 4v4.5h4.5"/></symbol><symbol id="i-notiz" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17zM14 7l3 3"/></symbol><symbol id="i-loeschen" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol><symbol id="i-kopieren" viewBox="0 0 24 24"><path d="M9 9h11v11H9zM5 15H4V4h11v1"/></symbol><symbol id="i-einfuegen" viewBox="0 0 24 24"><path d="M9 3h6v3H9zM9 5H6v16h12V5h-3"/></symbol><symbol id="i-rechts" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol><symbol id="i-unten" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol><symbol id="i-links" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol><symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></symbol><symbol id="i-spalten" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM9.5 4v16M14.5 4v16"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><symbol id="i-suche" viewBox="0 0 24 24"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 0 0 0-14zM20 20l-4-4"/></symbol><symbol id="i-drucken" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/></symbol><symbol id="i-szenario" viewBox="0 0 24 24"><path d="M16 4h4v4M4 20 20 4M20 16v4h-4M14 14l6 6M4 4l5 5"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM12 11v6M12 7.5v.5"/></symbol><symbol id="i-uhr" viewBox="0 0 24 24"><path d="M12 5a8 8 0 1 0 0 16a8 8 0 0 0 0-16zM12 9v4l2.5 2M9 2h6M12 2v3"/></symbol><symbol id="i-tablet" viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 18h2"/></symbol><symbol id="i-laptop" viewBox="0 0 24 24"><path d="M5 5h14v10H5zM3 19h18"/></symbol><symbol id="i-haken" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol><symbol id="i-blitz" viewBox="0 0 24 24"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></symbol><symbol id="i-tabelle" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16"/></symbol><symbol id="i-mehr" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></g></symbol></svg>
 
 <!-- START SCREEN (Projekt-Auswahl) -->
 <div class="start-screen open" id="startScreen">
   <div class="start-card">
-    <div class="start-title">⏱ ZEITAUFNAHME</div>
+    <div class="start-title"><svg class="ic"><use href="#i-uhr"/></svg>ZEITAUFNAHME</div>
     <div class="start-sub">Projekt wählen, um zu starten</div>
     <label class="start-lbl">Neues Projekt</label>
     <input type="text" class="start-input" id="startProjectName" placeholder="z.B. Linie3_Getriebe_Welle" onkeydown="if(event.key==='Enter')startNewProject()"/>
     <input type="text" class="start-input" id="startProjectDesc" placeholder="Kurzbeschreibung (optional, z.B. Baugruppen-Nr.)"/>
-    <button class="start-btn" onclick="startNewProject()">＋ Projekt erstellen</button>
+    <button class="start-btn" onclick="startNewProject()"><svg class="ic"><use href="#i-plus"/></svg>Projekt erstellen</button>
     <div class="start-divider">oder</div>
-    <button class="start-btn secondary" onclick="openStartImport()">↑ Projekt aus CSV laden</button>
+    <button class="start-btn secondary" onclick="openStartImport()"><svg class="ic"><use href="#i-import"/></svg>Projekt aus CSV laden</button>
   </div>
 </div>
-<input type="file" id="startImportFileInput" accept=".csv" style="display:none" onchange="handleStartImport(event)"/>
+<input type="file" id="startImportFileInput" accept=".csv" class="hidden" onchange="handleStartImport(event)"/>
 
-<!-- TOPBAR -->
+<!-- TOPBAR
+     Erweitert (Laptop): Projekt · Modus | Erfassung | Analyse | Datei | ⋯ (Zähler zurücksetzen, bewusst abgesetzt)
+     Einfach (iPad): nur was an der Linie gebraucht wird — Add/Sub, Undo, Export; Projekt und Import im ⋯-Menü -->
 <div class="topbar">
-  <span class="topbar-title">⏱ ZEITAUFNAHME</span>
-  <span class="proj-label" id="projLabel"></span>
-  <button class="row-icon-btn" id="projDescBtn" title="Projektbeschreibung">📝</button>
-  <div class="sep"></div>
+  <div class="tb-gruppe tb-kopf">
+    <span class="topbar-title"><svg class="ic"><use href="#i-uhr"/></svg><span class="tb-titel">ZEITAUFNAHME</span></span>
+    <span class="proj-label" id="projLabel"></span>
+    <button class="row-icon-btn tb-ic" id="projDescBtn" title="Projektbeschreibung" aria-label="Projektbeschreibung"><svg class="ic"><use href="#i-notiz"/></svg></button>
+  </div>
   <div class="toggle-group mode-toggle" title="Bedienmodus">
-    <button class="tg-btn on-mode" id="modeBeginnerBtn" onclick="setUIMode('beginner')" title="Einfach">🔵<span class="tg-label"> Einfach</span></button>
-    <button class="tg-btn" id="modeAdvancedBtn" onclick="setUIMode('advanced')" title="Erweitert">⚙<span class="tg-label"> Erweitert</span></button>
+    <button class="tg-btn on-mode" id="modeBeginnerBtn" onclick="setUIMode('beginner')" title="Einfach"><svg class="ic"><use href="#i-tablet"/></svg><span class="tg-label">Einfach</span></button>
+    <button class="tg-btn" id="modeAdvancedBtn" onclick="setUIMode('advanced')" title="Erweitert"><svg class="ic"><use href="#i-laptop"/></svg><span class="tg-label">Erweitert</span></button>
   </div>
   <div class="sep"></div>
-  <button class="tbtn" onclick="switchProject()">⇄ Projekt</button>
-  <div class="sep"></div>
-  <div class="toggle-group">
-    <button class="tg-btn on-add" id="mAdd" onclick="setMode('add')">＋ Add</button>
-    <button class="tg-btn" id="mSub" onclick="setMode('sub')">－ Sub</button>
+  <div class="tb-gruppe" aria-label="Erfassung">
+    <div class="toggle-group tb-addsub">
+      <button class="tg-btn on-add" id="mAdd" onclick="setMode('add')"><svg class="ic"><use href="#i-plus"/></svg>Add</button>
+      <button class="tg-btn" id="mSub" onclick="setMode('sub')"><svg class="ic"><use href="#i-minus"/></svg>Sub</button>
+    </div>
+    <button class="tbtn" onclick="undoLast()"><svg class="ic"><use href="#i-undo"/></svg>Undo</button>
+    <div class="toggle-group adv-only">
+      <button class="tg-btn on-unit" id="uMinD" onclick="setUnit('minD')">minD</button>
+      <button class="tg-btn" id="uMin" onclick="setUnit('min')">min</button>
+    </div>
   </div>
-  <div class="sep"></div>
-  <div class="toggle-group adv-only">
-    <button class="tg-btn on-unit" id="uMinD" onclick="setUnit('minD')">minD</button>
-    <button class="tg-btn" id="uMin" onclick="setUnit('min')">min</button>
+  <div class="sep adv-only"></div>
+  <div class="tb-gruppe adv-only" aria-label="Analyse">
+    <button class="tbtn" onclick="openCfg()"><svg class="ic"><use href="#i-zeiten"/></svg>Zeiten</button>
+    <button class="tbtn" onclick="openMtm()"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine</button>
+    <button class="tbtn" onclick="openLw()"><svg class="ic"><use href="#i-laufwege"/></svg>Laufwege</button>
+    <button class="tbtn" onclick="openAnalysis()"><svg class="ic"><use href="#i-auswertung"/></svg>Auswertung</button>
   </div>
-  <div class="sep"></div>
-  <button class="tbtn adv-only" onclick="openCfg()">⚙ Zeiten</button>
-  <button class="tbtn adv-only" onclick="openMtm()">🧱 Bausteine</button>
-  <button class="tbtn adv-only" onclick="openLw()">🚶 Laufwege</button>
-  <button class="tbtn adv-only" onclick="openAnalysis()">📊 Auswertung</button>
   <div class="spacer"></div>
-  <span class="last-action" id="lastActionIndicator"></span>
-  <button class="tbtn" onclick="undoLast()">↩ Undo</button>
-  <button class="tbtn" onclick="openImport()">↑ CSV Import</button>
-  <button class="tbtn" onclick="openExportModal()" title="Excel-Report (.xlsx) oder CSV zum Weiterarbeiten">↓ Excel Export</button>
-  <span class="export-indicator" id="exportIndicator" title=""></span>
-  <span class="save-dot" id="saveDot" title="Automatisch gespeichert"></span>
-  <button class="tbtn danger adv-only" onclick="resetAll()">↺</button>
+  <div class="tb-gruppe" aria-label="Datei">
+    <button class="tbtn adv-only" onclick="switchProject()" title="Projekt wechseln"><svg class="ic"><use href="#i-projekt"/></svg><span class="tb-lbl">Projekt</span></button>
+    <button class="tbtn adv-only" onclick="openImport()" title="CSV-Datei importieren"><svg class="ic"><use href="#i-import"/></svg><span class="tb-lbl">Import</span></button>
+    <button class="tbtn tb-export" onclick="openExportModal()" title="Excel-Report (.xlsx) oder CSV zum Weiterarbeiten"><svg class="ic"><use href="#i-export"/></svg>Export</button>
+    <span class="export-indicator" id="exportIndicator" title=""></span>
+    <span class="save-dot" id="saveDot" title="Automatisch gespeichert"></span>
+  </div>
+  <div class="tb-mehr">
+    <button class="tbtn tb-ic" id="mehrBtn" onclick="toggleMehrMenue(event)" title="Weitere Aktionen" aria-label="Weitere Aktionen"><svg class="ic"><use href="#i-mehr"/></svg></button>
+    <div class="mehr-menue" id="mehrMenue">
+      <button class="simple-only" onclick="switchProject()"><svg class="ic"><use href="#i-projekt"/></svg>Projekt wechseln</button>
+      <button class="simple-only" onclick="openImport()"><svg class="ic"><use href="#i-import"/></svg>CSV importieren</button>
+      <button class="adv-only danger" onclick="resetAll()"><svg class="ic"><use href="#i-reset"/></svg>Alle Zähler zurücksetzen</button>
+    </div>
+  </div>
 </div>
+
+<!-- SUB-MODUS: rote Leiste, solange jeder Tipp abzieht -->
+<div class="sub-leiste" id="subLeiste"><svg class="ic"><use href="#i-minus"/></svg><span><b>Abziehen aktiv</b> – jeder Tipp auf eine Kachel zieht 1 ab</span>
+  <button class="tbtn" onclick="setMode('add')"><svg class="ic"><use href="#i-plus"/></svg>Zurück zu Add</button></div>
 
 <!-- COUNTER BUTTONS -->
 <div class="grid-wrap">
@@ -800,20 +992,19 @@ td.nr .teil-caret{width:16px;}
 
 <!-- ACTIVE PART BAR -->
 <div class="active-bar">
-  <span class="act-lbl">Aktiv:</span>
+  <span class="act-lbl">Aktiv</span>
+  <span class="act-nr" id="actNr"></span>
   <span class="act-name" id="actName">—</span>
+  <span class="last-action" id="lastActionIndicator"></span>
   <span class="act-time"><span>∑ </span><span id="actTime">0.000</span> <span id="actUnit">minD</span></span>
 </div>
 
 <!-- WERKZEUGE -->
 <div class="filter-bar">
-  <button class="tbtn" onclick="addPart()">➕ Schritt</button>
-  <button class="tbtn" id="teileAllBtn" onclick="toggleAlleTeile()">▾ Alle aufklappen</button>
-  <button class="tbtn" onclick="openColMenu(this)" id="colMenuBtn">🔧 Spalten</button>
-  <button class="tbtn" id="filterClearBtn" onclick="clearAllFilters()" style="display:none;">✕ Filter zurücksetzen</button>
-  <div class="sep adv-only"></div>
-  <select class="copy-select adv-only" id="copyTargetCat"></select>
-  <button class="tbtn adv-only" onclick="copyAnzahlToCategory()">→ Anzahl kopieren</button>
+  <button class="tbtn" onclick="addPart()"><svg class="ic"><use href="#i-plus"/></svg>Schritt</button>
+  <button class="tbtn" id="teileAllBtn" onclick="toggleAlleTeile()"><svg class="ic"><use href="#i-unten"/></svg>Alle aufklappen</button>
+  <button class="tbtn" onclick="openColMenu(this)" id="colMenuBtn"><svg class="ic"><use href="#i-spalten"/></svg>Spalten</button>
+  <button class="tbtn" id="filterClearBtn" onclick="clearAllFilters()" style="display:none;"><svg class="ic"><use href="#i-x"/></svg>Filter zurücksetzen</button>
 </div>
 
 <!-- TABLE -->
@@ -828,9 +1019,9 @@ td.nr .teil-caret{width:16px;}
 <div class="modal-bg" id="anaModal">
   <div class="modal ana-modal">
     <div class="mh">
-      <span class="mh-title">📊 Auswertung</span>
-      <button class="tbtn" onclick="printAnalysis()">🖨 Drucken / PDF</button>
-      <button class="mclose" onclick="closeAnalysis()">✕</button>
+      <span class="mh-title"><svg class="ic"><use href="#i-auswertung"/></svg>Auswertung</span>
+      <button class="tbtn" onclick="printAnalysis()"><svg class="ic"><use href="#i-drucken"/></svg>Drucken / PDF</button>
+      <button class="mclose" aria-label="Schließen" onclick="closeAnalysis()"><svg class="ic"><use href="#i-x"/></svg></button>
     </div>
     <div class="mbody">
       <div class="ana-tabs">
@@ -839,6 +1030,8 @@ td.nr .teil-caret{width:16px;}
       </div>
       <div class="ana-scope-note" id="anaScopeNote"></div>
       <div id="anaPanelUeberblick">
+      <div class="ana-grid">
+      <div class="ana-links">
       <div class="ana-soll-row">
         <label class="exp-label">Sollzeit gesamte Baugruppe</label>
         <div class="ana-soll-input-row">
@@ -869,23 +1062,31 @@ td.nr .teil-caret{width:16px;}
         <div class="ana-kpi"><span class="ana-kpi-lbl">Ist</span><span class="ana-kpi-val" id="anaIst">0.000</span></div>
         <div class="ana-kpi" title="Ist-Zeit inkl. Verteilzeit-Zuschlag">
           <span class="ana-kpi-lbl">Ist inkl. VZ</span><span class="ana-kpi-val" id="anaIstVz">–</span>
+          <span class="ana-kpi-sub">Ist × (1 + VZ %)</span>
         </div>
         <div class="ana-kpi"><span class="ana-kpi-lbl">Soll</span><span class="ana-kpi-val" id="anaSoll">–</span></div>
-        <div class="ana-kpi"><span class="ana-kpi-lbl">Abweichung</span><span class="ana-kpi-val" id="anaDiff">–</span></div>
+        <div class="ana-kpi"><span class="ana-kpi-lbl">Abweichung</span><span class="ana-kpi-val" id="anaDiff">–</span>
+          <span class="ana-kpi-sub">Ist inkl. VZ − Soll</span></div>
         <div class="ana-kpi" title="Gesamtzeit ÷ Summe der angepackten Teile (Summe aller Teilemengen)">
           <span class="ana-kpi-lbl">Ø Zeit/Stk.</span><span class="ana-kpi-val" id="anaAvgPiece">–</span>
+          <span class="ana-kpi-sub">Ist ÷ Anzahl Teile</span>
         </div>
         <div class="ana-kpi"><span class="ana-kpi-lbl">Anzahl aller Teile</span><span class="ana-kpi-val" id="anaTotalQty">–</span></div>
         <div class="ana-kpi" title="(Ist-Zeit inkl. Verteilzeit ÷ 100) × Stundensatz">
           <span class="ana-kpi-lbl">Montagekosten</span><span class="ana-kpi-val" id="anaCost">–</span>
+          <span class="ana-kpi-sub">Ist inkl. VZ ÷ 100 × €/hD</span>
         </div>
       </div>
+      </div>
+      <div class="ana-rechts">
       <div class="ana-chart-head">
         <span class="ana-chart-title" id="anaChartTitle">Zeitanteil je Kategorie-Gruppe</span>
-        <button class="tbtn" onclick="toggleAnaDrill()" id="anaDrillBtn">🔍 Kategorien anzeigen</button>
+        <button class="tbtn" onclick="toggleAnaDrill()" id="anaDrillBtn"><svg class="ic"><use href="#i-rechts"/></svg>Kategorien anzeigen</button>
       </div>
       <div class="ana-chart-wrap" id="anaChartWrap"></div>
       <div class="ana-legend" id="anaLegend"></div>
+      </div>
+      </div>
 
       <div class="ana-top-head">
         <span class="ana-chart-title">Top 10 Prozessschritte (Gesamtzeit)</span>
@@ -908,15 +1109,19 @@ td.nr .teil-caret{width:16px;}
           <label class="takt-ctl-item takt-chk"><input type="checkbox" id="taktVzChk" onchange="setTaktMitVz(this.checked)"/><span id="taktVzLbl">mit Verteilzeit</span></label>
           <div class="toggle-group takt-view">
             <button class="tg-btn" id="taktViewIst" onclick="setTaktAnsicht('ist')">Ist</button>
-            <button class="tg-btn" id="taktViewSzen" onclick="setTaktAnsicht('szenario')">🔀 Szenario</button>
+            <button class="tg-btn" id="taktViewSzen" onclick="setTaktAnsicht('szenario')"><svg class="ic"><use href="#i-szenario"/></svg>Szenario</button>
           </div>
         </div>
         <div id="taktKpiWrap"></div>
+        <div class="takt-grid">
         <div id="taktTableWrap"></div>
-        <div class="ana-chart-head" style="margin-top:18px;">
+        <div class="takt-chart-col">
+        <div class="ana-chart-head mt5">
           <span class="ana-chart-title" id="taktChartTitle">Zeit je Station [min]</span>
         </div>
         <div id="taktChartWrap"></div>
+        </div>
+        </div>
         <div id="taktSzenWrap"></div>
       </div>
 
@@ -928,12 +1133,12 @@ td.nr .teil-caret{width:16px;}
 <div class="modal-bg" id="cfgModal">
   <div class="modal">
     <div class="mh">
-      <span class="mh-title">Kategorien & Zeiten</span>
-      <button class="mclose" onclick="closeCfg()">✕</button>
+      <span class="mh-title"><svg class="ic"><use href="#i-zeiten"/></svg>Kategorien & Zeiten</span>
+      <button class="mclose" aria-label="Schließen" onclick="closeCfg()"><svg class="ic"><use href="#i-x"/></svg></button>
     </div>
     <div class="mbody" id="cfgBody"></div>
     <div class="mfooter">
-      <button class="btn-add-row" onclick="addCfgRow()">＋ Neue Kategorie</button>
+      <button class="btn-add-row" onclick="addCfgRow()"><svg class="ic"><use href="#i-plus"/></svg>Neue Kategorie</button>
       <button class="btn-save" onclick="saveCfg()">Speichern</button>
     </div>
   </div>
@@ -943,8 +1148,8 @@ td.nr .teil-caret{width:16px;}
 <div class="modal-bg" id="mtmModal">
   <div class="modal mtm-modal">
     <div class="mh">
-      <span class="mh-title">🧱 Bausteine – Rechner</span>
-      <button class="mclose" onclick="closeMtm()">✕</button>
+      <span class="mh-title"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine – Rechner</span>
+      <button class="mclose" aria-label="Schließen" onclick="closeMtm()"><svg class="ic"><use href="#i-x"/></svg></button>
     </div>
     <div class="mbody">
       <div class="ana-tabs">
@@ -965,8 +1170,8 @@ td.nr .teil-caret{width:16px;}
 <div class="modal-bg" id="lwModal">
   <div class="modal lw-modal">
     <div class="mh">
-      <span class="mh-title">🚶 Laufwege – Rechner</span>
-      <button class="mclose" onclick="closeLw()">✕</button>
+      <span class="mh-title"><svg class="ic"><use href="#i-laufwege"/></svg>Laufwege – Rechner</span>
+      <button class="mclose" aria-label="Schließen" onclick="closeLw()"><svg class="ic"><use href="#i-x"/></svg></button>
     </div>
     <div class="mbody" id="lwBody">
       <div class="ana-tabs">
@@ -983,24 +1188,24 @@ td.nr .teil-caret{width:16px;}
 <div class="modal-bg" id="expModal">
   <div class="modal exp-modal">
     <div class="mh">
-      <span class="mh-title">Exportieren</span>
-      <button class="mclose" onclick="closeExpModal()">✕</button>
+      <span class="mh-title"><svg class="ic"><use href="#i-export"/></svg>Exportieren</span>
+      <button class="mclose" aria-label="Schließen" onclick="closeExpModal()"><svg class="ic"><use href="#i-x"/></svg></button>
     </div>
     <div class="exp-row">
       <label class="exp-label">Dateiname</label>
       <input class="exp-input" id="expFilename" type="text" placeholder="z.B. Linie3_Getriebe_Welle"/>
       <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (5 Blätter)</span>
     </div>
-    <div class="exp-btns">
+    <div class="exp-btns mfooter">
       <button class="exp-cancel" onclick="closeExpModal()">Abbrechen</button>
-      <button class="exp-go" onclick="doExportXlsx()">📊 Excel (.xlsx)</button>
-      <button class="exp-go" onclick="doExport()">↓ CSV</button>
+      <button class="exp-go" onclick="doExportXlsx()"><svg class="ic"><use href="#i-tabelle"/></svg>Excel (.xlsx)</button>
+      <button class="exp-go" onclick="doExport()"><svg class="ic"><use href="#i-export"/></svg>CSV</button>
     </div>
   </div>
 </div>
 
 <!-- HIDDEN FILE INPUT FOR IMPORT -->
-<input type="file" id="importFileInput" accept=".csv" style="display:none" onchange="handleImport(event)"/>
+<input type="file" id="importFileInput" accept=".csv" class="hidden" onchange="handleImport(event)"/>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -1010,7 +1215,7 @@ td.nr .teil-caret{width:16px;}
 <div class="col-popup" id="colPopup">
   <div class="col-popup-head">
     <span class="col-popup-title" id="colPopupTitle">Spalten</span>
-    <button class="col-popup-close" onclick="closeColPopup()">✕</button>
+    <button class="col-popup-close" aria-label="Schließen" onclick="closeColPopup()"><svg class="ic"><use href="#i-x"/></svg></button>
   </div>
   <div id="colPopupBody"></div>
 </div>
@@ -1018,14 +1223,14 @@ td.nr .teil-caret{width:16px;}
 <div class="note-popup" id="notePopup">
   <div class="note-popup-head">
     <span class="note-popup-title" id="notePopupTitle">Notiz</span>
-    <button class="note-popup-close" onclick="closeNotePopup()">✕</button>
+    <button class="note-popup-close" aria-label="Schließen" onclick="closeNotePopup()"><svg class="ic"><use href="#i-x"/></svg></button>
   </div>
   <textarea class="note-popup-textarea" id="notePopupTextarea" placeholder="Notiz…"></textarea>
 </div>
 
 <!-- PWA INSTALL HINT (Safari) -->
 <div class="install-banner" id="installBanner">
-  <button class="ib-close" onclick="document.getElementById('installBanner').classList.remove('show')">✕</button>
+  <button class="ib-close" onclick="document.getElementById('installBanner').classList.remove('show')"><svg class="ic"><use href="#i-x"/></svg></button>
   <strong>Als App installieren</strong>
   Tippe auf <strong>Teilen</strong> (□↑) → <strong>„Zum Home-Bildschirm"</strong> → startet dann wie eine native App im Vollbild.
 </div>
@@ -1179,6 +1384,8 @@ function lwTrigPruefen(o){
 function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+/* Icon aus dem SVG-Satz oben im <body> */
+function ic(n){ return '<svg class="ic"><use href="#i-'+n+'"/></svg>'; }
 function escAttr(s){
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 }
@@ -1450,7 +1657,7 @@ function openColMenu(anchorEl){
     const lab=document.createElement('label');
     lab.className='col-opt';
     lab.innerHTML=`<input type="checkbox" ${isColVisible(oc.key)?'checked':''}/><span>${escHtml(colLabel(oc.key))}</span>`
-      +(oc.renameable?`<button class="col-rename" title="Überschrift umbenennen">✎</button>`:'');
+      +(oc.renameable?`<button class="col-rename" title="Überschrift umbenennen">${ic('notiz')}</button>`:'');
     lab.querySelector('input').addEventListener('change',ev=>{
       colVis[oc.key]=ev.target.checked;
       markDirty();
@@ -1533,7 +1740,7 @@ function openColFilter(anchorEl,fk,label,kind){
     const shownVals=()=>query?vals.filter(v=>v.toLowerCase().includes(query)):vals;
 
     const search=document.createElement('input');
-    search.className='flt-search';search.type='text';search.placeholder='🔍 suchen…';
+    search.className='flt-search';search.type='text';search.placeholder='Suchen …';
     body.appendChild(search);
     const list=document.createElement('div');
     body.appendChild(list);
@@ -1574,7 +1781,7 @@ function openColFilter(anchorEl,fk,label,kind){
         });
         list.appendChild(lab);
       });
-      if(shown.length===0) list.innerHTML+='<div style="font-size:11px;color:var(--text3);padding:6px;">Keine Treffer</div>';
+      if(shown.length===0) list.innerHTML+='<div class="leer-hinweis">Keine Treffer</div>';
       syncState();
     };
     search.addEventListener('input',()=>{
@@ -1611,29 +1818,18 @@ function openColFilter(anchorEl,fk,label,kind){
 /* Filtersymbol für einen Spaltenkopf erzeugen */
 function fltIco(fk,label,kind){
   const on=!!colFilters[fk];
-  return `<span class="flt-ico${on?' on':''}" data-fk="${escAttr(fk)}" data-lbl="${escAttr(label)}" data-kind="${kind}" title="Filter">▼</span>`;
+  return `<span class="flt-ico${on?' on':''}" data-fk="${escAttr(fk)}" data-lbl="${escAttr(label)}" data-kind="${kind}" title="Filter">${ic('filter')}</span>`;
 }
 /* Klick-Handler für alle Filtersymbole (nach buildHead aufrufen) */
 function bindFilterIcons(){
   document.querySelectorAll('#tblHead .flt-ico').forEach(ico=>{
-    ico.addEventListener('click',e=>{
-      e.stopPropagation();
-      openColFilter(ico,ico.dataset.fk,ico.dataset.lbl,ico.dataset.kind);
-    });
+    const auf=e=>{ e.stopPropagation(); openColFilter(ico,ico.dataset.fk,ico.dataset.lbl,ico.dataset.kind); };
+    ico.addEventListener('click',auf);
+    /* Einfach-Modus: der ganze Spaltenkopf öffnet den Filter — das Symbol allein wäre am iPad zu klein */
+    ico.closest('th').addEventListener('click',e=>{ if(uiMode==='beginner') auf(e); });
   });
 }
 
-
-/* ═══════════════════════════════════════
-   ANZAHL → KATEGORIE KOPIEREN
-═══════════════════════════════════════ */
-function buildCopySelect(){
-  const sel=document.getElementById('copyTargetCat');
-  if(!sel) return;
-  const prevVal=sel.value;
-  sel.innerHTML=COLS.map(c=>`<option value="${c.key}">${c.label}</option>`).join('');
-  if(COLS.some(c=>c.key===prevVal)) sel.value=prevVal;
-}
 
 /* ═══════════════════════════════════════
    AUSWERTUNG (Soll/Ist, Diagramm, Top-10, Vergleich)
@@ -1853,7 +2049,7 @@ function markVerteilPreset(){
 }
 function toggleAnaDrill(){
   anaDrillLevel = anaDrillLevel==='group' ? 'category' : 'group';
-  document.getElementById('anaDrillBtn').textContent = anaDrillLevel==='group' ? '🔍 Kategorien anzeigen' : '⬅ Gruppen anzeigen';
+  document.getElementById('anaDrillBtn').innerHTML = anaDrillLevel==='group' ? ic('rechts')+'Kategorien anzeigen' : ic('links')+'Gruppen anzeigen';
   document.getElementById('anaChartTitle').textContent = anaDrillLevel==='group' ? 'Zeitanteil je Kategorie-Gruppe' : 'Zeitanteil je Kategorie';
   renderAnalysis();
 }
@@ -2078,7 +2274,7 @@ function renderTaktabgleich(){
   const nMoves=taktMoves(szen).length;
   document.getElementById('taktViewIst').className='tg-btn'+(inSzen?'':' on-mode');
   document.getElementById('taktViewSzen').className='tg-btn'+(inSzen?' on-mode':'');
-  document.getElementById('taktViewSzen').textContent='🔀 Szenario'+(nMoves?' ('+nMoves+')':(szen&&szen.extra.length?' •':''));
+  document.getElementById('taktViewSzen').innerHTML=ic('szenario')+'Szenario'+(nMoves?' ('+nMoves+')':(szen&&szen.extra.length?' •':''));
 
   const kw=document.getElementById('taktKpiWrap');
   const tw=document.getElementById('taktTableWrap');
@@ -2087,7 +2283,7 @@ function renderTaktabgleich(){
   const ist=taktData(null);
   if(ist.list.length===0){
     kw.innerHTML=''; cw.innerHTML=''; sw.innerHTML='';
-    tw.innerHTML='<div style="color:var(--text3);font-size:12px;padding:14px;">Keine Prozessschritte vorhanden.</div>';
+    tw.innerHTML='<div class="leer-hinweis">Keine Prozessschritte vorhanden.</div>';
     return;
   }
   const cur=inSzen ? taktData(szen) : ist;
@@ -2114,7 +2310,7 @@ function renderTaktabgleich(){
   /* Tabelle */
   const noStationOnly=ist.n===0 && !inSzen;
   const hint=noStationOnly
-    ? `<div style="color:var(--text3);font-size:11px;padding:8px 2px;">Noch keine Einträge vergeben – Spalte „${escHtml(stLbl)}" über 🔧 Spalten einblenden und befüllen, oder im 🔀 Szenario über „＋ ${escHtml(stLbl)}" anlegen.</div>` : '';
+    ? `<div class="leer-hinweis">Noch keine Einträge vergeben – Spalte „${escHtml(stLbl)}" über „Spalten" einblenden und befüllen, oder im Szenario über „+ ${escHtml(stLbl)}" anlegen.</div>` : '';
   const mitT=taktSoll>0;
   let rows='';
   rowsList.forEach(e=>{
@@ -2147,7 +2343,7 @@ function renderTaktabgleich(){
       ${vergleich?`<th>Ist [minD]</th><th>Szenario [minD]</th><th>Δ [minD]</th>`:`<th>Teile</th><th>${zeitKopf}</th><th>Zeit [min]</th>`}
       ${vergleich?'':'<th>Anteil</th>'}<th>Abw. vom Ø [minD]</th>${mitT?'<th>Auslastung</th>':''}</tr></thead>
     <tbody>${rows}</tbody></table>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px;">Ø je ${escHtml(stLbl)}: ${cur.avgMinD.toFixed(2)} minD${cur.ohne?' · „'+escHtml(cur.ohne.name)+'" zählt nicht als '+escHtml(stLbl):''}${mitT?' · Auslastung = Zeit ÷ Soll-Taktzeit':''}</div>`;
+    <div class="takt-fuss">Ø je ${escHtml(stLbl)}: ${cur.avgMinD.toFixed(2)} minD${cur.ohne?' · „'+escHtml(cur.ohne.name)+'" zählt nicht als '+escHtml(stLbl):''}${mitT?' · Auslastung = Zeit ÷ Soll-Taktzeit':''}</div>`;
 
   /* Balken: Maßstab reicht bis zur längsten Station, zum Takt oder zum Ist-Wert im Vergleich */
   const scale=Math.max(cur.maxMinD, cur.ohne?cur.ohne.minD:0, vergleich?ist.maxMinD:0, taktSoll, 0.0001);
@@ -2172,7 +2368,7 @@ function renderTaktabgleich(){
   if(!inSzen){ sw.innerHTML=''; taktListe=[]; return; }
   if(taktSzenario && !szen){
     sw.innerHTML=`<div class="takt-note">Es gibt bereits ein Szenario für die Gruppierung „${escHtml(colLabel(taktSzenario.groupKey))}".
-      <div class="takt-szen-btns" style="margin-bottom:0">
+      <div class="takt-szen-btns mb0">
         <button class="tbtn" onclick="taktSzenWechseln()">Zu „${escHtml(colLabel(taktSzenario.groupKey))}" wechseln</button>
         <button class="tbtn danger" onclick="taktSzenVerwerfen()">Szenario verwerfen</button>
       </div></div>`;
@@ -2187,9 +2383,9 @@ function renderTaktabgleich(){
     <div class="ana-chart-head"><span class="ana-chart-title">Szenario – Prozessschritte verschieben</span></div>
     <div class="takt-hint">Die Basisdaten bleiben unverändert, bis du übernimmst. ${nMoves?nMoves+' Prozessschritt(e) verschoben.':'Noch nichts verschoben.'}${hasAnyFilter()?' Gezeigt werden nur die gefilterten Prozessschritte.':''}</div>
     <div class="takt-szen-btns">
-      <button class="tbtn" onclick="taktNeueStation()">＋ ${escHtml(stLbl)}</button>
-      <button class="tbtn" onclick="taktSzenUebernehmen()"${nMoves?'':' disabled'}>✓ In Tabelle übernehmen</button>
-      <button class="tbtn danger" onclick="taktSzenVerwerfen()"${szen?'':' disabled'}>✕ Szenario verwerfen</button>
+      <button class="tbtn" onclick="taktNeueStation()">${ic('plus')}${escHtml(stLbl)}</button>
+      <button class="tbtn" onclick="taktSzenUebernehmen()"${nMoves?'':' disabled'}>${ic('haken')}In Tabelle übernehmen</button>
+      <button class="tbtn danger" onclick="taktSzenVerwerfen()"${szen?'':' disabled'}>${ic('x')}Szenario verwerfen</button>
     </div>`;
   rowsList.forEach((e,i)=>{
     const k=e.ohne?'':e.name;
@@ -2198,11 +2394,11 @@ function renderTaktabgleich(){
     const leer=e.rows===0;
     const ueber=e.ausl!=null&&e.ausl>100+1e-9;
     h+=`<div class="takt-st-row${leer?' leer':''}"${leer?'':` onclick="taktToggle(${i})"`}>
-      <span class="mtm-caret">${leer?'':(offen?'▾':'▸')}</span>
+      <span class="mtm-caret">${leer?'':ic(offen?'unten':'rechts')}</span>
       <span class="takt-st-name">${escHtml(e.name)}${extraIdx>=0?' <span class="mtm-tag">neu</span>':''}</span>
       <span class="takt-st-meta">${e.rows} Schritt(e) · ${e.teile} Teil${e.teile===1?'':'e'}</span>
       <span class="takt-st-meta${ueber?' over':''}">${e.entfaellt?'entfällt':e.minD.toFixed(2)+' minD'}${e.ausl!=null?' · '+taktPct(e.ausl):''}</span>
-      ${extraIdx>=0&&leer?`<button class="pdel" onclick="taktStationEntfernen(${extraIdx},event)" title="Neue ${escAttr(stLbl)} wieder entfernen">🗑</button>`:''}
+      ${extraIdx>=0&&leer?`<button class="pdel" onclick="taktStationEntfernen(${extraIdx},event)" title="Neue ${escAttr(stLbl)} wieder entfernen">${ic('loeschen')}</button>`:''}
     </div>`;
     if(offen){
       const f=taktFaktor();
@@ -2224,7 +2420,7 @@ function renderAnalysis(){
 
   const scopeNote=document.getElementById('anaScopeNote');
   if(hasAnyFilter()){
-    scopeNote.textContent='🔍 Bezieht sich nur auf die '+fParts.length+' gefilterten Prozessschritte';
+    scopeNote.innerHTML=ic('filter')+'Bezieht sich nur auf die '+fParts.length+' gefilterten Prozessschritte';
     scopeNote.classList.add('show');
   } else {
     scopeNote.classList.remove('show');
@@ -2312,7 +2508,7 @@ function stackSegments(it,cls){
 function renderAnaTopList(elId,list){
   const el=document.getElementById(elId);
   if(!el) return;
-  if(list.length===0){ el.innerHTML='<div style="color:var(--text3);font-size:11px;">–</div>'; return; }
+  if(list.length===0){ el.innerHTML='<div class="leer-hinweis">–</div>'; return; }
   const max=Math.max(...list.map(it=>it.value),0.0001);
   el.innerHTML=list.map((it,i)=>`<div class="ana-top-row">
     <span class="ana-top-rank">${i+1}.</span>
@@ -2340,7 +2536,7 @@ function pieSvg(items,total,stroke,size){
 }
 function renderAnaPie(items,total){
   const wrap=document.getElementById('anaChartWrap');
-  if(total<=0){ wrap.innerHTML='<div style="color:var(--text3);font-size:12px;padding:20px;">Noch keine Daten erfasst</div>'; return; }
+  if(total<=0){ wrap.innerHTML='<div class="leer-hinweis">Noch keine Daten erfasst</div>'; return; }
   wrap.innerHTML=pieSvg(items,total,'var(--surface)',200);
 }
 function renderAnaLegend(items,total){
@@ -2355,23 +2551,6 @@ function renderAnaLegend(items,total){
       <span class="ana-leg-val">${disp2(it.value)} ${ul()} · ${pct.toFixed(1)}%</span>
     </div>`;
   }).join('');
-}
-function copyAnzahlToCategory(){
-  const sel=document.getElementById('copyTargetCat');
-  const key=sel.value;
-  if(!key){ toast('⚠ Keine Kategorie ausgewählt'); return; }
-  const targets=getFilteredParts();
-  if(targets.length===0){ toast('⚠ Keine (gefilterten) Prozessschritte gefunden'); return; }
-  const catLabel=(COLS.find(c=>c.key===key)||{}).label||key;
-  /* Gerechnete Meter bleiben unangetastet — sie kämen beim nächsten Rechenlauf ohnehin zurück */
-  const gerechnet=key===LW_KAT?targets.filter(p=>lwHat(p.id)).length:0;
-  const ziele=key===LW_KAT?targets.filter(p=>!lwHat(p.id)):targets;
-  if(ziele.length===0){ toast('⚠ Alle gewählten Prozessschritte haben gerechnete Laufwege'); return; }
-  if(!confirm(`Anzahl-Werte in "${catLabel}" für ${ziele.length} Prozessschritt(e) übernehmen?\n\nBestehende Werte in dieser Kategorie werden dabei überschrieben.`
-    +(gerechnet?`\n\n${gerechnet} Prozessschritt(e) mit gerechnetem Laufweg bleiben unverändert.`:''))) return;
-  ziele.forEach(p=>{ data[p.id][key]=stepQty(p.id); });
-  updGrid();renderBody();markDirty();
-  toast(`✓ Anzahl → "${catLabel}" für ${ziele.length} Prozessschritt(e) übernommen`);
 }
 
 /* ═══════════════════════════════════════
@@ -2404,7 +2583,7 @@ function startNewProject(){
   updateProjLabel();
   updateExportIndicator();
   updateLastAction();
-  buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();updateActiveBar();setUnit(unit);setMode(mode);
+  buildLegend();buildGrid();buildHead();renderBody();updateActiveBar();setUnit(unit);setMode(mode);
   saveState();
   toast('✓ Projekt "'+name+'" erstellt');
   if(descInput) descInput.value='';
@@ -2457,7 +2636,7 @@ function handleStartImport(evt){
       updateProjLabel();
       updateExportIndicator();
       updateLastAction();
-      buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();updateActiveBar();setUnit(unit);setMode(mode);
+      buildLegend();buildGrid();buildHead();renderBody();updateActiveBar();setUnit(unit);setMode(mode);
       saveState();
       importHinweis(parsed,'✓ Projekt "'+currentProject+'" geladen');
     }catch(err){
@@ -2468,7 +2647,7 @@ function handleStartImport(evt){
 }
 
 function switchProject(){
-  if(hasUnsavedChanges && !confirm('Zum Projekt-Start wechseln?\n\nNicht exportierte Änderungen gehen verloren.\nVorher über „↓ Excel Export" als CSV sichern!')) return;
+  if(hasUnsavedChanges && !confirm('Zum Projekt-Start wechseln?\n\nNicht exportierte Änderungen gehen verloren.\nVorher über „Export" als CSV sichern!')) return;
   currentProject=null;
   updateProjLabel();
   document.getElementById('startScreen').classList.add('open');
@@ -2504,7 +2683,7 @@ function parseImportedCSV(text){
   const clean=text.replace(/^\uFEFF/,'');
   /* Ohne diese Pr\u00FCfungen wird eine Bin\u00E4rdatei zeichenweise als Tabelle gelesen
      und ersetzt das Projekt durch Datenm\u00FCll (ZIP-Signatur = .xlsx/.ods) */
-  if(clean.startsWith('PK\x03\x04')) throw new Error('Das ist eine Excel-Datei (.xlsx), keine CSV. Bitte eine \u00FCber \u201E\u2193 Excel Export" als CSV gespeicherte Datei w\u00E4hlen.');
+  if(clean.startsWith('PK\x03\x04')) throw new Error('Das ist eine Excel-Datei (.xlsx), keine CSV. Bitte eine \u00FCber \u201EExport" als CSV gespeicherte Datei w\u00E4hlen.');
   if(clean.includes('\x00')) throw new Error('Die Datei ist keine UTF-8-Textdatei. Bitte als CSV (UTF-8) speichern.');
   if(!clean.includes(';')) throw new Error('Keine mit Semikolon getrennte CSV-Datei.');
   const lines=clean.split('\n').map(l=>l.trim()).filter(l=>l);
@@ -2708,12 +2887,12 @@ function buildGrid(){
     btn.style.borderTop='3px solid '+gCol;
     if(v>0) btn.style.background=gCol+'33';
     btn.innerHTML=(sc?`<span class="cb-key">${sc}</span>`:'')
-      +`<span class="cb-note-tgl${c.note?' has-note':''}" id="nt_${c.key}" title="Notiz">📝</span>`
+      +`<span class="cb-note-tgl${c.note?' has-note':''}" id="nt_${c.key}" title="${c.note?'Notiz vorhanden':'Notiz'}">${ic('notiz')}</span>`
       +`<span class="cb-lbl">${c.label}</span>`
       +`<span class="cb-par adv-only">${dispParam(c.param)} ${ul()}</span>`
       +`<span class="cb-cnt" id="cv_${c.key}">${v}</span>`
       +`<span class="cb-t adv-only" id="ct_${c.key}">${v>0?disp(v*c.param)+' '+ul():''}</span>`
-      +(c.key===LW_KAT?'<span class="cb-lw">ƒ</span>':'');
+      +(c.key===LW_KAT?'<span class="cb-lw">ƒ<span class="cb-lw-txt"> gerechnet</span></span>':'');
     btn.addEventListener('click',e=>{
       if(e.target.closest('.cb-note-tgl')) return;
       doCount(c.key);
@@ -2768,6 +2947,8 @@ function lwKachel(){
    ACTIVE BAR
 ═══════════════════════════════════════ */
 function updateActiveBar(){
+  const i=parts.findIndex(p=>p.id===activePart), st=activePart&&data[activePart]?String(data[activePart].__extra1||'').trim():'';
+  document.getElementById('actNr').textContent=i>=0?'#'+(i+1)+(st?' · '+st:''):'';
   document.getElementById('actName').textContent=activePart?partName(activePart):'—';
   document.getElementById('actTime').textContent=disp2(calcTotal(activePart));
   document.getElementById('actUnit').textContent=ul();
@@ -2779,7 +2960,10 @@ function updateActiveBar(){
 /* Linke Spalten: # (immer), Lvl, Prozessschritt, Sachnummer, Bauteilbenennung.
    Festgehalten beim Scrollen werden #, Lvl und Prozessschritt — mit Sachnummer und
    Benennung wäre auf dem iPad fast die halbe Breite blockiert. */
-function stickyLeft(){ return {level:32, cn:32+(isColVisible('level')?38:0)}; }
+function stickyLeft(){
+  const nr=uiMode==='beginner'?44:32, lv=uiMode==='beginner'?48:38;   // wie --nr-w/--lv-w im CSS
+  return {level:nr, cn:nr+(isColVisible('level')?lv:0)};
+}
 /* Kategoriebereich einer Unterzeile als eine einzige Zelle — statt 22 bzw. 44 leerer Zellen
    je Teil. Jeder Tipp auf eine Kachel baut die Tabelle neu, da zählt jede Zelle. */
 function kategorieSpan(){ return COLS.length*(uiMode==='beginner'?1:2); }
@@ -2824,7 +3008,7 @@ function setUIMode(m){
   buildHead();
   renderBody();
   saveState();
-  toast(m==='beginner' ? '🔵 Einfach-Modus aktiv' : '⚙ Erweitert-Modus aktiv');
+  toast(m==='beginner' ? '✓ Einfach-Modus aktiv' : '✓ Erweitert-Modus aktiv');
 }
 function renderBody(){
   const body=document.getElementById('tblBody');
@@ -2855,7 +3039,7 @@ function renderBody(){
     /* Aufklapp-Symbol: vor dem Namen — ist die Spalte ausgeblendet, in der #-Spalte */
     const caret=document.createElement('button');
     caret.type='button';caret.className='teil-caret'+(teile.length?'':' leer');
-    caret.textContent=offen?'▾':'▸';
+    caret.innerHTML=ic(offen?'unten':'rechts');
     caret.title=teile.length?(teile.length+' Teil(e) '+(offen?'zuklappen':'aufklappen')):'Noch keine Teile — aufklappen, um eines anzulegen';
     caret.addEventListener('click',e=>{e.stopPropagation();toggleTeile(id);});
 
@@ -2937,19 +3121,19 @@ function renderBody(){
     // Zeilen-Aktionen (wirken auf den Schritt samt Teilen)
     const tdActs=td('acts');
     const copyBtn=document.createElement('button');
-    copyBtn.type='button';copyBtn.className='row-icon-btn adv-only';copyBtn.title='Zeile kopieren (inkl. Teile)';copyBtn.textContent='⧉';
+    copyBtn.type='button';copyBtn.className='row-icon-btn adv-only';copyBtn.title='Zeile kopieren (inkl. Teile)';copyBtn.innerHTML=ic('kopieren');
     copyBtn.addEventListener('click',e=>{e.stopPropagation();copyRow(id);});
     tdActs.appendChild(copyBtn);
     const pasteBtn=document.createElement('button');
     pasteBtn.type='button';pasteBtn.className='row-icon-btn adv-only'+(rowClipboard?' active':'');
-    pasteBtn.title=rowClipboard?('Inhalte von "'+rowClipboard.sourceName+'" einfügen'):'Erst eine Zeile kopieren (⧉)';
-    pasteBtn.textContent='📋';
+    pasteBtn.title=rowClipboard?('Inhalte von "'+rowClipboard.sourceName+'" einfügen'):'Erst eine Zeile kopieren';
+    pasteBtn.innerHTML=ic('einfuegen');
     pasteBtn.addEventListener('click',e=>{e.stopPropagation();pasteRow(id);});
     tdActs.appendChild(pasteBtn);
     const noteBtn=document.createElement('button');
     noteBtn.type='button';noteBtn.className='row-icon-btn'+(data[id].__note?' active':'');
     noteBtn.title='Notiz zum Prozessschritt';
-    noteBtn.textContent='📝';
+    noteBtn.innerHTML=ic('notiz');
     noteBtn.addEventListener('click',e=>{
       e.stopPropagation();
       openNotePopup(noteBtn,'Notiz: '+name, data[id].__note||'', val=>{
@@ -2961,7 +3145,7 @@ function renderBody(){
     });
     tdActs.appendChild(noteBtn);
     const delBtn=document.createElement('button');
-    delBtn.type='button';delBtn.className='row-icon-btn danger';delBtn.title='Prozessschritt löschen';delBtn.textContent='🗑';
+    delBtn.type='button';delBtn.className='row-icon-btn danger';delBtn.title='Prozessschritt löschen';delBtn.innerHTML=ic('loeschen');
     delBtn.addEventListener('click',e=>{e.stopPropagation();delPart(id);});
     tdActs.appendChild(delBtn);
     tr.appendChild(tdActs);
@@ -2982,7 +3166,7 @@ function renderBody(){
       }
       const tdt=document.createElement('td');
       tdt.className=(t>0?'tnz':'')+' adv-only';tdt.textContent=t>0?disp2(t):'–';
-      if(t>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'59';tdt.style.color='#2b3244';}
+      if(t>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'59';}
       tr.appendChild(tdt);
     });
 
@@ -3018,7 +3202,7 @@ function renderBody(){
     const qt=totQ[c.key],tt=qt*c.param;
     const tdv=document.createElement('td');tdv.className=qt>0?'vnz':'';tdv.textContent=qt>0?qt:'–';sr.appendChild(tdv);
     const tdt=document.createElement('td');tdt.className=(tt>0?'tnz':'')+' adv-only';tdt.textContent=tt>0?disp2(tt):'–';
-    if(tt>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'8c';tdt.style.color='#2b3244';}
+    if(tt>0){const gc=(GROUPS[c.group]||{}).color||'#dde1ed';tdt.style.background=gc+'8c';}
     sr.appendChild(tdt);
   });
   body.appendChild(sr);
@@ -3034,7 +3218,7 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   tr.appendChild(td('nr'));
   tr.appendChild(td('level',vis.level,L.level));
   const tdCn=td('cn',vis.name,L.cn);
-  tdCn.innerHTML='<span class="teil-mark">↳</span>';
+  tdCn.innerHTML='<span class="teil-mark"></span>';
   tr.appendChild(tdCn);
   const feld=(cls,show,key,attrs)=>{
     const c=td(cls,show);
@@ -3054,7 +3238,7 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   feld('qty',true,'menge',{type:'number',min:0,step:1,inputMode:'numeric',className:'qi',title:'Menge'});
   const tdA=td('acts');
   const del=document.createElement('button');
-  del.type='button';del.className='row-icon-btn danger';del.title='Teil entfernen (↩ Undo holt es zurück)';del.textContent='✕';
+  del.type='button';del.className='row-icon-btn danger';del.title='Teil entfernen (Undo holt es zurück)';del.innerHTML=ic('x');
   del.addEventListener('click',e=>{e.stopPropagation();delTeil(stepId,t.id);});
   tdA.appendChild(del);
   tr.appendChild(tdA);
@@ -3077,7 +3261,7 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
   /* Knopf in die erste sichtbare der linken Spalten, damit er ohne Scrollen erreichbar ist */
   const host=[[vis.name,tdCn],[vis.sachnr,tdS],[vis.teilname,tdT]].find(x=>x[0]);
   const btn=document.createElement('button');
-  btn.type='button';btn.className='teil-add';btn.textContent='+ Teil hinzufügen';
+  btn.type='button';btn.className='teil-add';btn.innerHTML=ic('plus')+'Teil hinzufügen';
   btn.addEventListener('click',e=>{e.stopPropagation();addTeil(stepId);});
   (host?host[1]:tr.firstChild).appendChild(btn);
   return tr;
@@ -3100,7 +3284,8 @@ function doCount(key){
   if(undoStack.length>50) undoStack.shift();
   updGrid(); renderBody(); markDirty();
   const btn=document.getElementById('cb_'+key);
-  if(btn){btn.style.transform='scale(0.90)';setTimeout(()=>btn.style.transform='',130);}
+  /* Rückmeldung neu anstoßen, auch bei schnellem Mehrfachtippen auf dieselbe Kachel */
+  if(btn){ btn.classList.remove('tap-add','tap-sub'); void btn.offsetWidth; btn.classList.add(next>cur?'tap-add':'tap-sub'); }
   const catLabel=(COLS.find(c=>c.key===key)||{}).label||key;
   lastActionText=catLabel+' · '+partName(p)+(next>cur?' (+1)':' (−1)');
   updateLastAction();
@@ -3153,7 +3338,7 @@ function toggleAlleTeile(){
 function updateTeileAllBtn(){
   const b=document.getElementById('teileAllBtn'); if(!b) return;
   const vis=getFilteredParts();
-  b.textContent=(vis.length>0 && vis.every(p=>teileOffen[p.id])) ? '▸ Alle zuklappen' : '▾ Alle aufklappen';
+  b.innerHTML=(vis.length>0 && vis.every(p=>teileOffen[p.id])) ? ic('rechts')+'Alle zuklappen' : ic('unten')+'Alle aufklappen';
 }
 /* Passt ein Teil zu einem aktiven Teile-Filter (Sachnummer/Bauteilbenennung)? — für die Hervorhebung */
 function teilTrifftFilter(t){
@@ -3229,11 +3414,11 @@ function renamePart(id,newName,inp){
 function copyRow(id){
   const name=partName(id);
   rowClipboard={sourceId:id,sourceName:name,values:JSON.parse(JSON.stringify(data[id]))};
-  toast('⧉ "'+name+'" kopiert – Ziel-Zeile mit 📋 einfügen');
+  toast('✓ „'+name+'" kopiert – in der Ziel-Zeile auf „Einfügen" tippen');
   renderBody();
 }
 function pasteRow(id){
-  if(!rowClipboard){toast('⚠ Erst eine Zeile mit ⧉ kopieren');return;}
+  if(!rowClipboard){toast('⚠ Erst eine Zeile kopieren');return;}
   if(id===rowClipboard.sourceId){toast('⚠ Quelle und Ziel sind identisch');return;}
   const targetName=partName(id);
   if(!confirm(`Inhalte von "${rowClipboard.sourceName}" in "${targetName}" einfügen?\n\nBestehende Werte in "${targetName}" werden überschrieben.`))return;
@@ -3243,7 +3428,7 @@ function pasteRow(id){
   ensureKeys();
   lwNeuRechnen();   // Auslöser kommen mit; Meter aus denselben Meterwerten
   updGrid();renderBody();markDirty();
-  toast('📋 Eingefügt in "'+targetName+'"');
+  toast('✓ Eingefügt in „'+targetName+'"');
 }
 
 /* ═══════════════════════════════════════
@@ -3285,7 +3470,7 @@ function delPart(id){
   if(activePart===id) activePart=parts[0]?parts[0].id:null;
   if(rowClipboard && rowClipboard.sourceId===id) rowClipboard=null;
   updGrid();renderBody();updateActiveBar();markDirty();
-  toast('🗑 "'+name+'" gelöscht');
+  toast('✓ „'+name+'" gelöscht');
 }
 function resetAll(){
   if(!confirm('Alle Zähler zurücksetzen?'))return;
@@ -3311,8 +3496,8 @@ function openCfg(){
       +`<input class="pval" type="number" step="0.001" value="${c.param}" placeholder="0.000"/>`
       +`<span class="punit">minD</span>`
       +`<select class="pgrp">${groupOptions(c.group)}</select>`
-      +`<button class="pdel" onclick="this.closest('.prow').remove()">✕</button>`
-      +`<input class="pnote" type="text" value="${escAttr(c.note||'')}" placeholder="📝 Notiz zur Kategorie (optional)"/>`;
+      +`<button class="pdel" onclick="this.closest('.prow').remove()" title="Kategorie entfernen">${ic('x')}</button>`
+      +`<input class="pnote" type="text" value="${escAttr(c.note||'')}" placeholder="Notiz zur Kategorie (optional)"/>`;
     b.appendChild(row);
   });
   document.getElementById('cfgModal').classList.add('open');
@@ -3325,8 +3510,8 @@ function addCfgRow(){
     +`<input class="pval" type="number" step="0.001" value="0.1" placeholder="0.000"/>`
     +`<span class="punit">minD</span>`
     +`<select class="pgrp">${groupOptions('process')}</select>`
-    +`<button class="pdel" onclick="this.closest('.prow').remove()">✕</button>`
-    +`<input class="pnote" type="text" value="" placeholder="📝 Notiz zur Kategorie (optional)"/>`;
+    +`<button class="pdel" onclick="this.closest('.prow').remove()" title="Kategorie entfernen">${ic('x')}</button>`
+    +`<input class="pnote" type="text" value="" placeholder="Notiz zur Kategorie (optional)"/>`;
   b.appendChild(row);
 }
 function saveCfg(){
@@ -3344,7 +3529,7 @@ function saveCfg(){
   });
   if(!newCols.length){toast('Mindestens eine Kategorie nötig');return;}
   COLS=newCols;ensureKeys();closeCfg();
-  buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();markDirty();toast('Gespeichert');
+  buildLegend();buildGrid();buildHead();renderBody();markDirty();toast('Gespeichert');
 }
 
 /* ═══════════════════════════════════════
@@ -3422,7 +3607,7 @@ function setMtmTab(t){
 function mtmToggleBs(i){ const k=mtmEntries()[i].key; mtmOpenBs=mtmOpenBs===k?null:k; mtmOpenGe=null; renderMtmHerkunft(); }
 function mtmToggleGe(nr){ mtmOpenGe=mtmOpenGe===nr?null:nr; renderMtmHerkunft(); }
 function mtmApplyCols(){
-  ensureKeys();buildLegend();buildGrid();buildHead();buildCopySelect();renderBody();markDirty();
+  ensureKeys();buildLegend();buildGrid();buildHead();renderBody();markDirty();
 }
 
 /* Aufgeklapptes Grundelement: die MTM-Codes, aus denen es sich rechnet */
@@ -3456,14 +3641,14 @@ function renderMtmHerkunft(){
     const col=(GROUPS[b.group]||{}).color||'#ccc';
     const open=mtmOpenBs===b.key;
     h+=`<div class="mtm-row" data-key="${escAttr(b.key)}" onclick="mtmToggleBs(${i})">
-      <span class="mtm-caret">${open?'▾':'▸'}</span>
+      <span class="mtm-caret">${ic(open?'unten':'rechts')}</span>
       <span class="mtm-dot" style="background:${col}"></span>
       <span class="mtm-name">${escHtml(b.label)}</span>
       <span class="mtm-val">${mtmFmt(val)}</span>
       <span class="mtm-state ${cls}">${escHtml(state)}</span>
       ${!cur?`<button class="mtm-take" onclick="mtmTake('${escAttr(b.key)}',event)">übernehmen</button>`:''}
       ${cur&&cls==='diff'?`<button class="mtm-take" onclick="mtmReset('${escAttr(b.key)}',event)" title="Wert im Tool auf den errechneten Wert setzen">zurücksetzen</button>`:''}
-      ${cur&&b.eigen?`<button class="pdel" onclick="mtmDeleteBs('${escAttr(b.key)}',event)" title="Selbst angelegten Baustein löschen">🗑</button>`:''}
+      ${cur&&b.eigen?`<button class="pdel" onclick="mtmDeleteBs('${escAttr(b.key)}',event)" title="Selbst angelegten Baustein löschen">${ic('loeschen')}</button>`:''}
     </div>`;
     if(open){
       const den=b.elems.reduce((s,e)=>s+e.w,0);
@@ -3474,7 +3659,7 @@ function renderMtmHerkunft(){
         const g=mtmGe(e.nr)||{};
         const go=mtmOpenGe===e.nr;
         h+=`<div class="mtm-ge" onclick="event.stopPropagation();mtmToggleGe(${e.nr})">
-          <span class="mtm-caret">${go?'▾':'▸'}</span>
+          <span class="mtm-caret">${ic(go?'unten':'rechts')}</span>
           <span class="mtm-name">#${e.nr} ${escHtml(g.name||'unbekannt')}</span>
           <span class="mtm-val">${mtmFmt(mtmGeValue(e.nr))}</span>
           <span class="mtm-state">Gewicht ${e.w} · ${(g.codes||[]).length} LAMA</span>
@@ -3489,7 +3674,7 @@ function renderMtmHerkunft(){
   if(eigen.length){
     h+='<div class="mtm-sec-title">Kategorien ohne hinterlegte Herleitung</div>';
     eigen.forEach(c=>{
-      h+=`<div class="mtm-row" style="cursor:default">
+      h+=`<div class="mtm-row fix">
         <span class="mtm-caret"></span>
         <span class="mtm-dot" style="background:${(GROUPS[c.group]||{}).color||'#ccc'}"></span>
         <span class="mtm-name">${escHtml(c.label)}</span>
@@ -3518,7 +3703,7 @@ function renderMtmGrund(){
   const el=document.getElementById('mtmPanelGrund');
   el.innerHTML='<div class="mtm-hint">Alle '+mtmAllGe().length+' Grundelemente: aus welchen LAMA-Elementen sie sich rechnen und in welchen Bausteinen sie stecken. Zeile antippen zum Aufklappen. Die '+MTM_GRUNDELEMENTE.length+' aus dem Katalog sind unveränderlich, selbst angelegte lassen sich löschen, solange kein Baustein sie nutzt.</div>'
     +'<div class="mtm-build"><input class="plbl" id="mtmGeSearch" placeholder="Suchen: Name, MTM-Code oder Kurztext …" value="'+escAttr(mtmGeQuery)+'"/>'
-    +'<button class="pdel" onclick="mtmGeSearchSet(\'\')" title="Suche löschen">✕</button></div>'
+    +'<button class="pdel" onclick="mtmGeSearchSet(\'\')" title="Suche löschen">'+ic('x')+'</button></div>'
     +'<div id="mtmGeList"></div>';
   /* Nur die Liste wird neu gezeichnet — sonst verlöre das Feld bei jedem Zeichen den Fokus. */
   el.querySelector('#mtmGeSearch').addEventListener('input',e=>{ mtmGeQuery=e.target.value.trim().toLowerCase(); renderMtmGeList(); });
@@ -3538,12 +3723,12 @@ function renderMtmGeList(){
   list.forEach(g=>{
     const use=mtmGeUsage(g.nr,entries), open=mtmOpenGrund===g.nr, eigen=mtmGeEigen(g.nr);
     h+=`<div class="mtm-row" onclick="mtmToggleGrund(${g.nr})">
-      <span class="mtm-caret">${open?'▾':'▸'}</span>
+      <span class="mtm-caret">${ic(open?'unten':'rechts')}</span>
       <span class="mtm-name">#${g.nr} ${escHtml(g.name)}</span>
       ${eigen?'<span class="mtm-tag">eigen</span>':''}
       <span class="mtm-val">${mtmFmt(mtmGeValue(g.nr))}</span>
       <span class="mtm-state${use.length?'':' neu'}">${use.length?use.length+'× verwendet':'nicht verwendet'}</span>
-      ${eigen?`<button class="pdel" onclick="event.stopPropagation();mtmDeleteGe(${g.nr})" title="Selbst angelegtes Grundelement löschen">🗑</button>`:''}
+      ${eigen?`<button class="pdel" onclick="event.stopPropagation();mtmDeleteGe(${g.nr})" title="Selbst angelegtes Grundelement löschen">${ic('loeschen')}</button>`:''}
     </div>`;
     if(open){
       h+='<div class="mtm-sub">';
@@ -3553,7 +3738,7 @@ function renderMtmGeList(){
       if(!use.length) h+='<div class="mtm-hint">In keinem Baustein verwendet.</div>';
       else h+='<div class="mtm-uses">'+use.map(u=>
         `<button class="mtm-use" onclick="event.stopPropagation();mtmJumpBs('${escAttr(u.key)}')" title="Zum Baustein springen">
-           <span class="mtm-dot" style="display:inline-block;background:${(GROUPS[u.group]||{}).color||'#ccc'}"></span>
+           <span class="mtm-dot" style="background:${(GROUPS[u.group]||{}).color||'#ccc'}"></span>
            ${escHtml(u.label)} <span class="punit">Gewicht ${u.w}</span></button>`).join('')+'</div>';
       h+='</div>';
     }
@@ -3707,7 +3892,7 @@ function renderMtmNeuGe(){
       </div>`;
   h+=`<div class="mtm-build">
         <input class="plbl" id="mtmPickQ" placeholder="Suchen: Code, Kurztext oder Bereich …" value="${escAttr(mtmPickQuery)}"/>
-        <button class="pdel" onclick="mtmPickSetQuery('')" title="Suche löschen">✕</button>
+        <button class="pdel" onclick="mtmPickSetQuery('')" title="Suche löschen">${ic('x')}</button>
       </div>`;
   h+='<div id="mtmPickList"></div>';
   h+='<div class="mtm-sec-title">Gewählte LAMA-Elemente</div>';
@@ -3751,7 +3936,7 @@ function renderMtmPickList(){
     h+=`<tr><td class="txt">${escHtml(c.code)}</td><td class="txt">${escHtml(c.kurz||'')}</td>
       <td class="txt">${escHtml(mtmLbl(c.k[1]||c.k[0]||''))}</td><td>${mtmFmt(c.t)}</td>
       <td class="act"><button class="mtm-pick" onclick="mtmGeAddCode('${escAttr(c.code)}')" title="${
-        drin?drin+'× gewählt — nochmal hinzufügen':'hinzufügen'}">${drin?drin+'× ＋':'＋'}</button></td></tr>`;
+        drin?drin+'× gewählt — nochmal hinzufügen':'hinzufügen'}">${drin?drin+'× '+ic('plus'):ic('plus')}</button></td></tr>`;
   });
   el.innerHTML=h+'</tbody></table>';
 }
@@ -3781,7 +3966,7 @@ function renderMtmGeChosen(){
       <td class="act"><input class="mtm-w" type="number" step="any" min="0" inputmode="decimal" value="${c.anz}" onchange="mtmGeSetNum(${i},'anz',this.value)"/></td>
       <td class="act"><input class="mtm-w" type="number" step="any" min="0" inputmode="decimal" value="${c.hfg}" onchange="mtmGeSetNum(${i},'hfg',this.value)"/></td>
       <td>${mtmFmt(mtmR6(t*c.anz*c.hfg))}</td>
-      <td class="act"><button class="pdel" onclick="mtmGeDelCode(${i})" title="entfernen">✕</button></td></tr>`;
+      <td class="act"><button class="pdel" onclick="mtmGeDelCode(${i})" title="entfernen">${ic('x')}</button></td></tr>`;
   });
   el.innerHTML=h+'</tbody></table>';
 }
@@ -3796,8 +3981,8 @@ function renderMtmGeResult(){
       <span class="punit">minD  =  ${(val*MIND_FACTOR).toFixed(3)} min  =  ${(val*MIND_FACTOR*60).toFixed(1)} s</span>
     </div>`;
   if(mtmNewGe.codes.length) h+=`<div class="mtm-formula">Summe ${mtmFmt(sum)}${(d&&d!==1)?' ÷ Bezugsmenge '+d:''} = ${mtmFmt(val)} minD</div>`;
-  if(!(d>0)) h+='<div class="mtm-hint" style="color:var(--red)">Bezugsmenge muss größer als 0 sein.</div>';
-  h+='<div class="mtm-build" style="border-bottom:none"><button class="btn-save" onclick="mtmCreateGe()">Grundelement anlegen</button></div>';
+  if(!(d>0)) h+='<div class="mtm-hint fehler">Bezugsmenge muss größer als 0 sein.</div>';
+  h+='<div class="mtm-build ohne-linie"><button class="btn-save" onclick="mtmCreateGe()">Grundelement anlegen</button></div>';
   el.innerHTML=h;
 }
 function mtmCreateGe(){
@@ -3834,20 +4019,20 @@ function renderMtmNeu(){
       <span class="mtm-val">${mtmFmt(mtmGeValue(e.nr))}</span>
       <span class="punit">× Gewicht</span>
       <input class="mtm-w" type="number" step="any" inputmode="decimal" value="${e.w}" onchange="mtmSetWeight(${i},this.value)"/>
-      <button class="pdel" onclick="mtmDelElem(${i})">✕</button>
+      <button class="pdel" onclick="mtmDelElem(${i})" title="entfernen">${ic('x')}</button>
     </div>`;
   });
   h+=`<div class="mtm-build">
       <select class="mtm-sel" id="mtmAddSel"><option value="">Grundelement hinzufügen …</option>${
         mtmAllGe().map(g=>`<option value="${g.nr}">#${g.nr} ${escHtml(g.name)}${mtmGeEigen(g.nr)?' (eigen)':''} — ${mtmFmt(mtmGeValue(g.nr))} minD</option>`).join('')}</select>
-      <button class="mtm-take" onclick="mtmAddElem()">＋ hinzufügen</button></div>`;
+      <button class="mtm-take" onclick="mtmAddElem()">${ic('plus')}hinzufügen</button></div>`;
   h+=`<div class="mtm-result">
         <span class="punit">Zeitwert</span>
         <span class="mtm-result-val">${mtmFmt(val)}</span>
         <span class="punit">minD  =  ${(val*MIND_FACTOR).toFixed(3)} min  =  ${(val*MIND_FACTOR*60).toFixed(1)} s</span>
       </div>`;
   if(mtmNew.elems.length) h+=`<div class="mtm-formula">( ${mtmNew.elems.map(e=>mtmFmt(mtmGeValue(e.nr))+' × '+e.w).join(' + ')} ) ÷ ${mtmFmt(den)}</div>`;
-  h+=`<div class="mtm-build" style="border-bottom:none"><button class="btn-save" onclick="mtmCreate()">Baustein anlegen</button></div>`;
+  h+=`<div class="mtm-build ohne-linie"><button class="btn-save" onclick="mtmCreate()">Baustein anlegen</button></div>`;
   if(COLS.length>=SHORTCUT_POOL.length) h+=`<div class="mtm-hint">Hinweis: Für Bausteine ab Nummer ${SHORTCUT_POOL.length+1} gibt es keinen Tastatur-Shortcut mehr.</div>`;
   el.innerHTML=h;
   el.querySelector('#mtmNewLabel').addEventListener('input',e=>{ mtmNew.label=e.target.value; });
@@ -3903,8 +4088,10 @@ function renderLwParam(){
       +`<input class="pval lw-gelb" type="number" min="0" step="0.5" inputmode="decimal" data-k="${k}" value="${lwParams[k]}"/>`
       +`<span class="punit">m</span><span class="lw-par-text">${escHtml(LW_TEXT[k].text)}</span></div>`;
   });
-  h+='<div class="takt-szen-btns"><button class="tbtn" onclick="lwStandardwerte()">↺ Standardwerte</button>'
-    +`<button class="tbtn" onclick="lwAutoZuordnung()" title="${escAttr(LW_AUTO_HINWEIS)}">⚡ Auto-Zuordnung</button></div>`
+  h+='<div class="takt-szen-btns"><button class="tbtn" onclick="lwStandardwerte()">'+ic('reset')+'Standardwerte</button>'
+    +`<button class="tbtn" onclick="lwAutoZuordnung()" title="${escAttr(LW_AUTO_HINWEIS)}">${ic('blitz')}Auto-Zuordnung</button>`
+    +`<button class="tbtn info-tgl" id="lwAutoInfoBtn" aria-expanded="false" onclick="lwAutoInfo()">${ic('info')}Was macht das?</button></div>`
+    +`<div class="info-box hidden" id="lwAutoInfo">${escHtml(LW_AUTO_HINWEIS)}</div>`
     +'<div class="mtm-sec-title">Kennzahlen</div><div id="lwKpi"></div>';
   el.innerHTML=h;
   el.querySelectorAll('input[data-k]').forEach(inp=>{
@@ -3945,9 +4132,9 @@ function renderLwKpi(){
     +kpi('Anteil am Ist',(ist>0?minD/ist*100:0).toFixed(1)+' %','Ist '+ist.toFixed(3)+' minD')
     +kpi('Schritte mit Laufweg',r.mit,'ohne: '+r.ohne+(r.ohneMitMeter?' · davon '+r.ohneMitMeter+' mit gezählten Metern':''))
     +'</div>';
-  if(!COLS.some(c=>c.key===LW_KAT)) h+='<div class="takt-note">Die Kategorie „Meter" fehlt unter ⚙ Zeiten — die Meter kosten deshalb keine Zeit.</div>';
+  if(!COLS.some(c=>c.key===LW_KAT)) h+='<div class="takt-note">Die Kategorie „Meter" fehlt unter „Zeiten" — die Meter kosten deshalb keine Zeit.</div>';
   const sumK=LW_KEYS.reduce((s,k)=>s+r.mTrig[k],0);
-  h+='<div style="overflow-x:auto;"><table class="takt-tbl"><thead><tr><th>Auslöser</th><th>Meterwert [m]</th><th>Σ Auslöser</th><th>Σ Meter</th><th>Anteil</th></tr></thead><tbody>';
+  h+='<div class="scroll-x"><table class="takt-tbl"><thead><tr><th>Auslöser</th><th>Meterwert [m]</th><th>Σ Auslöser</th><th>Σ Meter</th><th>Anteil</th></tr></thead><tbody>';
   LW_KEYS.forEach(k=>{
     h+=`<tr><td class="tk-name">${escHtml(LW_TEXT[k].label)}</td><td>${lwParams[k]}</td><td>${r.trig[k]}</td>`
       +`<td>${r.mTrig[k].toFixed(1)}</td><td>${sumK>0?(r.mTrig[k]/sumK*100).toFixed(1):'0.0'} %</td></tr>`;
@@ -4034,7 +4221,7 @@ function lwZeileHtml(id,i){
   const d=data[id], t=lwTrig(id)||{}, lvl=d.__level||1, nT=stepTeile(id).length;
   return `<tr data-id="${escAttr(id)}" class="${lwHat(id)?'':'lw-grau'}${id===activePart?' lw-akt':''}${lvl===1?' lw-lvl1':''}">`
     +`<td>${i+1}</td><td>${lvl}</td><td class="lw-txt">${escHtml(d.__extra1||'')}</td>`
-    +`<td class="lw-txt lw-name" title="${escAttr(partName(id))}"><button type="button" class="lw-auf${nT?'':' leer'}" title="Teile zeigen">${lwAuf[id]?'▾':'▸'}</button>${escHtml(partName(id))}</td>`
+    +`<td class="lw-txt lw-name" title="${escAttr(partName(id))}"><button type="button" class="lw-auf${nT?'':' leer'}" title="Teile zeigen">${ic(lwAuf[id]?'unten':'rechts')}</button>${escHtml(partName(id))}</td>`
     +`<td>${stepQty(id)||'–'}</td>`
     +LW_KEYS.map(k=>`<td class="lw-inz"><input class="lw-in" type="number" min="0" step="1" inputmode="numeric" data-k="${k}" value="${t[k]||''}" placeholder="0"/></td>`).join('')
     +lwErgebnisHtml(id)+'</tr>'+(lwAuf[id]?lwTeileHtml(id):'');
@@ -4050,7 +4237,7 @@ function lwTeileHtml(id){
 function lwAufklappen(id,auf){
   const tr=document.querySelector('#lwTbody tr[data-id="'+id+'"]'); if(!tr) return;
   if(auf) lwAuf[id]=true; else delete lwAuf[id];
-  tr.querySelector('.lw-auf').textContent=auf?'▾':'▸';
+  tr.querySelector('.lw-auf').innerHTML=ic(auf?'unten':'rechts');
   const sub=tr.nextElementSibling;
   if(sub && sub.classList.contains('lw-teile')) sub.remove();
   if(auf){ tr.insertAdjacentHTML('afterend',lwTeileHtml(id)); tr.nextElementSibling.style.display=tr.style.display; }
@@ -4064,7 +4251,7 @@ function lwAlleAufklappen(){
 function lwAufKnopf(){
   const k=document.getElementById('lwAlleAuf'); if(!k) return;
   const sichtbar=[...document.querySelectorAll('#lwTbody tr[data-id]')].filter(tr=>tr.style.display!=='none'&&stepTeile(tr.dataset.id).length);
-  k.textContent=sichtbar.length&&sichtbar.every(tr=>lwAuf[tr.dataset.id])?'▸ Alle zuklappen':'▾ Alle aufklappen';
+  k.innerHTML=sichtbar.length&&sichtbar.every(tr=>lwAuf[tr.dataset.id])?ic('rechts')+'Alle zuklappen':ic('unten')+'Alle aufklappen';
 }
 function renderLwSchritt(){
   const el=document.getElementById('lwPanelSchritt');
@@ -4079,7 +4266,7 @@ function renderLwSchritt(){
     +`<label class="takt-ctl-item">${escHtml(colLabel('extra1'))}<select class="takt-sel lw-sel" id="lwFStation">${opt(stationen,lwFilter.station)}</select></label>`
     +`<label class="takt-ctl-item">${escHtml(colLabel('stufe'))}<select class="takt-sel lw-sel" id="lwFStufe">${opt(stufen,lwFilter.stufe)}</select></label>`
     +`<label class="takt-ctl-item takt-chk"><input type="checkbox" id="lwFOhne"${lwFilter.ohne?' checked':''}/> nur Schritte ohne Laufweg</label>`
-    +'<button type="button" class="tbtn" id="lwAlleAuf" onclick="lwAlleAufklappen()">▾ Alle aufklappen</button>'
+    +'<button type="button" class="tbtn" id="lwAlleAuf" onclick="lwAlleAufklappen()">'+ic('unten')+'Alle aufklappen</button>'
     +'<span class="takt-hint" id="lwFInfo"></span></div>';
   h+=`<div class="lw-wrap" id="lwWrap"><table class="lw-tbl"><thead><tr><th>Nr</th><th>Lvl</th><th>${escHtml(colLabel('extra1'))}</th><th class="lw-name">Prozessschritt</th><th>Teile</th>`
     +LW_KEYS.map(k=>`<th title="${escAttr(LW_TEXT[k].label+': '+LW_TEXT[k].text)}">${LW_KOPF[k]}<span class="lw-th-m">${lwParams[k]} m</span></th>`).join('')
@@ -4177,9 +4364,30 @@ function lwZeigeSchritt(id){
   if(tr) tr.scrollIntoView({block:'center'});
 }
 
-/* Esc schließt das Fenster — auch aus einem Eingabefeld heraus */
+function lwAutoInfo(){
+  const box=document.getElementById('lwAutoInfo'), btn=document.getElementById('lwAutoInfoBtn');
+  const auf=box.classList.toggle('hidden')===false;
+  btn.setAttribute('aria-expanded',auf?'true':'false');
+}
+
+/* Esc schließt das oberste offene Popup oder Fenster — auch aus einem Eingabefeld heraus.
+   Reihenfolge: erst Menü und Popups, dann die Fenster von oben (zuletzt im DOM) nach unten */
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape' && lwOffen()){ e.preventDefault(); closeLw(); }
+  if(e.key!=='Escape') return;
+  const offen=id=>{ const el=document.getElementById(id); return !!el && el.classList.contains('open'); };
+  if(offen('mehrMenue')) closeMehrMenue();
+  else if(offen('notePopup')) closeNotePopup();
+  else if(offen('colPopup')) closeColPopup();
+  else if(offen('expModal')) closeExpModal();
+  else if(lwOffen()) closeLw();
+  else if(offen('mtmModal')) closeMtm();
+  else if(offen('cfgModal')) closeCfg();
+  else if(offen('anaModal')) closeAnalysis();
+  else return;
+  e.preventDefault();
+  /* Fokus aus dem geschlossenen Feld nehmen — sonst blockiert es die Tasten-Kurzbefehle */
+  const f=document.activeElement;
+  if(f && f!==document.body && !f.offsetParent && f.blur) f.blur();
 });
 
 /* ═══════════════════════════════════════
@@ -4779,7 +4987,7 @@ function updateExportIndicator(){
   if(diffMin<1) rel='gerade eben';
   else if(diffMin<60) rel='vor '+diffMin+' Min';
   else { const h=Math.floor(diffMin/60); rel='vor '+h+' Std'; }
-  el.textContent='💾 '+rel;
+  el.innerHTML=ic('export')+rel;
   el.title='Letzter Export: '+d.toLocaleString('de-DE');
 }
 
@@ -4822,7 +5030,7 @@ function handleImport(evt){
       activePart=parts[0].id;
       ensureKeys();
       lwNeuRechnen();
-      buildGrid(); buildHead(); buildCopySelect(); renderBody(); updateActiveBar();
+      buildGrid(); buildHead(); renderBody(); updateActiveBar();
       setUnit(unit); setMode(mode);
       updateProjLabel();
       hasUnsavedChanges=false;
@@ -4855,7 +5063,7 @@ function startAutosaveReminder(){
   if(autosaveReminderTimer) clearInterval(autosaveReminderTimer);
   autosaveReminderTimer=setInterval(()=>{
     if(currentProject && hasUnsavedChanges){
-      toast('⏰ Zwischenstand nicht vergessen: ↓ Excel Export → CSV',6000);
+      toast('⚠ Zwischenstand nicht vergessen: Export → CSV',6000);
     }
   },15*60*1000);
 }
@@ -4906,7 +5114,6 @@ document.body.classList.toggle('beginner-mode', uiMode==='beginner');
 buildLegend();
 buildGrid();
 buildHead();
-buildCopySelect();
 renderBody();
 updateActiveBar();
 setUnit(unit);
@@ -4937,6 +5144,11 @@ if(projDescBtn){
     });
   });
 }
+
+/* ── Menü „Weitere Aktionen" (⋯) ── jeder Klick außerhalb des Knopfs schließt es, auch auf einen Eintrag */
+function toggleMehrMenue(e){ if(e) e.stopPropagation(); document.getElementById('mehrMenue').classList.toggle('open'); }
+function closeMehrMenue(){ const m=document.getElementById('mehrMenue'); if(m) m.classList.remove('open'); }
+document.addEventListener('click',e=>{ if(!e.target.closest('#mehrBtn')) closeMehrMenue(); });
 
 /* Tastatur-Shortcuts für Kategorien (1-9,0,q,w,e,r,t,z,u,i,o,p,a,s,d,f,g,h,j,k,l) */
 document.addEventListener('keydown', e=>{

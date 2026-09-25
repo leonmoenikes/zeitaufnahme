@@ -18,6 +18,49 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Design
+Die Daten, das CSV-Format, der Excel-Export, die Druckansicht und der gespeicherte Stand
+bleiben unverändert. Alle Funktionen sind dort, wo sie waren; neu angeordnet ist nur die Topbar.
+- **Einheitliches Erscheinungsbild:** Schriftgrößen, Abstände, Farben und Ecken kommen aus
+  einem gemeinsamen Satz Design-Variablen. Die Farben der Kategorie-Gruppen, der Level und
+  der aktiven Zeile (Gelb) bleiben gleich. Keine Schrift ist kleiner als 11 px.
+- **Symbole statt Emojis:** Alle Knöpfe haben einfarbige Symbole, die auf jedem Gerät gleich
+  aussehen und die Farbe des Knopfs übernehmen.
+- **Topbar nach Aufgaben gruppiert:**
+  - Die Gruppen sind Erfassen (Add/Sub, Undo, Einheit), Analyse (Zeiten, Bausteine,
+    Laufwege, Auswertung) und Datei (Projekt, Import, Export).
+  - Selten Gebrauchtes steht im Menü ⋯:
+    - Einfach: „Projekt wechseln" und „CSV importieren".
+    - Erweitert: „Alle Zähler zurücksetzen".
+  - Die Topbar ist im Einfach-Modus immer einzeilig, im Erweitert-Modus ab 1280 px Breite.
+- **Kacheln (Einfach):**
+  - Die Kacheln bleiben 68 px hoch; der Name steht oben, die Zahl groß darunter.
+  - Tastenkürzel werden im Einfach-Modus nicht angezeigt.
+  - Eine vorhandene Kategorie-Notiz zeigt ein Punkt; bearbeitet wird sie im Erweitert-Modus.
+  - Jeder Tipp gibt eine kurze Rückmeldung (grün bei Add, rot bei Sub).
+  - Im Sub-Modus erscheint ein roter Hinweisbalken mit „Zurück zu Add", und die Kacheln
+    haben einen roten Rand.
+  - Die aktive Zeile zeigt Nummer und Station.
+- **Tabelle:**
+  - Im Erweitert-Modus sind die Zeilen kompakter (27 statt 37 px).
+  - Im Einfach-Modus ist jedes Bedienelement mindestens 44 × 44 px groß, und ein Tipp auf
+    den Spaltenkopf öffnet den Filter.
+  - Teile-Zeilen hängen mit einer Verbindungslinie am Prozessschritt.
+- **Fenster:**
+  - Alle Fenster haben denselben Aufbau: Kopf mit Symbol, Titel und 44-px-Schließen-Knopf.
+  - **Esc schließt jedes Fenster, Popup und das Menü ⋯.** Eine offene Notiz wird dabei
+    gespeichert, wie beim Tippen daneben.
+  - Ab 1280 px:
+    - Die Auswertung ist zweispaltig: links Eingaben und Kennzahlen, rechts Diagramm und
+      Legende.
+    - Im Taktabgleich stehen Tabelle und Balken nebeneinander.
+    - In „Zeiten" steht jede Kategorie in einer Zeile, mit der Notiz direkt daneben.
+  - Die Formeln der Kennzahlen stehen jetzt sichtbar unter dem Wert, nicht nur als Tooltip.
+  - Die Erklärung zur Auto-Zuordnung (Laufwege) öffnet sich über „Was macht das?".
+- **Bildschirmgrößen:** Es gibt drei Stufen: bis 900 px (iPad hoch), 901–1279 px (iPad quer)
+  und ab 1280 px (Laptop). Die Ränder für Notch und Home-Leiste (Safe Area) werden auf allen
+  Seiten beachtet. Ab 1280 px ist die Spalte „Prozessschritt" breiter.
+
 ### Laufweg-Rechner
 - Neue Kategorie-Gruppe „Walking / Distance" in Sand/Ocker. „Meter in total"
   gehört dazu und steht als letzter Baustein am Ende; die Gruppe hat einen eigenen Anteil in
@@ -27,7 +70,7 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   - Die Tastenkürzel verschieben sich: Meter in total T → S; die bisher nachfolgenden
     Bausteine rücken eine Taste vor (Clean & Seal Z → T, Ölen / Fetten U → Z, Code scan I → U,
     Screw lock glue O → I, Screw lock mech. P → O, Quality gate A → P, QS check S → A).
-- Neuer Knopf „🚶 Laufwege" (Modus Erweitert). Die Kategorie „Meter in total" kann je
+- Neuer Knopf „Laufwege" (Modus Erweitert). Die Kategorie „Meter in total" kann je
   Prozessschritt gerechnet statt gezählt werden:
   Meter = Σ Auslöser × Meterwert, auf ganze Meter gerundet.
 - Sieben Auslöser mit zentralen Meterwerten:
@@ -60,7 +103,7 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 - Gerechnete Schritte zeigen an der Meter-Kachel und in der Tabelle ein ƒ.
   - Tippen auf die Kachel (oder ihr Tastenkürzel) öffnet die Zeile des Schritts im Reiter
     „Je Schritt", statt zu zählen.
-  - Undo, „Anzahl kopieren" und „Alle Zähler zurücksetzen" lassen gerechnete Meter unangetastet.
+  - Undo und „Alle Zähler zurücksetzen" lassen gerechnete Meter unangetastet.
   - Meterwert- und Auslöseränderungen stehen nicht im Undo-Verlauf; der Weg zurück bei den
     Meterwerten ist „Standardwerte".
 - Excel-Export mit fünftem Blatt „Laufwege" im Aufbau des Blatts „Laufweg-Parameter": gelbe
@@ -224,6 +267,8 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   über zwei Seiten gerissen.
 
 ### Entfernt
+- „Anzahl kopieren" mit der Kategorie-Auswahl daneben (Werkzeugleiste über der Tabelle,
+  Modus Erweitert) ist entfallen.
 - Dunkelmodus wieder ausgebaut: Umschalt-Button, dunkle Farbpalette, die
   zugehörigen `body.dark-mode`-Regeln und die gespeicherte Einstellung sind
   entfallen. Die Oberfläche ist wieder durchgehend hell. Ein eventuell noch

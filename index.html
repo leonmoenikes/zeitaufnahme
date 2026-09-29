@@ -621,8 +621,9 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
   position:fixed;bottom:calc(20px + var(--safe-bot));left:50%;
   transform:translateX(-50%) translateY(80px);
   background:var(--surface2);border:1px solid var(--border2);color:var(--text);
-  padding:9px 18px;border-radius:999px;font-size:var(--fs-m);
-  transition:transform .25s;z-index:400;pointer-events:none;white-space:nowrap;
+  padding:9px 18px;border-radius:var(--r-l);font-size:var(--fs-m);text-align:center;
+  max-width:min(92vw,720px);width:max-content;
+  transition:transform .25s;z-index:400;pointer-events:none;
 }
 .toast.show{transform:translateX(-50%) translateY(0);}
 
@@ -638,6 +639,27 @@ body.beginner-mode .teil-add{min-height:44px;font-size:var(--fs-m);}
 .exp-hint{font-size:var(--fs-xs);color:var(--text3);}
 .exp-cancel{flex:1;padding:9px;border:1px solid var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-size:var(--fs-m);}
 .exp-go{flex:2;padding:9px;border-radius:var(--radius);background:var(--accent);border:none;color:var(--on-accent);font-weight:600;font-size:var(--fs-m);cursor:pointer;}
+
+/* ── AUS EXCEL EINFÜGEN / VORLAGE ── */
+.paste-modal{max-width:720px;}
+.paste-hint{font-size:var(--fs-s);color:var(--text2);line-height:1.5;margin-bottom:var(--sp3);}
+.paste-text{width:100%;min-height:180px;resize:vertical;font-family:var(--mono);font-size:var(--fs-s);
+  padding:var(--sp2);border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface2);color:var(--text);
+  white-space:pre;overflow:auto;}
+.paste-text:focus{outline:none;border-color:var(--accent);}
+.paste-info{font-size:var(--fs-s);color:var(--text2);margin:var(--sp2) 0;line-height:1.5;min-height:1.5em;}
+.paste-info .ok{color:var(--green);font-weight:600;}
+.paste-info .warn{color:var(--warn-text);}
+.paste-info .fehler{color:var(--red);font-weight:600;}
+.paste-modus{display:flex;flex-wrap:wrap;gap:var(--sp2) var(--sp4);}
+.paste-modus label{display:flex;align-items:center;gap:var(--sp2);font-size:var(--fs-m);cursor:pointer;min-height:32px;}
+.paste-modus input{width:18px;height:18px;margin:0;}
+.paste-modus.hidden{display:none;}
+.exp-vorlage{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:var(--sp2);padding:8px 10px;
+  border:1px dashed var(--border2);border-radius:var(--radius);background:none;color:var(--accent-bright);cursor:pointer;font-size:var(--fs-s);}
+.exp-go:disabled{opacity:.45;cursor:default;}
+body.beginner-mode :is(.exp-vorlage,.paste-modus label){min-height:44px;}
+body.beginner-mode .paste-text{font-size:var(--fs-m);}
 
 /* ── AUSWERTUNG ── */
 .ana-modal{max-width:640px;}
@@ -975,6 +997,7 @@ body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
     <div class="mehr-menue" id="mehrMenue">
       <button class="simple-only" onclick="switchProject()"><svg class="ic"><use href="#i-projekt"/></svg>Projekt wechseln</button>
       <button class="simple-only" onclick="openImport()"><svg class="ic"><use href="#i-import"/></svg>CSV importieren</button>
+      <button onclick="openPaste()"><svg class="ic"><use href="#i-tabelle"/></svg>Aus Excel einfügen</button>
       <button class="adv-only danger" onclick="resetAll()"><svg class="ic"><use href="#i-reset"/></svg>Alle Zähler zurücksetzen</button>
     </div>
   </div>
@@ -1194,12 +1217,39 @@ body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
     <div class="exp-row">
       <label class="exp-label">Dateiname</label>
       <input class="exp-input" id="expFilename" type="text" placeholder="z.B. Linie3_Getriebe_Welle"/>
-      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import · Excel = formatierter Report (5 Blätter)</span>
+      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import, auch in Excel bearbeitbar · Excel = formatierter Report (5 Blätter)</span>
+      <button class="exp-vorlage" onclick="doExportVorlage()"><svg class="ic"><use href="#i-tabelle"/></svg>Leere Vorlage (CSV) zum Ausfüllen in Excel</button>
     </div>
     <div class="exp-btns mfooter">
       <button class="exp-cancel" onclick="closeExpModal()">Abbrechen</button>
       <button class="exp-go" onclick="doExportXlsx()"><svg class="ic"><use href="#i-tabelle"/></svg>Excel (.xlsx)</button>
       <button class="exp-go" onclick="doExport()"><svg class="ic"><use href="#i-export"/></svg>CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUS EXCEL EINFÜGEN -->
+<div class="modal-bg" id="pasteModal">
+  <div class="modal paste-modal">
+    <div class="mh">
+      <span class="mh-title"><svg class="ic"><use href="#i-tabelle"/></svg>Aus Excel einfügen</span>
+      <button class="mclose" aria-label="Schließen" onclick="closePaste()"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="mbody">
+      <p class="paste-hint">In Excel die Zeilen <strong>samt Kopfzeile</strong> markieren, kopieren und hier einfügen.
+        Erkannt werden Level, Prozessschritt, Sachnummer, Benennung, Menge, die Zusatzspalten, Notiz und die Kategorien (Anzahl).
+        Weitere Teile eines Schritts stehen in den Zeilen darunter mit leerem Prozessschritt.
+        Ohne Spalte „Prozessschritt" (z.B. eine Stückliste) kommen die Teile an den aktiven Schritt.</p>
+      <textarea class="paste-text" id="pasteText" spellcheck="false" placeholder="Hier einfügen (⌘V / Strg+V)" oninput="pastePruefen()"></textarea>
+      <div class="paste-info" id="pasteInfo"></div>
+      <div class="paste-modus" id="pasteModus">
+        <label><input type="radio" name="pasteModus" value="anhaengen" checked/>Am Ende anhängen</label>
+        <label><input type="radio" name="pasteModus" value="ersetzen"/>Alle Prozessschritte ersetzen</label>
+      </div>
+    </div>
+    <div class="mfooter">
+      <button class="exp-cancel" onclick="closePaste()">Abbrechen</button>
+      <button class="exp-go" id="pasteGo" onclick="doPaste()" disabled><svg class="ic"><use href="#i-haken"/></svg>Übernehmen</button>
     </div>
   </div>
 </div>
@@ -2656,12 +2706,16 @@ function switchProject(){
   setTimeout(()=>inp.focus(),150);
 }
 
-/* CSV-Format: 3 = Prozessschritte mit Teile-Spalte. Dateien ohne __FORMAT__ stammen aus der
-   Vorversion (eine Zeile = ein Bauteil) und werden beim Einlesen umgewandelt.
-   Feste Spalten vor den Kategorien — in beiden Formaten 11:
-     alt: Level, Sachnummer, Bauteil,        Stufe, Werkzeug, Quelle, Zusatz×3, Anzahl, Gesamt
-     neu: Level, Prozessschritt, Teile,      Stufe, Werkzeug, Quelle, Zusatz×3, Anzahl, Gesamt */
-const CSV_FORMAT=3;
+/* CSV-Formate
+   1 = eine Zeile je Bauteil (Vorversion, ohne __FORMAT__-Zeile)
+   3 = eine Zeile je Prozessschritt, Teile als URL-kodiertes JSON in einer Zelle
+   4 = Teile als Folgezeilen unter dem Schritt, Spalten werden über die Überschrift erkannt,
+       je Kategorie nur die Anzahl, Klartext mit Anführungszeichen wie bei Excel.
+   Geschrieben wird nur Format 4; 1 und 3 liest parseCsvAlt unverändert weiter.
+   Feste Spalten vor den Kategorien in Format 1 und 3 — je 11:
+     1: Level, Sachnummer, Bauteil,        Stufe, Werkzeug, Quelle, Zusatz×3, Anzahl, Gesamt
+     3: Level, Prozessschritt, Teile,      Stufe, Werkzeug, Quelle, Zusatz×3, Anzahl, Gesamt */
+const CSV_FORMAT=4;
 const CSV_FIX=11;
 /* CSV_FIX (und CSV_FORMAT) bleiben beim Laufweg-Rechner bewusst unverändert: Meterwerte und Auslöser
    stehen in eigenen Metazeilen (__LWPARAM__, __LW__), nicht in neuen Datenspalten. Eine neue Spalte
@@ -2671,12 +2725,205 @@ const CSV_FIX=11;
 /* Import-Meldung: bei alten Dateien auf die Umwandlung hinweisen, bei defekter Teile-Spalte warnen */
 function importHinweis(parsed,ok){
   if(parsed.teileFehler) toast('⚠ Bei '+parsed.teileFehler+' Prozessschritt(en) war die Teile-Spalte unlesbar – dort ohne Teile übernommen',6000);
-  else if(parsed.format<CSV_FORMAT) toast('ℹ Projekt aus älterem Format übernommen – Bauteile wurden in Prozessschritte umgewandelt',6000);
+  else if(parsed.format<3) toast('ℹ Projekt aus älterem Format übernommen – Bauteile wurden in Prozessschritte umgewandelt',6000);
   else {
     /* Sichtbar machen, dass die Laufweg-Auslöser mit der Datei zurückgekommen sind */
     const nLw=parsed.lwTrigger?Object.keys(parsed.lwTrigger).length:0;
-    toast(ok+(nLw?' · '+nLw+' Schritte mit Laufweg':''));
+    const w=parsed.v4?csvWarnungen(parsed.v4):[];
+    toast(ok+(nLw?' · '+nLw+' Schritte mit Laufweg':'')+(w.length?' · ⚠ '+w.join(' · '):''), w.length?8000:undefined);
   }
+}
+
+/* ── CSV lesen und schreiben (Format 4) ── */
+/* Zerlegt CSV- oder Excel-Zwischenablage-Text in Zeilen und Zellen. Felder in Anführungszeichen dürfen
+   Trennzeichen, Zeilenumbrüche und verdoppelte "" enthalten — so schreibt und kopiert es Excel. */
+function csvZerlegen(text,sep){
+  const t=String(text).replace(/\r\n?/g,'\n');
+  const rows=[]; let row=[], f='', q=false;
+  for(let i=0;i<t.length;i++){
+    const ch=t[i];
+    if(q){
+      if(ch==='"'){ if(t[i+1]==='"'){ f+='"'; i++; } else q=false; }
+      else f+=ch;
+    }
+    else if(ch==='"' && f==='') q=true;
+    else if(ch===sep){ row.push(f); f=''; }
+    else if(ch==='\n'){ row.push(f); rows.push(row); row=[]; f=''; }
+    else f+=ch;
+  }
+  if(f!=='' || row.length){ row.push(f); rows.push(row); }
+  return rows;
+}
+function csvFeld(v){
+  const s=v==null?'':String(v);
+  return /[;"\n\r]|^\s|\s$/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+function csvZeile(arr){ return arr.map(csvFeld).join(';'); }
+/* Dezimalkomma: Excel (deutsch) macht aus „10.5" sonst beim Öffnen den 10. Mai */
+function zahlDe(x){ return String(+x||0).replace('.',','); }
+function zahlLesen(s){ const v=parseFloat(String(s==null?'':s).trim().replace(',','.')); return isFinite(v)?v:0; }
+const csvNorm=s=>String(s==null?'':s).trim().toLowerCase().replace(/\s+/g,' ');
+const csvLeer=r=>!r || r.every(c=>!String(c==null?'':c).trim());
+/* Feste Spalten: erkannte Überschriften (klein geschrieben). Die umbenennbaren Spalten
+   (Montagestufe … Zusatz 3) kommen in csvKopfZuordnen mit ihrer aktuellen Benennung dazu. */
+const CSV_FELDER={
+  level:   ['level','lvl','ebene'],
+  name:    ['prozessschritt','schritt','arbeitsschritt','arbeitsfolge'],
+  sachnr:  ['sachnummer','sachnr','sachnr.','teilenummer','materialnummer','material','komponente'],
+  teilname:['benennung','bauteilbenennung','bauteil','bezeichnung','teilbenennung','objektkurztext'],
+  menge:   ['menge','anzahl','stück','stk','stk.'],
+  note:    ['notiz','bemerkung','kommentar'],
+};
+/* Ordnet jede Spalte der Kopfzeile einem Feld oder einer Kategorie zu.
+   katMeta[j] = Kategorie-Schlüssel aus der __COLS__-Zeile genau über dieser Spalte (falls vorhanden). */
+function csvKopfZuordnen(kopf,katMeta,cols,labelsDatei){
+  const alias={};
+  Object.keys(CSV_FELDER).forEach(k=>alias[k]=CSV_FELDER[k]);
+  OPT_COLS.filter(o=>o.renameable).forEach(o=>{
+    alias[o.key]=[colLabel(o.key),o.label,labelsDatei&&labelsDatei[o.key],o.key].filter(Boolean).map(csvNorm);
+  });
+  const feld={}, kat=[], unbekannt=[], belegt=new Set();
+  kopf.forEach((h,j)=>{
+    const km=katMeta&&katMeta[j];
+    if(km && cols.some(c=>c.key===km) && !belegt.has(km)){ belegt.add(km); kat.push({key:km,j}); return; }
+    const n=csvNorm(h); if(!n) return;
+    const f=Object.keys(alias).find(k=>feld[k]===undefined && alias[k].includes(n));
+    if(f){ feld[f]=j; return; }
+    const nq=n.replace(/\s*\((qty|anzahl)\)$/,'');
+    const c=cols.find(c=>!belegt.has(c.key) && (csvNorm(c.label)===nq || csvNorm(c.key)===nq));
+    if(c){ belegt.add(c.key); kat.push({key:c.key,j}); return; }
+    /* Abgeleitete Spalten (Teile-Text, Gesamt, Zeiten) rechnet die App selbst neu */
+    if(/^(teile|gesamt|∑)/.test(n) || /[(\[]\s*(min|mind)\s*[)\]]$/.test(n)) return;
+    unbekannt.push(String(h).trim());
+  });
+  return {feld,kat,unbekannt};
+}
+/* Index der Kopfzeile: erste Zeile mit „Prozessschritt" — beim Einfügen reicht auch „Sachnummer"/„Benennung" */
+function csvKopfSuchen(rows,start,auchTeile){
+  const ist=(r,k)=>r.some(c=>CSV_FELDER[k].includes(csvNorm(c)));
+  for(let i=start||0;i<Math.min(rows.length,(start||0)+30);i++){
+    const r=rows[i]; if(csvLeer(r)) continue;
+    if(ist(r,'name')) return i;
+    if(auchTeile && (ist(r,'sachnr')||ist(r,'teilname'))) return i;
+  }
+  return -1;
+}
+function csvWarnungen(v){
+  const w=[];
+  if(v.unbekannt.length) w.push(v.unbekannt.length+' unbekannte Spalte(n) ignoriert: '+v.unbekannt.slice(0,3).join(', ')+(v.unbekannt.length>3?' …':''));
+  if(v.waisen) w.push(v.waisen+' Teil-Zeile(n) ohne Prozessschritt darüber ignoriert');
+  if(v.ohneName) w.push(v.ohneName+' Zeile(n) ohne Prozessschritt ignoriert');
+  return w;
+}
+/* Format 4 lesen — aus einer Datei (mit oder ohne Metazeilen) oder aus der Zwischenablage.
+   Teile: Zeile mit Prozessschritt = neuer Schritt samt erstem Teil; Zeile ohne Prozessschritt,
+   aber mit Sachnummer/Benennung/Menge = weiteres Teil des Schritts darüber.
+   Fehlende Einstellungen bleiben undefined: der Import behält dann die aktuellen Werte. */
+function csvV4Lesen(rows,einfuegen){
+  const meta={};
+  let i=0;
+  while(i<rows.length && (csvLeer(rows[i]) || String(rows[i][0]).trim().startsWith('__'))){
+    if(!csvLeer(rows[i])) meta[String(rows[i][0]).trim()]=rows[i];
+    i++;
+  }
+  const kopfIdx=csvKopfSuchen(rows,i,einfuegen);
+  if(kopfIdx<0) return null;
+  const wert=k=>meta[k]?String(meta[k][1]==null?'':meta[k][1]).trim():undefined;
+  const jsonMeta=k=>{
+    if(!meta[k]) return null;
+    try{ const o=JSON.parse(decodeURIComponent(meta[k][1]||'')); return (o&&typeof o==='object')?o:null; }
+    catch(e){ return null; }
+  };
+  let colLabelsParsed=null;
+  if(meta.__COLLABELS__){
+    colLabelsParsed={};
+    meta.__COLLABELS__.slice(1).forEach(z=>{
+      const p=String(z).indexOf('|'); if(p<1) return;
+      colLabelsParsed[String(z).slice(0,p).trim()]=String(z).slice(p+1);
+    });
+  }
+  /* Kategorien stehen in der __COLS__-Zeile genau über ihrer Spalte — Excel verschiebt sie mit */
+  let colsFromFile=null; const katMeta={};
+  if(meta.__COLS__ && !einfuegen){
+    const neu=[];
+    meta.__COLS__.forEach((z,j)=>{
+      if(j===0) return;
+      const seg=String(z).split('|'); if(seg.length<3 || !seg[0].trim()) return;
+      let note=''; if(seg.length>=5){ try{ note=decodeURIComponent(seg[4]); }catch(e){ note=''; } }
+      neu.push({key:seg[0].trim(),label:seg[1],param:zahlLesen(seg[2]),group:seg[3]||'process',note});
+      katMeta[j]=seg[0].trim();
+    });
+    if(neu.length) colsFromFile=neu;
+  }
+  const cols=colsFromFile||COLS.map(c=>({...c}));
+  const {feld,kat,unbekannt}=csvKopfZuordnen(rows[kopfIdx],katMeta,cols,colLabelsParsed);
+  const zelle=(r,f)=>feld[f]===undefined?'':String(r[feld[f]]==null?'':r[feld[f]]).trim();
+  const extras=OPT_COLS.filter(o=>o.renameable).map(o=>o.key);
+  const newParts=[], newData={}, nurTeile=[];
+  let letzte=null, waisen=0, ohneName=0, nTeile=0;
+  for(let r=kopfIdx+1;r<rows.length;r++){
+    const row=rows[r];
+    if(csvLeer(row) || String(row[0]).trim().startsWith('__')) continue;
+    const name=zelle(row,'name');
+    if(name.startsWith('∑')) continue;
+    const sachnr=zelle(row,'sachnr'), tname=zelle(row,'teilname'), mTxt=zelle(row,'menge');
+    const teil=(sachnr||tname||mTxt!=='') ? {id:newTeilId(), sachnr, name:tname, menge:mTxt===''?1:Math.max(0,parseInt(mTxt)||0)} : null;
+    if(feld.name===undefined){ if(teil){ nurTeile.push(teil); nTeile++; } continue; }   // nur Teile (Einfügen)
+    if(!name){
+      if(!teil) ohneName++;
+      else if(letzte){ newData[letzte].__teile.push(teil); nTeile++; }
+      else waisen++;
+      continue;
+    }
+    const id=newPartId(); letzte=id;
+    newParts.push({id,name});
+    const d=newData[id]={};
+    const lv=parseInt(zelle(row,'level'));
+    d.__level=(lv>=1&&lv<=7)?lv:1;
+    d.__teile=teil?[teil]:[];
+    if(teil) nTeile++;
+    extras.forEach(k=>{ d['__'+k]=zelle(row,k); });
+    d.__note=feld.note===undefined?'':String(row[feld.note]==null?'':row[feld.note]).trim();
+    cols.forEach(c=>{ d[c.key]=0; });
+    kat.forEach(({key,j})=>{ const v=parseInt(String(row[j]==null?'':row[j]).trim()); d[key]=(isFinite(v)&&v>0)?v:0; });
+  }
+  /* Szenario und Laufweg-Auslöser stehen unter der Nummer des Schritts → auf die neuen IDs umschlüsseln */
+  const rowIds=newParts.map(p=>p.id);
+  let szenParsed=null;
+  const szen=taktSzenPruefen(jsonMeta('__SZENARIO__'));
+  if(szen && !einfuegen){
+    const m={};
+    Object.keys(szen.moves).forEach(k=>{ const id=rowIds[+k]; if(id) m[id]=szen.moves[k]; });
+    szen.moves=m; szenParsed=szen;
+  }
+  let lwTrigger=null;
+  const lwRaw=jsonMeta('__LW__');
+  if(lwRaw && !Array.isArray(lwRaw) && !einfuegen){
+    lwTrigger={};
+    Object.keys(lwRaw).forEach(k=>{ const id=rowIds[+k], t=lwTrigPruefen(lwRaw[k]); if(id&&t) lwTrigger[id]=t; });
+  }
+  let lwParamRaw;
+  if(meta.__LWPARAM__){
+    lwParamRaw={};
+    meta.__LWPARAM__.slice(1).forEach(seg=>{
+      const [k,v]=String(seg).split('|');
+      if(k&&v!==undefined&&v.trim()!=='') lwParamRaw[k.trim()]=zahlLesen(v);
+    });
+  }
+  let taktParsed;
+  if(meta.__TAKT__){
+    const q=meta.__TAKT__, soll=zahlLesen(q[1]);
+    taktParsed={soll:soll<0?0:soll, mitVz:String(q[2]).trim()!=='0', groupKey:String(q[3]||'').trim()};
+  }
+  const zahlOpt=k=>meta[k]?zahlLesen(wert(k)):undefined;
+  return {cols, parts:newParts, data:newData,
+    projectName:meta.__PROJECT__?(wert('__PROJECT__')||null):undefined,
+    description:meta.__DESC__?String(meta.__DESC__[1]==null?'':meta.__DESC__[1]):undefined,
+    sollzeit:zahlOpt('__SOLLZEIT__'), verteilzeit:zahlOpt('__VERTEILZEIT__'), stundensatz:zahlOpt('__STUNDENSATZ__'),
+    colLabels:colLabelsParsed, mtmCustom:jsonMeta('__MTMCUSTOM__'), mtmCustomGE:jsonMeta('__MTMGE__'),
+    takt:taktParsed, szenario:szenParsed, lwParams:lwParamRaw, lwTrigger,
+    format:meta.__FORMAT__?(parseInt(wert('__FORMAT__'))||CSV_FORMAT):CSV_FORMAT, teileFehler:0,
+    v4:{unbekannt, waisen, ohneName, nTeile, nurTeile, feld, nKat:kat.length}};
 }
 /* Gemeinsamer CSV-Parser für Start-Import und laufenden Import */
 function parseImportedCSV(text){
@@ -2686,6 +2933,19 @@ function parseImportedCSV(text){
   if(clean.startsWith('PK\x03\x04')) throw new Error('Das ist eine Excel-Datei (.xlsx), keine CSV. Bitte eine \u00FCber \u201EExport" als CSV gespeicherte Datei w\u00E4hlen.');
   if(clean.includes('\x00')) throw new Error('Die Datei ist keine UTF-8-Textdatei. Bitte als CSV (UTF-8) speichern.');
   if(!clean.includes(';')) throw new Error('Keine mit Semikolon getrennte CSV-Datei.');
+  const erste=clean.split('\n',1)[0].trim();
+  const fmt=erste.startsWith('__FORMAT__')?(parseInt(erste.split(';')[1])||1):null;
+  if(fmt!==null && fmt<4) return parseCsvAlt(clean);
+  const rows=csvZerlegen(clean,';');
+  /* Ohne Formatzeile: Kopfzeile mit „Prozessschritt" = von Hand oder aus der Vorlage erstellt,
+     sonst eine Datei der Vorversion (eine Zeile je Bauteil) */
+  if(fmt===null && csvKopfSuchen(rows,0,false)<0) return parseCsvAlt(clean);
+  const p=csvV4Lesen(rows,false);
+  if(!p) throw new Error('Kopfzeile mit der Spalte „Prozessschritt" nicht gefunden.');
+  return p;
+}
+/* Formate 1 und 3 — unverändert aus der Zeit vor Format 4 */
+function parseCsvAlt(clean){
   const lines=clean.split('\n').map(l=>l.trim()).filter(l=>l);
   if(lines.length<2) return null;
   let idx=0;
@@ -3297,6 +3557,17 @@ function updateLastAction(){
 function undoLast(){
   const last=undoStack.pop();
   if(!last){toast('Nichts rückgängig zu machen');return;}
+  if(last.typ==='einfuegen'){
+    const weg=new Set(last.ids);
+    parts=parts.filter(p=>!weg.has(p.id));
+    last.ids.forEach(id=>{ delete data[id]; delete teileOffen[id]; });
+    if(!parts.some(p=>p.id===activePart)) activePart=parts[0]?parts[0].id:null;
+    if(rowClipboard && weg.has(rowClipboard.sourceId)) rowClipboard=null;
+    updGrid(); renderBody(); updateActiveBar(); markDirty();
+    lastActionText='↩ Rückgängig: '+last.ids.length+' eingefügte Prozessschritte entfernt';
+    toast(lastActionText); updateLastAction();
+    return;
+  }
   if(!data[last.part]){toast('⚠ Prozessschritt nicht mehr vorhanden');return;}
   /* Zählung aus der Zeit, bevor der Schritt Auslöser bekam: zurücksetzen hielte nur bis zum nächsten Rechenlauf */
   if(last.key===LW_KAT && lwHat(last.part)){
@@ -4378,6 +4649,7 @@ document.addEventListener('keydown',e=>{
   if(offen('mehrMenue')) closeMehrMenue();
   else if(offen('notePopup')) closeNotePopup();
   else if(offen('colPopup')) closeColPopup();
+  else if(offen('pasteModal')) closePaste();
   else if(offen('expModal')) closeExpModal();
   else if(lwOffen()) closeLw();
   else if(offen('mtmModal')) closeMtm();
@@ -4933,41 +5205,76 @@ function doExportXlsx(){
   }
 }
 
+/* ── Format 4 schreiben ──
+   Kopfzeile: Level, Prozessschritt, Sachnummer, Benennung, Menge, die sechs umbenennbaren Spalten,
+   Notiz, dann je Kategorie eine Spalte mit der Anzahl (Zeiten rechnet die App, sie stehen im Excel-Report).
+   Weitere Teile eines Schritts folgen in eigenen Zeilen mit leerem Prozessschritt. */
+const CSV_V4_EXTRAS=OPT_COLS.filter(o=>o.renameable).map(o=>o.key);
+function csvKopfV4(){
+  return ['Level','Prozessschritt','Sachnummer','Benennung','Menge',...CSV_V4_EXTRAS.map(colLabel),'Notiz',...COLS.map(c=>c.label)];
+}
+const CSV_V4_FIX=6+CSV_V4_EXTRAS.length;   // Spalten vor der ersten Kategorie
+function csvDatenV4(){
+  const zeilen=[];
+  parts.forEach(p=>{
+    const d=data[p.id], teile=stepTeile(p.id), t0=teile[0];
+    zeilen.push([d.__level||1, p.name, t0?t0.sachnr:'', t0?t0.name:'', t0?t0.menge:'',
+      ...CSV_V4_EXTRAS.map(k=>d['__'+k]||''), d.__note||'',
+      ...COLS.map(c=>d[c.key]||'')]);   // 0 bleibt leer — so ist die Matrix in Excel lesbar
+    teile.slice(1).forEach(t=>zeilen.push(['','',t.sachnr,t.name,t.menge]));
+  });
+  return zeilen;
+}
+function csvProjektV4(){
+  /* Einstellungen oben wie bisher, aber lesbar; nur interne Herleitungen (Bausteine, Szenario,
+     Laufweg-Auslöser) bleiben als kodierte Zeile — sie werden nicht von Hand bearbeitet */
+  const szenCsv = taktSzenario ? {groupKey:taktSzenario.groupKey, extra:taktSzenario.extra,
+    moves:Object.fromEntries(parts.map((pt,i)=>[i,pt.id]).filter(([,id])=>taktHas(taktSzenario.moves,id)).map(([i,id])=>[i,taktSzenario.moves[id]]))} : null;
+  const lwCsv={}; parts.forEach((pt,i)=>{ const t=lwTrig(pt.id); if(t) lwCsv[i]=t; });
+  const json=o=>encodeURIComponent(JSON.stringify(o));
+  const meta=[
+    ['__FORMAT__',CSV_FORMAT],
+    ['__PROJECT__',currentProject||''],
+    ['__DESC__',projectDescription||''],
+    ['__SOLLZEIT__',zahlDe(sollzeit)],
+    ['__VERTEILZEIT__',zahlDe(verteilzeitFactor)],
+    ['__STUNDENSATZ__',zahlDe(hourlyRate)],
+    ['__COLLABELS__',...OPT_COLS.filter(o=>o.renameable&&colLabels[o.key]).map(o=>o.key+'|'+colLabels[o.key])],
+    /* Kategorien genau über ihrer Spalte: Schlüssel|Name|Zeitwert|Gruppe|Notiz */
+    ['__COLS__',...Array(CSV_V4_FIX-1).fill(''),...COLS.map(c=>c.key+'|'+c.label+'|'+zahlDe(c.param)+'|'+(c.group||'process')+'|'+encodeURIComponent(c.note||''))],
+    ['__MTMCUSTOM__',json(mtmCustom||{})],
+    ['__MTMGE__',json(mtmCustomGE||{})],
+    ['__TAKT__',zahlDe(taktSoll),taktMitVz?1:0,taktGroupKey],
+    ['__SZENARIO__',json(szenCsv)],
+    ['__LWPARAM__',...LW_KEYS.map(k=>k+'|'+zahlDe(lwParams[k]))],
+    ['__LW__',json(lwCsv)],
+  ];
+  return '\uFEFF'+[...meta,csvKopfV4(),...csvDatenV4()].map(csvZeile).join('\n');
+}
+/* Leere Vorlage zum Ausfüllen in Excel: Kopfzeile in Zeile 1 (ohne Einstellungszeilen) und ein Beispiel.
+   Der Import erkennt sie an der Überschrift „Prozessschritt"; Einstellungen des Projekts bleiben dabei erhalten. */
+function doExportVorlage(){
+  const leer=n=>Array(n).fill('');
+  const nx=CSV_V4_EXTRAS.length, iSt=CSV_V4_EXTRAS.indexOf('extra1');
+  const ext=(stufe,st)=>{ const e=leer(nx); e[0]=stufe; if(iSt>=0) e[iSt]=st; return e; };
+  const kat=leer(COLS.length); if(kat.length) kat[0]=1;
+  const zeilen=[csvKopfV4(),
+    [1,'Beispiel: Vormontage Welle','','','',...ext('VM','S1'),'Level 1 = Überschrift',...leer(COLS.length)],
+    [2,'Beispiel: Deckel verschrauben','30506360','Deckel',1,...ext('VM','S1'),'Weitere Teile darunter, Prozessschritt leer lassen',...kat],
+    ['','','31207531','Zylinderschraube M10x30',8],
+    ['','','31207540','Dichtring',1]];
+  const name='Vorlage_'+(currentProject||'Zeitaufnahme').replace(/[\\/:*?"<>|]/g,'_')+'.csv';
+  const blob=new Blob(['\uFEFF'+zeilen.map(csvZeile).join('\n')],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;a.click();
+  closeExpModal();
+  toast('✓ Vorlage gespeichert: '+name+' – Beispielzeilen vor dem Import löschen',5000);
+}
 function doExport(){
   let filename = (document.getElementById('expFilename').value.trim()||(currentProject||'Zeitaufnahme'));
   if(!filename.toLowerCase().endsWith('.csv')) filename+='.csv';
   closeExpModal();
-  const sep=';'; const u=ul();
-  const hdr=['Level','Prozessschritt','Teile',colLabel('stufe'),colLabel('werkzeug'),colLabel('quelle'),colLabel('extra1'),colLabel('extra2'),colLabel('extra3'),'Anzahl','Gesamt '+u,...COLS.flatMap(c=>[c.label+' (QTY)',c.label+' ('+u+')']),'Notiz'].join(sep);
-  /* Teile als URL-kodiertes JSON ohne interne IDs — so bleibt die Zeile frei von Semikolons */
-  const teileCsv=id=>encodeURIComponent(JSON.stringify(stepTeile(id).map(t=>({sachnr:t.sachnr,name:t.name,menge:t.menge}))));
-  const rows=parts.map(p=>[data[p.id].__level||1,p.name,teileCsv(p.id),data[p.id].__stufe||'',data[p.id].__werkzeug||'',data[p.id].__quelle||'',data[p.id].__extra1||'',data[p.id].__extra2||'',data[p.id].__extra3||'',stepQty(p.id),disp(calcTotal(p.id)).replace('.',','),...COLS.flatMap(c=>{const q=data[p.id][c.key]||0;return[q,disp(q*c.param).replace('.',',')];}),encodeURIComponent(data[p.id].__note||'')].join(sep));
-  const metaProject = ['__PROJECT__',currentProject||''].join(sep);
-  const metaDesc = ['__DESC__',encodeURIComponent(projectDescription||'')].join(sep);
-  const metaSoll = ['__SOLLZEIT__',sollzeit||0].join(sep);
-  const metaVerteil = ['__VERTEILZEIT__',verteilzeitFactor||0].join(sep);
-  const metaStunden = ['__STUNDENSATZ__',hourlyRate||0].join(sep);
-  // Frei vergebene Spalten\u00FCberschriften (URL-kodiert), damit sie den Re-Import \u00FCberleben
-  const metaColLabels = ['__COLLABELS__',...OPT_COLS.filter(o=>o.renameable&&colLabels[o.key]).map(o=>o.key+'|'+encodeURIComponent(colLabels[o.key]))].join(sep);
-  // Also export column params (inkl. Notiz, URL-kodiert) as a metadata row for re-import
-  const metaKeys = ['__COLS__',...Array(CSV_FIX-1).fill(''),...COLS.flatMap(c=>[c.key+'|'+c.label+'|'+c.param+'|'+(c.group||'process')+'|'+encodeURIComponent(c.note||''),'']),''].join(sep);
-  // Herleitung selbst angelegter Bausteine, damit sie auch nach einem Re-Import aufklappbar bleibt
-  const metaMtm = ['__MTMCUSTOM__',encodeURIComponent(JSON.stringify(mtmCustom||{}))].join(sep);
-  // Selbst angelegte Grundelemente, damit die Herleitung darauf aufbauender Bausteine erhalten bleibt
-  const metaMtmGe = ['__MTMGE__',encodeURIComponent(JSON.stringify(mtmCustomGE||{}))].join(sep);
-  // Taktabgleich: Soll-Taktzeit, Verteilzeit-Schalter, Gruppierung
-  const metaTakt = ['__TAKT__',taktSoll||0,taktMitVz?1:0,taktGroupKey].join(sep);
-  // Szenario mit Zeilennummern statt Bauteil-IDs — der Import vergibt neue IDs
-  const szenCsv = taktSzenario ? {groupKey:taktSzenario.groupKey, extra:taktSzenario.extra,
-    moves:Object.fromEntries(parts.map((pt,i)=>[i,pt.id]).filter(([,id])=>taktHas(taktSzenario.moves,id)).map(([i,id])=>[i,taktSzenario.moves[id]]))} : null;
-  const metaSzen = ['__SZENARIO__',encodeURIComponent(JSON.stringify(szenCsv))].join(sep);
-  // Laufweg: Meterwerte je Auslöser (warum als Metazeile statt Spalte: siehe CSV_FIX)
-  const metaLwParam = ['__LWPARAM__',...LW_KEYS.map(k=>k+'|'+lwParams[k])].join(sep);
-  // Auslöser je Schritt mit Zeilennummer statt ID — der Import vergibt neue IDs, wie beim Szenario
-  const lwCsv={}; parts.forEach((pt,i)=>{ const t=lwTrig(pt.id); if(t) lwCsv[i]=t; });
-  const metaLw = ['__LW__',encodeURIComponent(JSON.stringify(lwCsv))].join(sep);
-  const metaFormat = ['__FORMAT__',CSV_FORMAT].join(sep);
-  const csv='\uFEFF'+[metaFormat,metaProject,metaDesc,metaSoll,metaVerteil,metaStunden,metaColLabels,metaKeys,metaMtm,metaMtmGe,metaTakt,metaSzen,metaLwParam,metaLw,hdr,...rows].join('\n');
+  const csv=csvProjektV4();
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();
@@ -4992,6 +5299,92 @@ function updateExportIndicator(){
 }
 
 /* ═══════════════════════════════════════
+   AUS EXCEL EINFÜGEN
+   Excel kopiert Zellen als Text mit Tabulatoren; eingefügter CSV-Text (Semikolon) geht auch.
+   Gelesen wird wie beim CSV-Import Format 4 — nur ohne Einstellungen und Kategorien der Datei.
+═══════════════════════════════════════ */
+let pasteErgebnis=null;
+function openPaste(){
+  const ta=document.getElementById('pasteText');
+  ta.value=''; pastePruefen();
+  document.getElementById('pasteModal').classList.add('open');
+  setTimeout(()=>ta.focus(),80);
+}
+function closePaste(){ document.getElementById('pasteModal').classList.remove('open'); pasteErgebnis=null; }
+function pasteLesen(text){
+  if(!String(text).trim()) return null;
+  const sep=text.includes('\t')?'\t':';';
+  return csvV4Lesen(csvZerlegen(text,sep),true);
+}
+function pastePruefen(){
+  const info=document.getElementById('pasteInfo'), go=document.getElementById('pasteGo'), modus=document.getElementById('pasteModus');
+  const text=document.getElementById('pasteText').value;
+  let p=null;
+  try{ p=pasteLesen(text); }catch(e){ p=null; }
+  pasteErgebnis=p;
+  modus.classList.toggle('hidden', !p || p.v4.feld.name===undefined);
+  if(!text.trim()){ info.innerHTML=''; go.disabled=true; return; }
+  if(!p){
+    info.innerHTML='<span class="fehler">Keine Kopfzeile erkannt.</span> Bitte die Zeile mit „Prozessschritt" (oder „Sachnummer"/„Benennung") mit markieren.';
+    go.disabled=true; return;
+  }
+  const v=p.v4, warn=csvWarnungen(v);
+  const spalten=Object.keys(v.feld).length+' Spalten'+(v.nKat?' + '+v.nKat+' Kategorien':'');
+  let h;
+  if(v.feld.name===undefined){
+    const ziel=activePart?partName(activePart):'';
+    h=v.nTeile
+      ? (ziel ? '<span class="ok">'+v.nTeile+' Teil(e)</span> werden an „'+escHtml(ziel)+'" angehängt · '+spalten
+              : '<span class="fehler">Kein aktiver Prozessschritt</span> – bitte zuerst einen Schritt anlegen oder antippen.')
+      : '<span class="fehler">Keine Teile gefunden.</span>';
+    go.disabled=!(v.nTeile && ziel);
+  } else {
+    h=p.parts.length
+      ? '<span class="ok">'+p.parts.length+' Prozessschritt(e) mit '+v.nTeile+' Teil(en)</span> erkannt · '+spalten
+      : '<span class="fehler">Keine Prozessschritte gefunden.</span>';
+    go.disabled=!p.parts.length;
+  }
+  if(warn.length) h+='<br><span class="warn">⚠ '+escHtml(warn.join(' · '))+'</span>';
+  info.innerHTML=h;
+}
+function doPaste(){
+  const p=pasteErgebnis; if(!p) return;
+  const v=p.v4;
+  if(v.feld.name===undefined){
+    const d=data[activePart]; if(!d) return;
+    undoStack.push({part:activePart,key:'__teile',prev:JSON.parse(JSON.stringify(d.__teile))});
+    if(undoStack.length>50) undoStack.shift();
+    d.__teile.push(...v.nurTeile);
+    teileOffen[activePart]=true;
+    closePaste();
+    renderBody(); updateActiveBar(); markDirty();
+    lastActionText=v.nurTeile.length+' Teil(e) eingefügt · '+partName(activePart); updateLastAction();
+    toast('✓ '+v.nurTeile.length+' Teil(e) an „'+partName(activePart)+'" angehängt – ↩ Undo nimmt sie zurück');
+    return;
+  }
+  const ersetzen=document.querySelector('input[name="pasteModus"]:checked').value==='ersetzen';
+  if(ersetzen){
+    if(!confirm('Alle '+parts.length+' Prozessschritte durch die '+p.parts.length+' eingefügten ersetzen?\n\nErfasste Werte, Teile und Laufweg-Auslöser der bisherigen Schritte gehen verloren. Einstellungen und Kategorien bleiben.')) return;
+    parts=p.parts; data=p.data;
+    teileOffen={}; taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
+    undoStack=[]; rowClipboard=null;
+    activePart=parts[0].id;
+  } else {
+    parts.push(...p.parts);
+    Object.assign(data,p.data);
+    undoStack.push({typ:'einfuegen',ids:p.parts.map(x=>x.id)});
+    if(undoStack.length>50) undoStack.shift();
+    if(!activePart) activePart=p.parts[0].id;
+  }
+  ensureKeys();
+  closePaste();
+  updGrid(); renderBody(); updateActiveBar(); markDirty();
+  const txt=p.parts.length+' Prozessschritt(e) mit '+v.nTeile+' Teil(en) '+(ersetzen?'übernommen':'angehängt');
+  lastActionText=txt; updateLastAction();
+  toast('✓ '+txt+(ersetzen?'':' – ↩ Undo nimmt sie zurück'));
+}
+
+/* ═══════════════════════════════════════
    IMPORT
 ═══════════════════════════════════════ */
 function openImport(){ document.getElementById('importFileInput').click(); }
@@ -5008,22 +5401,27 @@ function handleImport(evt){
 
       if(!confirm(`CSV importieren?\n„${file.name}"\n\nAchtung: Aktuelle Daten werden überschrieben.`)) return;
 
+      /* Format 4 ohne Einstellungszeile (z.B. von Hand erstellt): aktuellen Wert behalten.
+         Ältere Formate liefern immer einen Wert — dort bleibt alles wie bisher. */
+      const behalte=(neu,alt)=>neu===undefined?alt:neu;
       COLS=lwKatUmstellen(parsed.cols);
       parts=parsed.parts;
       data=parsed.data;
-      projectDescription=parsed.description||'';
-      sollzeit=parsed.sollzeit||0;
-      verteilzeitFactor=parsed.verteilzeit||0;
-      hourlyRate=parsed.stundensatz||0;
+      projectDescription=behalte(parsed.description,projectDescription)||'';
+      sollzeit=behalte(parsed.sollzeit,sollzeit)||0;
+      verteilzeitFactor=behalte(parsed.verteilzeit,verteilzeitFactor)||0;
+      hourlyRate=behalte(parsed.stundensatz,hourlyRate)||0;
       if(parsed.colLabels) colLabels=parsed.colLabels;
       if(parsed.mtmCustom) mtmCustom=parsed.mtmCustom;
       if(parsed.mtmCustomGE) mtmCustomGE=parsed.mtmCustomGE;
-      taktSoll=parsed.takt?parsed.takt.soll:0;
-      taktMitVz=parsed.takt?parsed.takt.mitVz:true;
-      if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
+      if(parsed.takt!==undefined){
+        taktSoll=parsed.takt?parsed.takt.soll:0;
+        taktMitVz=parsed.takt?parsed.takt.mitVz:true;
+        if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
+      }
       taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
       teileOffen={};
-      lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
+      if(parsed.lwParams!==undefined) lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
       if(parsed.lwTrigger) Object.keys(parsed.lwTrigger).forEach(id=>{ if(data[id]) data[id].__lw=parsed.lwTrigger[id]; });
       undoStack=[];
       rowClipboard=null;
@@ -5160,6 +5558,7 @@ document.addEventListener('keydown', e=>{
   if(document.getElementById('anaModal').classList.contains('open')) return;
   if(document.getElementById('mtmModal').classList.contains('open')) return;
   if(document.getElementById('lwModal').classList.contains('open')) return;
+  if(document.getElementById('pasteModal').classList.contains('open')) return;
   const key=e.key.toLowerCase();
   const idx=SHORTCUT_POOL.indexOf(key);
   if(idx>=0 && idx<COLS.length){

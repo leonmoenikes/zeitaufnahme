@@ -18,6 +18,38 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### CSV-Format 4: in Excel les- und bearbeitbar
+Die CSV lässt sich jetzt in Excel lesen, bearbeiten und auch von Hand anlegen. Geschrieben wird
+`__FORMAT__;4`. Dateien im Format 1 und 3 werden weiter eingelesen. Eine App-Version ohne Format 4
+kann die neuen Dateien nicht lesen.
+- **Teile als eigene Zeilen:** In der Zeile des Prozessschritts steht das erste Teil (Sachnummer,
+  Benennung, Menge). Weitere Teile folgen in den Zeilen darunter, die Spalte Prozessschritt bleibt
+  dort leer, wie in einer Stückliste.
+- **Spalten werden über die Überschrift erkannt**, nicht mehr über ihre Position:
+  - Spalten dürfen fehlen oder anders sortiert sein.
+  - Unbekannte Spalten werden ignoriert und beim Import gemeldet.
+  - Die kleinste gültige Datei hat nur die Spalten `Prozessschritt;Sachnummer;Benennung;Menge`.
+- **Je Kategorie nur die Anzahl.** Die Zeit-Spalten entfallen in der CSV. Leere Zellen bedeuten 0.
+  Im Excel-Export stehen weiterhin Anzahl und Zeit, die Zeit als Formel „Anzahl × Zeitwert".
+- **Klartext statt Kodierung:** Notizen, Projektbeschreibung und Spaltennamen stehen lesbar in
+  der Datei. Feldern mit Semikolon, Anführungszeichen oder Zeilenumbruch setzt die App
+  Anführungszeichen, wie Excel es auch tut.
+- **Einstellungen oben wie bisher, aber lesbar**, mit Dezimalkomma (sonst macht Excel aus
+  „10.5" den 10. Mai). Kodiert bleiben nur die internen Herleitungen: selbst angelegte Bausteine,
+  Szenario und Laufweg-Auslöser.
+- **Datei ohne Einstellungszeilen:** Beim Import in ein offenes Projekt bleiben dessen
+  Einstellungen erhalten (Sollzeit, Verteilzeit, Stundensatz, Takt, Laufweg-Meterwerte, Kategorien).
+- **Neu: „Aus Excel einfügen"** im Menü ⋯, in beiden Modi:
+  - In Excel die Zeilen samt Kopfzeile kopieren und in das Fenster einfügen. Eine Vorschau zeigt,
+    was erkannt wurde.
+  - Die Schritte werden am Ende angehängt; Undo nimmt sie wieder zurück. Alternativ ersetzen sie
+    alle bisherigen Schritte.
+  - Ohne Spalte „Prozessschritt", z. B. bei einer kopierten Stückliste, kommen die Teile an den
+    aktiven Schritt.
+- **Neu: „Leere Vorlage (CSV)"** im Export-Fenster: Kopfzeile mit allen Kategorien des Projekts
+  und Beispielzeilen zum Ausfüllen.
+- Import-Hinweise im Toast dürfen jetzt umbrechen.
+
 ### Design
 Die Daten, das CSV-Format, der Excel-Export, die Druckansicht und der gespeicherte Stand
 bleiben unverändert. Alle Funktionen sind dort, wo sie waren; neu angeordnet ist nur die Topbar.

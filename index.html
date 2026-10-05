@@ -1508,14 +1508,7 @@ function openNotePopup(anchorEl,title,value,onSave){
   document.getElementById('notePopupTitle').textContent=title;
   ta.value=value||'';
   pop.classList.add('open');
-  const rect=anchorEl.getBoundingClientRect();
-  const popW=230;
-  let left=rect.left;
-  let top=rect.bottom+6;
-  if(left+popW>window.innerWidth-8) left=window.innerWidth-popW-8;
-  if(top+150>window.innerHeight-8) top=rect.top-156;
-  pop.style.left=Math.max(8,left)+'px';
-  pop.style.top=Math.max(8,top)+'px';
+  positionPopup(pop,anchorEl);
   notePopupTarget={onSave};
   setTimeout(()=>ta.focus(),50);
 }
@@ -1535,34 +1528,25 @@ document.addEventListener('click', e=>{
   }
 });
 
+/* Fehlende Felder eines Schritts mit Standardwerten füllen (Zähler 0, Texte leer, Level 1) */
+function schrittFelder(d){
+  COLS.forEach(c=>{ if(d[c.key]===undefined) d[c.key]=0; });
+  if(d.__level===undefined) d.__level=1;
+  ['note','stufe','werkzeug','quelle','extra1','extra2','extra3'].forEach(k=>{ if(d['__'+k]===undefined) d['__'+k]=''; });
+}
 function initPart(p){
   if(!data[p]) data[p]={};
-  COLS.forEach(c=>{ if(data[p][c.key]===undefined) data[p][c.key]=0; });
   if(!Array.isArray(data[p].__teile)) data[p].__teile=[];
-  if(data[p].__note===undefined) data[p].__note='';
-  if(data[p].__extra1===undefined) data[p].__extra1='';
-  if(data[p].__extra2===undefined) data[p].__extra2='';
-  if(data[p].__extra3===undefined) data[p].__extra3='';
-  if(data[p].__level===undefined) data[p].__level=1;
-  if(data[p].__stufe===undefined) data[p].__stufe='';
-  if(data[p].__werkzeug===undefined) data[p].__werkzeug='';
-  if(data[p].__quelle===undefined) data[p].__quelle='';
+  schrittFelder(data[p]);
 }
 function ensureKeys(){
   parts.forEach(part=>{
     const p=part.id;
-    COLS.forEach(c=>{ if(!data[p]) data[p]={}; if(data[p][c.key]===undefined) data[p][c.key]=0; });
+    if(!data[p]) data[p]={};
     migrateLegacyStep(data[p],part.name);   // Vorversion umwandeln bzw. Teile-Liste absichern
     const lw=lwTrigPruefen(data[p].__lw);
     if(lw) data[p].__lw=lw; else delete data[p].__lw;
-    if(data[p].__note===undefined) data[p].__note='';
-    if(data[p].__extra1===undefined) data[p].__extra1='';
-    if(data[p].__extra2===undefined) data[p].__extra2='';
-    if(data[p].__extra3===undefined) data[p].__extra3='';
-    if(data[p].__level===undefined) data[p].__level=1;
-    if(data[p].__stufe===undefined) data[p].__stufe='';
-    if(data[p].__werkzeug===undefined) data[p].__werkzeug='';
-    if(data[p].__quelle===undefined) data[p].__quelle='';
+    schrittFelder(data[p]);
   });
 }
 function calcTotal(p){ if(!p||!data[p]) return 0; return COLS.reduce((s,c)=>s+(data[p][c.key]||0)*c.param,0); }
@@ -1579,9 +1563,6 @@ function updateProjLabel(){
   if(descBtn) descBtn.classList.toggle('active',!!projectDescription);
 }
 
-/* ═══════════════════════════════════════
-   FILTER
-═══════════════════════════════════════ */
 /* ═══════════════════════════════════════
    SPALTEN-SICHTBARKEIT & SPALTENFILTER
    Filter im Excel-Autofilter-Stil: Klick aufs Filtersymbol
@@ -1676,11 +1657,12 @@ function getFilteredParts(){
 }
 
 /* ── Popup-Grundgerüst ── */
+/* Breite und Höhe aus dem geöffneten Popup — im Einfach-Modus ist es breiter als am Laptop */
 function positionPopup(pop,anchorEl){
-  const r=anchorEl.getBoundingClientRect(), w=230;
+  const r=anchorEl.getBoundingClientRect(), w=pop.offsetWidth||240;
   let left=r.left, top=r.bottom+6;
   if(left+w>window.innerWidth-8) left=window.innerWidth-w-8;
-  const h=Math.min(pop.scrollHeight||260,window.innerHeight*0.6);
+  const h=Math.min(pop.offsetHeight||pop.scrollHeight||260,window.innerHeight*0.6);
   if(top+h>window.innerHeight-8) top=Math.max(8,r.top-h-6);
   pop.style.left=Math.max(8,left)+'px';
   pop.style.top=Math.max(8,top)+'px';
@@ -1772,7 +1754,6 @@ function openColFilter(anchorEl,fk,label,kind){
     body.appendChild(wrap);
   } else {
     /* Werteliste (Excel-Autofilter) — Werte aus allen ANDEREN Filtern heraus ermittelt */
-    const others={};Object.keys(colFilters).forEach(k=>{if(k!==fk)others[k]=colFilters[fk===k?'':k];});
     const saved=colFilters[fk];delete colFilters[fk];
     const base=parts.filter(partPassesFilters);
     if(saved) colFilters[fk]=saved;
@@ -2071,19 +2052,19 @@ function printAnalysis(){
   window.print();
 }
 function updateSoll(){
-  const v=parseFloat(document.getElementById('sollInput').value)||0;
+  const v=Math.max(0,parseFloat(document.getElementById('sollInput').value)||0);
   sollzeit = unit==='minD' ? v : v/MIND_FACTOR; // kanonisch in minD
   markDirty();
   renderAnalysis();
 }
 function updateVerteil(){
-  verteilzeitFactor=parseFloat(document.getElementById('verteilInput').value)||0;
+  verteilzeitFactor=Math.max(0,parseFloat(document.getElementById('verteilInput').value)||0);
   markVerteilPreset();
   markDirty();
   renderAnalysis();
 }
 function updateStundensatz(){
-  hourlyRate=parseFloat(document.getElementById('stundensatzInput').value)||0;
+  hourlyRate=Math.max(0,parseFloat(document.getElementById('stundensatzInput').value)||0);
   markDirty();
   renderAnalysis();
 }
@@ -2575,6 +2556,8 @@ function pieSvg(items,total,stroke,size){
   items.forEach(it=>{
     if(it.value<=0) return;
     const sweep=(it.value/total)*360;
+    /* 100 %: Start- und Endpunkt des Bogens fielen zusammen, das Diagramm bliebe leer */
+    if(sweep>=359.999){ paths+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${it.color}" stroke="${stroke}" stroke-width="1.5"/>`; return; }
     const a1=Math.PI*angle/180, a2=Math.PI*(angle+sweep)/180;
     const x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1);
     const x2=cx+r*Math.cos(a2), y2=cy+r*Math.sin(a2);
@@ -2614,7 +2597,7 @@ function startNewProject(){
   currentProject=name;
   projectDescription=descInput?descInput.value.trim():'';
   parts = Array.from({length:10},(_,i)=>({id:newPartId(), name:`Schritt ${i+1}`}));
-  teileOffen={};
+  teileOffen={}; colFilters={}; updateFilterClearBtn();
   data={};
   parts.forEach(p=>initPart(p.id));
   activePart=parts[0].id;
@@ -3126,7 +3109,7 @@ function buildLegend(){
   const l=document.getElementById('legend');
   if(!l) return;
   l.innerHTML=Object.values(GROUPS).map(g=>
-    `<span class="leg-item"><span class="leg-dot" style="background:${g.color}"></span>${g.name}</span>`
+    `<span class="leg-item"><span class="leg-dot" style="background:${g.color}"></span>${escHtml(g.name)}</span>`
   ).join('');
 }
 
@@ -3148,7 +3131,7 @@ function buildGrid(){
     if(v>0) btn.style.background=gCol+'33';
     btn.innerHTML=(sc?`<span class="cb-key">${sc}</span>`:'')
       +`<span class="cb-note-tgl${c.note?' has-note':''}" id="nt_${c.key}" title="${c.note?'Notiz vorhanden':'Notiz'}">${ic('notiz')}</span>`
-      +`<span class="cb-lbl">${c.label}</span>`
+      +`<span class="cb-lbl">${escHtml(c.label)}</span>`
       +`<span class="cb-par adv-only">${dispParam(c.param)} ${ul()}</span>`
       +`<span class="cb-cnt" id="cv_${c.key}">${v}</span>`
       +`<span class="cb-t adv-only" id="ct_${c.key}">${v>0?disp(v*c.param)+' '+ul():''}</span>`
@@ -3244,7 +3227,7 @@ function buildHead(){
   h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
   COLS.forEach(c=>{
     const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
-    h+=`<th class="th-q" title="${c.label}" style="background:${gCol}e6;border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
+    h+=`<th class="th-q" title="${escAttr(c.label)}" style="background:${gCol}e6;border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).map(escHtml).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
     h+=`<th class="th-t adv-only" style="background:${gCol}b3;">[${ul()}]</th>`;
   });
   tr.innerHTML=h;
@@ -3586,9 +3569,29 @@ function updateLastAction(){
   const el=document.getElementById('lastActionIndicator');
   if(el) el.textContent=lastActionText?'↳ '+lastActionText:'';
 }
+function undoPush(e){ undoStack.push(e); if(undoStack.length>50) undoStack.shift(); }
 function undoLast(){
   const last=undoStack.pop();
   if(!last){toast('Nichts rückgängig zu machen');return;}
+  if(last.typ==='geloescht'){
+    const p=last.schritt;
+    parts.splice(Math.min(last.idx,parts.length),0,p);
+    data[p.id]=last.daten;
+    if(last.offen) teileOffen[p.id]=true;
+    if(!activePart) activePart=p.id;
+    ensureKeys(); lwNeuRechnen();
+    updGrid(); renderBody(); updateActiveBar(); markDirty();
+    lastActionText='↩ Rückgängig: „'+p.name+'" wiederhergestellt'; toast(lastActionText); updateLastAction();
+    return;
+  }
+  if(last.typ==='schritt'){
+    if(!data[last.part]){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
+    data[last.part]=last.prev;
+    ensureKeys(); lwNeuRechnen();
+    updGrid(); renderBody(); markDirty();
+    lastActionText='↩ Rückgängig: Einfügen in „'+partName(last.part)+'"'; toast(lastActionText); updateLastAction();
+    return;
+  }
   if(last.typ==='einfuegen'){
     const weg=new Set(last.ids);
     parts=parts.filter(p=>!weg.has(p.id));
@@ -3726,7 +3729,8 @@ function pasteRow(id){
   if(!rowClipboard){toast('⚠ Erst eine Zeile kopieren');return;}
   if(id===rowClipboard.sourceId){toast('⚠ Quelle und Ziel sind identisch');return;}
   const targetName=partName(id);
-  if(!confirm(`Inhalte von "${rowClipboard.sourceName}" in "${targetName}" einfügen?\n\nBestehende Werte in "${targetName}" werden überschrieben.`))return;
+  if(!confirm(`Inhalte von "${rowClipboard.sourceName}" in "${targetName}" einfügen?\n\nBestehende Werte in "${targetName}" werden überschrieben – ↩ Undo holt sie zurück.`))return;
+  undoPush({typ:'schritt',part:id,prev:JSON.parse(JSON.stringify(data[id]))});
   data[id]=JSON.parse(JSON.stringify(rowClipboard.values));
   /* Kopierte Teile bekommen eigene IDs — sonst hingen zwei Schritte an denselben Teilen */
   data[id].__teile=normTeile(data[id].__teile).map(t=>Object.assign(t,{id:newTeilId()}));
@@ -3764,18 +3768,19 @@ function delPart(id){
   const name=partName(id);
   const hasValues = COLS.some(c=>(data[id][c.key]||0)>0) || stepTeile(id).length>0;
   const msg = hasValues
-    ? `Prozessschritt "${name}" wirklich löschen?\n\nEr enthält erfasste Werte oder Teile – diese gehen dabei unwiderruflich verloren!`
+    ? `Prozessschritt "${name}" wirklich löschen?\n\nEr enthält erfasste Werte oder Teile. ↩ Undo holt ihn zurück.`
     : `Prozessschritt "${name}" löschen?`;
   if(!confirm(msg)) return;
   const idx=parts.findIndex(x=>x.id===id);
   if(idx<0) return;
+  undoPush({typ:'geloescht',schritt:parts[idx],idx,daten:data[id],offen:!!teileOffen[id]});
   parts.splice(idx,1);
   delete data[id];
   delete teileOffen[id];
   if(activePart===id) activePart=parts[0]?parts[0].id:null;
   if(rowClipboard && rowClipboard.sourceId===id) rowClipboard=null;
   updGrid();renderBody();updateActiveBar();markDirty();
-  toast('✓ „'+name+'" gelöscht');
+  toast('✓ „'+name+'" gelöscht – ↩ Undo holt ihn zurück');
 }
 function resetAll(){
   if(!confirm('Alle Zähler zurücksetzen?'))return;
@@ -3789,7 +3794,7 @@ function resetAll(){
 ═══════════════════════════════════════ */
 function groupOptions(sel){
   return Object.entries(GROUPS).map(([k,g])=>
-    `<option value="${k}"${k===sel?' selected':''}>${g.name.replace('&','&')}</option>`
+    `<option value="${k}"${k===sel?' selected':''}>${escHtml(g.name)}</option>`
   ).join('');
 }
 function openCfg(){
@@ -3797,7 +3802,7 @@ function openCfg(){
   COLS.forEach((c,i)=>{
     const row=document.createElement('div');row.className='prow';
     row.dataset.key=c.key;   // Identität hängt am Schlüssel, nicht am Namen — sonst verliert Umbenennen die erfassten Werte
-    row.innerHTML=`<input class="plbl" type="text" value="${c.label}" placeholder="Bezeichnung"/>`
+    row.innerHTML=`<input class="plbl" type="text" value="${escAttr(c.label)}" placeholder="Bezeichnung"/>`
       +`<input class="pval" type="number" step="0.001" value="${c.param}" placeholder="0.000"/>`
       +`<span class="punit">minD</span>`
       +`<select class="pgrp">${groupOptions(c.group)}</select>`
@@ -3824,7 +3829,7 @@ function saveCfg(){
   const newCols=[];
   rows.forEach(r=>{
     const lbl=r.querySelector('.plbl').value.trim();
-    const val=parseFloat(r.querySelector('.pval').value)||0;
+    const val=Math.max(0,parseFloat(r.querySelector('.pval').value)||0);
     const grp=r.querySelector('.pgrp').value||'process';
     const noteEl=r.querySelector('.pnote');
     const note=noteEl?noteEl.value.trim():'';
@@ -3891,6 +3896,27 @@ function mtmEntries(){
   return list;
 }
 let mtmNew={label:'',group:'process',elems:[]};
+/* Herleitungen aus Speicher oder Datei absichern — ein kaputter Eintrag ließ den Rechner sonst abstürzen */
+function mtmCustomPruefen(o){
+  const r={};
+  if(o && typeof o==='object') Object.keys(o).forEach(k=>{
+    if(!Array.isArray(o[k])) return;
+    const el=o[k].filter(e=>e && isFinite(+e.nr) && isFinite(+e.w) && +e.w>=0).map(e=>({nr:+e.nr, w:+e.w}));
+    if(el.length) r[k]=el;
+  });
+  return r;
+}
+function mtmCustomGePruefen(o){
+  const r={};
+  if(o && typeof o==='object') Object.keys(o).forEach(k=>{
+    const g=o[k], nr=+k;
+    if(!g || typeof g!=='object' || !(nr>MTM_GE_BASE) || !Array.isArray(g.codes)) return;
+    const codes=g.codes.filter(c=>c && typeof c.code==='string' && isFinite(+c.anz) && isFinite(+c.hfg))
+      .map(c=>({code:c.code, anz:+c.anz, hfg:+c.hfg}));
+    r[nr]={nr, name:String(g.name||'#'+nr), divisor:(+g.divisor>0)?+g.divisor:1, codes};
+  });
+  return r;
+}
 
 function openMtm(){ setMtmTab(mtmTab); document.getElementById('mtmModal').classList.add('open'); }
 function closeMtm(){ document.getElementById('mtmModal').classList.remove('open'); }
@@ -4710,6 +4736,7 @@ function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
                   projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
+                  ungesichert: hasUnsavedChanges,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
     if(dot()){ dot().className='save-dot saved'; }
@@ -4748,13 +4775,14 @@ function loadState(){
     if(typeof s.taktSoll==='number' && s.taktSoll>=0) taktSoll=s.taktSoll;
     if(typeof s.taktMitVz==='boolean') taktMitVz=s.taktMitVz;
     taktSzenario=taktSzenPruefen(s.taktSzenario);
-    if(s.mtmCustom && typeof s.mtmCustom==='object') mtmCustom=s.mtmCustom;
-    if(s.mtmCustomGE && typeof s.mtmCustomGE==='object') mtmCustomGE=s.mtmCustomGE;
+    mtmCustom=mtmCustomPruefen(s.mtmCustom);
+    mtmCustomGE=mtmCustomGePruefen(s.mtmCustomGE);
     if(s.colVis && typeof s.colVis==='object'){ OPT_COLS.forEach(o=>{ if(typeof s.colVis[o.key]==='boolean') colVis[o.key]=s.colVis[o.key]; }); }
     if(s.teileOffen && typeof s.teileOffen==='object'){
       teileOffen={}; parts.forEach(p=>{ if(s.teileOffen[p.id]) teileOffen[p.id]=true; });
     }
     lwParams=lwParamsPruefen(s.lwParams);
+    hasUnsavedChanges=s.ungesichert===true;
     ensureKeys();   // wandelt Daten der Vorversion in Prozessschritte mit Teilen um
     lwNeuRechnen();   // gespeicherte Meterzahlen könnten zu anderen Meterwerten gehören
     if(ausAlt) saveState();   // ab jetzt unter dem neuen Schlüssel; der alte bleibt als Rückfallebene
@@ -4820,7 +4848,7 @@ function zipStore(files){
   all.forEach(a=>{out.set(a,pos);pos+=a.length;});
   return out;
 }
-function xmlEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function xmlEsc(s){return String(s==null?'':s).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function colLetter(n){let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
 /* Zelle: v=Wert, st=Style-Index, num=true für Zahl */
 function xc(col,row,v,st,num){
@@ -5103,7 +5131,7 @@ function xlsxSheetAuswertung(){
   const aRef=ci=>AA+colLetter(lage.firstCatCol+ci*2+1)+S;   // Zeitsumme einer Kategorie
   const anteil=(r,v)=>xcf(3,r,`IF($B$${rIst}>0,ROUND(B${r}/$B$${rIst}*100,1),0)`,39,gSum>0?(v/gSum*100).toFixed(1):'0');
   rn++;
-  rows+=`<row r="${rn}">${xc(1,rn,'Zeitanteil je Kategorie-Gruppe',6===6?31:31)}${xc(2,rn,'['+u+']',31)}${xc(3,rn,'Anteil [%]',31)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Zeitanteil je Kategorie-Gruppe',31)}${xc(2,rn,'['+u+']',31)}${xc(3,rn,'Anteil [%]',31)}</row>`;rn++;
   const gTot={};Object.keys(GROUPS).forEach(g=>gTot[g]=0);
   fParts.forEach(p=>COLS.forEach(col=>{gTot[col.group]=(gTot[col.group]||0)+(data[p.id][col.key]||0)*col.param;}));
   const gSum=Object.values(gTot).reduce((s,v)=>s+v,0);
@@ -5137,7 +5165,7 @@ function xlsxSheetZeitwerte(){
   rows+=`<row r="${rn}">${xc(1,rn,'Gruppe',9)}${xc(2,rn,'Kategorie',9)}${xc(3,rn,'Zeitwert ['+u+']',9)}${xc(4,rn,'Notiz',9)}</row>`;rn++;
   COLS.forEach(col=>{
     const st=17;
-    rows+=`<row r="${rn}">${xc(1,rn,(GROUPS[col.group]||{}).name||col.group,xlsxGrpKopfStyle(col.group))}${xc(2,rn,col.label,st)}${xc(3,rn,dispParam(col.param),24,true)}${xc(4,rn,col.note||'',st)}</row>`;rn++;
+    rows+=`<row r="${rn}">${xc(1,rn,(GROUPS[col.group]||{}).name||col.group,xlsxGrpKopfStyle(col.group))}${xc(2,rn,col.label,st)}${xc(3,rn,xn(col.param*(u==='minD'?1:MIND_FACTOR)),24,true)}${xc(4,rn,col.note||'',st)}</row>`;rn++;
   });
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -5500,26 +5528,9 @@ function startAutosaveReminder(){
   },15*60*1000);
 }
 
-/* ═══════════════════════════════════════
-   SERVICE WORKER (offline)
-═══════════════════════════════════════ */
-if('serviceWorker' in navigator){
-  const swCode=`
-const CACHE='za-v1';
-const FILES=[location.href];
-self.addEventListener('install',e=>{
-  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));
-});
-self.addEventListener('activate',e=>{
-  e.waitUntil(clients.claim());
-});
-self.addEventListener('fetch',e=>{
-  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
-});`;
-  const swBlob=new Blob([swCode],{type:'application/javascript'});
-  const swUrl=URL.createObjectURL(swBlob);
-  navigator.serviceWorker.register(swUrl).catch(()=>{});
-}
+/* Offline: die App ist eine einzige Datei (über den Kurzbefehl als data:-URL geladen) und braucht
+   kein Netz. Ein Service Worker aus einer blob:-URL wird von keinem Browser registriert — der frühere
+   Versuch lief immer ins Leere und ist entfernt. */
 
 /* ═══════════════════════════════════════
    PWA INSTALL HINT (iOS Safari)
@@ -5553,7 +5564,7 @@ setMode(mode);
 updateProjLabel();
 updateExportIndicator();
 updateLastAction();
-if(hadSaved){
+if(hadSaved && currentProject){
   document.getElementById('startScreen').classList.remove('open');
   if(dot()) dot().className='save-dot saved';
   toast('✓ Letzter Stand wiederhergestellt: '+(currentProject||''));
@@ -5584,6 +5595,9 @@ document.addEventListener('click',e=>{ if(!e.target.closest('#mehrBtn')) closeMe
 
 /* Tastatur-Shortcuts für Kategorien (1-9,0,q,w,e,r,t,z,u,i,o,p,a,s,d,f,g,h,j,k,l) */
 document.addEventListener('keydown', e=>{
+  /* Mit Cmd/Strg/Alt gehört die Taste dem Browser (Cmd+R lädt neu, Cmd+Z, Cmd+A …) — sonst zählte
+     z.B. Cmd+R eine Kategorie und verhinderte das Neuladen. Gehaltene Taste zählt nicht mehrfach. */
+  if(e.ctrlKey||e.metaKey||e.altKey||e.repeat) return;
   const tag=(document.activeElement&&document.activeElement.tagName)||'';
   if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
   if(document.getElementById('startScreen').classList.contains('open')) return;

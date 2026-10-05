@@ -1501,7 +1501,7 @@ function openNotePopup(anchorEl,title,value,onSave){
   // falls bereits eine andere Notiz offen ist: erst deren Änderungen übernehmen
   if(notePopupTarget && notePopupTarget.onSave){
     const prevTa=document.getElementById('notePopupTextarea');
-    notePopupTarget.onSave(prevTa.value.trim());
+    try{ notePopupTarget.onSave(prevTa.value.trim()); }catch(e){}
   }
   const pop=document.getElementById('notePopup');
   const ta=document.getElementById('notePopupTextarea');
@@ -1515,8 +1515,9 @@ function openNotePopup(anchorEl,title,value,onSave){
 function closeNotePopup(){
   const pop=document.getElementById('notePopup');
   const ta=document.getElementById('notePopupTextarea');
+  /* Speichern darf das Schließen nie verhindern — sonst bliebe das Popup stehen */
   if(notePopupTarget && notePopupTarget.onSave){
-    notePopupTarget.onSave(ta.value.trim());
+    try{ notePopupTarget.onSave(ta.value.trim()); }catch(e){}
   }
   pop.classList.remove('open');
   notePopupTarget=null;
@@ -1532,7 +1533,7 @@ document.addEventListener('click', e=>{
 function schrittFelder(d){
   COLS.forEach(c=>{ if(d[c.key]===undefined) d[c.key]=0; });
   if(d.__level===undefined) d.__level=1;
-  ['note','stufe','werkzeug','quelle','extra1','extra2','extra3'].forEach(k=>{ if(d['__'+k]===undefined) d['__'+k]=''; });
+  [...ZUSATZ_KEYS,'note'].forEach(k=>{ if(d['__'+k]===undefined) d['__'+k]=''; });
 }
 function initPart(p){
   if(!data[p]) data[p]={};
@@ -1584,6 +1585,8 @@ const OPT_COLS=[
   {key:'extra2',   label:'Zusatz 2',      renameable:true},
   {key:'extra3',   label:'Zusatz 3',      renameable:true},
 ];
+/* Die umbenennbaren Zusatzspalten (Montagestufe … Zusatz 3) — Feldname im Schritt: '__'+Schlüssel */
+const ZUSATZ_KEYS=OPT_COLS.filter(o=>o.renameable).map(o=>o.key);
 /* Frei vergebene Überschriften für die umbenennbaren Spalten */
 let colLabels={};
 function colLabel(k){
@@ -2260,10 +2263,9 @@ function taktSzenUebernehmen(){
   if(!confirm(mv.length+' Prozessschritt(e) in der Spalte „'+taktGroupLabel()+'" umtragen?\n\n'
     +'Damit ändern sich die Basisdaten. Mit ↩ Undo lässt es sich Schritt für Schritt zurücknehmen.')) return;
   mv.forEach(p=>{
-    undoStack.push({part:p.id,key:fld,prev:data[p.id][fld]||''});
+    undoPush({part:p.id,key:fld,prev:data[p.id][fld]||''});
     data[p.id][fld]=szen.moves[p.id];
   });
-  while(undoStack.length>50) undoStack.shift();
   taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
   renderBody(); markDirty(); renderTaktabgleich();
   toast('✓ '+mv.length+' Prozessschritt(e) umgetragen');
@@ -2668,7 +2670,7 @@ function switchProject(){
      3: Level, Prozessschritt, Teile,      Stufe, Werkzeug, Quelle, Zusatz×3, Anzahl, Gesamt */
 const CSV_FORMAT=4;
 const CSV_FIX=11;
-const CSV_V4_EXTRAS=OPT_COLS.filter(o=>o.renameable).map(o=>o.key);   // Montagestufe … Zusatz 3
+const CSV_V4_EXTRAS=ZUSATZ_KEYS;   // Montagestufe … Zusatz 3
 const CSV_ZELLE_MAX=30000;   // Excel schneidet eine Zelle beim Öffnen bei 32 767 Zeichen ab
 /* Import-Meldung: bei alten Dateien auf die Umwandlung hinweisen, bei defekter Teile-Spalte warnen */
 function importHinweis(parsed,ok){
@@ -2710,12 +2712,15 @@ function csvFeld(v){
 }
 function csvZeile(arr){ return arr.map(csvFeld).join(';'); }
 /* Excel wandelt beim Öffnen einer CSV eigenmächtig um: 02187810 → 2187810, 1-2 → Datum, „-Deckel"
-   → Formel (#NAME?), lange Nummern → 3,1E+11. Als ="…" bleibt der Text, wie er ist, und wird so auch
-   wieder gespeichert; der Import nimmt die Hülle ab. Excel-Formeln fassen höchstens 255 Zeichen Text —
-   längere Werte bleiben ungeschützt (ein Schrittname dieser Länge ist kein Zahlen-Kandidat). */
+   → Formel (#NAME?), lange Nummern → 3,1E+11. Als ="…" zeigt Excel den Text unverändert; beim Speichern
+   schreibt es dann den angezeigten Wert ohne Hülle. Der Schutz hält also für ein Öffnen und Speichern —
+   danach gehört die Datei wieder über die App importiert, bevor sie erneut in Excel geöffnet wird.
+   Excel-Formeln fassen höchstens 255 Zeichen Text: längere Werte mit führendem = + - @ bekommen statt
+   der Hülle ein Leerzeichen davor (der Import schneidet es wieder ab). */
 function csvText(v){
   const s=v==null?'':String(v);
-  if(!s || s.length>250) return s;
+  if(!s) return s;
+  if(s.length>250) return /^[=+\-@]/.test(s) ? ' '+s : s;
   const gefahr=/^[=+\-@]/.test(s) || /^\d[\d .,:\/-]*$/.test(s) || /^\d+(?:[.,]\d+)?\s*%$/.test(s)
     || /^\d+(?:[.,]\d+)?[eE][+-]?\d+$/.test(s) || /^(wahr|falsch|true|false)$/i.test(s);
   return gefahr ? '="'+s.replace(/"/g,'""')+'"' : s;
@@ -2724,6 +2729,12 @@ function csvWert(v){
   const s=v==null?'':String(v);
   const m=/^="((?:[^"]|"")*)"$/.exec(s.trim());
   return m ? m[1].replace(/""/g,'"') : s;
+}
+/* Zerlegen und ="…" aus dem Excel-Schutz abnehmen; ein offenes Anführungszeichen bleibt vermerkt */
+function csvAuspacken(text,sep){
+  const roh=csvZerlegen(text,sep), rows=roh.map(r=>r.map(csvWert));
+  rows.offen=roh.offen;
+  return rows;
 }
 /* Dezimalkomma: Excel (deutsch) macht aus „10.5" sonst beim Öffnen den 10. Mai */
 function zahlDe(x){ return String(+x||0).replace('.',','); }
@@ -2740,7 +2751,8 @@ function csvMetaPos(r){
    und eindeutig — sonst bekommt die Kategorie einen neuen */
 function katSchluessel(k,vergeben){
   let s=String(k||'').trim();
-  if(!/^[A-Za-z0-9_-]{1,40}$/.test(s) || vergeben.has(s)){
+  /* beginnt mit Buchstabe/Ziffer: __note, __teile, __proto__ wären Felder des Schritts bzw. des Objekts */
+  if(!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(s) || (s in Object.prototype) || vergeben.has(s)){
     do{ s='cat_'+Math.random().toString(36).slice(2,7); }while(vergeben.has(s));
   }
   vergeben.add(s);
@@ -2758,9 +2770,10 @@ const CSV_FELDER={
 };
 /* Ordnet jede Spalte der Kopfzeile einem Feld oder einer Kategorie zu.
    katMeta[j] = Kategorie-Schlüssel aus der __COLS__-Zeile genau über dieser Spalte (falls vorhanden).
-   Reihenfolge: zuerst die Namen, die der Export schreibt — die selbst vergebenen Benennungen der
-   Zusatzspalten vor allem anderen, damit eine Zusatzspalte „Bemerkung" nicht als Notiz gelesen wird —,
-   danach Kategorien nach Name, zuletzt Ersatznamen. */
+   Erst gelten die Namen, die der Export schreibt — feste Spalten unter ihrem Namen, Zusatzspalten unter
+   ihrer Benennung. Tragen zwei Spalten denselben Namen (Zusatz 2 umbenannt in „Menge" oder „Notiz"),
+   bekommt die weiter links stehende das Feld, das der Export weiter links schreibt. Danach Kategorien
+   nach Name, zuletzt Ersatznamen — eine Zusatzspalte „Bemerkung" wird so nicht zur Notiz. */
 function csvKopfZuordnen(kopf,katMeta,cols,labelsDatei){
   const n=kopf.map(csvNorm);
   const feld={}, kat=[], belegt=new Set(), fertig=new Set();
@@ -2768,9 +2781,8 @@ function csvKopfZuordnen(kopf,katMeta,cols,labelsDatei){
     const km=katMeta&&katMeta[j];
     if(km && cols.some(c=>c.key===km) && !belegt.has(km)){ belegt.add(km); kat.push({key:km,j}); fertig.add(j); }
   });
-  const exportNamen=[];
-  CSV_V4_EXTRAS.forEach(k=>exportNamen.push([k,[labelsDatei&&labelsDatei[k],colLabel(k)].filter(Boolean).map(csvNorm)]));
-  Object.keys(CSV_FELDER).forEach(k=>exportNamen.push([k,[CSV_FELDER[k][0]]]));
+  const exportNamen=['level','name','sachnr','teilname','menge',...CSV_V4_EXTRAS,'note'].map(k=>[k,
+    CSV_V4_EXTRAS.includes(k) ? [labelsDatei&&labelsDatei[k],colLabel(k)].filter(Boolean).map(csvNorm) : [CSV_FELDER[k][0]]]);
   const ersatzNamen=[];
   CSV_V4_EXTRAS.forEach(k=>ersatzNamen.push([k,[OPT_COLS.find(o=>o.key===k).label,k].map(csvNorm)]));
   Object.keys(CSV_FELDER).forEach(k=>ersatzNamen.push([k,CSV_FELDER[k].slice(1)]));
@@ -2829,13 +2841,39 @@ function csvWarnungen(v){
   if(v.zuordnungFehlt) w.push(v.zuordnungFehlt+' Laufweg-/Szenario-Angabe(n) passten zu keinem Schritt mehr');
   return w;
 }
+/* Angaben, die an Schritten hängen (Laufweg-Auslöser, Szenario), den eingelesenen Schritten zuordnen.
+   Jede Angabe kennt den Namen n und das Vorkommen k (der wievielte Schritt dieses Namens), bei mehrfach
+   vergebenen Namen auch die Namen der Nachbarn v (davor) und w (danach). So landet sie auch dann beim
+   richtigen Schritt, wenn in Excel Zeilen eingefügt, gelöscht oder umsortiert wurden. Bewertet werden
+   alle Schritte gleichen Namens, die besten Paare zuerst vergeben, jeder Schritt höchstens einmal.
+   Findet sich kein Schritt (umbenannt oder gelöscht), fällt die Angabe weg und wird gemeldet — eine
+   Rückfallebene über die Position hängte sie nach Einfügen und Löschen an den Nachbarn. */
+function csvSchrittZuordnen(eintraege,neuParts){
+  const nachName=new Map();
+  neuParts.forEach((p,i)=>{ if(!nachName.has(p.name)) nachName.set(p.name,[]); nachName.get(p.name).push(i); });
+  const nameBei=i=>(neuParts[i]?neuParts[i].name:'');
+  const paare=[];
+  eintraege.forEach((e,ei)=>{
+    if(typeof e.n!=='string') return;
+    (nachName.get(e.n.trim())||[]).forEach((pi,occ)=>{
+      let w=occ===(e.k|0)?1:0;
+      if(typeof e.v==='string' && nameBei(pi-1)===e.v) w+=2;
+      if(typeof e.w==='string' && nameBei(pi+1)===e.w) w+=2;
+      paare.push({ei,pi,w,abst:Math.abs(occ-(e.k|0))});
+    });
+  });
+  paare.sort((a,b)=>b.w-a.w || a.abst-b.abst);
+  const ziel=eintraege.map(()=>null), belegt=new Set();
+  paare.forEach(({ei,pi})=>{ if(ziel[ei]===null && !belegt.has(pi)){ ziel[ei]=neuParts[pi].id; belegt.add(pi); } });
+  return ziel;
+}
 /* Format 4 lesen — aus einer Datei (mit oder ohne Metazeilen) oder aus der Zwischenablage.
    Teile: Zeile mit Prozessschritt = neuer Schritt samt erstem Teil; Zeile ohne Prozessschritt,
    aber mit Sachnummer/Benennung/Menge = weiteres Teil des Schritts darüber. Zähler in so einer
    Teil-Zeile werden zum Schritt addiert.
    Fehlende Einstellungen bleiben undefined: der Import behält dann die aktuellen Werte. */
-function csvV4Lesen(rohZeilen,einfuegen){
-  const rows=rohZeilen.map(r=>r.map(csvWert));   // ="…" aus dem Excel-Schutz abnehmen
+/* rows: bereits über csvWert ausgepackt (siehe csvAuspacken) */
+function csvV4Lesen(rows,einfuegen){
   const meta={};
   let i=0;
   while(i<rows.length && (csvLeer(rows[i]) || csvMetaPos(rows[i])>=0)){
@@ -2876,7 +2914,7 @@ function csvV4Lesen(rohZeilen,einfuegen){
         try{ note=decodeURIComponent(seg[seg.length-1]); }catch(e){ note=''; }
       } else { label=seg[1]; param=seg[2]; group=seg[3]; }
       const key=katSchluessel(seg[0],vergeben);
-      neu.push({key, label:label||key, param:Math.max(0,zahlLesen(param)), group:GROUPS[group]?group:'process', note});
+      neu.push({key, label:label||key, param:Math.max(0,zahlLesen(param)), group:Object.prototype.hasOwnProperty.call(GROUPS,group)?group:'process', note});
       katMeta[j]=key;
     });
     if(neu.length) colsFromFile=neu;
@@ -2924,27 +2962,17 @@ function csvV4Lesen(rohZeilen,einfuegen){
     cols.forEach(c=>{ d[c.key]=0; });
     kat.forEach(({key,j})=>{ d[key]=zahl(row,j); });
   }
-  /* Laufweg-Auslöser und Szenario hängen an Schritten. Gefunden wird der Schritt über Name und
-     Vorkommen (der wievielte Schritt dieses Namens) — so stimmt es auch, wenn in Excel Zeilen
-     eingefügt, gelöscht oder umsortiert wurden. Wurde ein Schritt umbenannt, fällt seine Angabe weg und
-     wird gemeldet: eine Rückfallebene über die Position hängte sie nach Einfügen und Löschen an den
-     Nachbarn. Ältere Dateien (Testversion) führen nur die Position. */
-  const nachName=new Map();
-  newParts.forEach(p=>{ if(!nachName.has(p.name)) nachName.set(p.name,[]); nachName.get(p.name).push(p.id); });
+  /* Laufweg-Auslöser und Szenario hängen an Schritten, gefunden über den Namen (siehe
+     csvSchrittZuordnen). Ältere Dateien (Testversion) führen nur die Position. */
   let zuordnungFehlt=0;
-  const finde=e=>{
-    if(!e || typeof e.n!=='string') return null;
-    const l=nachName.get(e.n);
-    return (l && l[e.k|0]) || null;
-  };
   let lwTrigger=null;
   const lwRaw=jsonMeta('__LW__');
   if(lwRaw && !einfuegen){
     lwTrigger={};
-    if(Array.isArray(lwRaw.s)) lwRaw.s.forEach(e=>{
-      const t=lwTrigPruefen(e&&e.t); if(!t) return;
-      const id=finde(e); if(id) lwTrigger[id]=t; else zuordnungFehlt++;
-    });
+    if(Array.isArray(lwRaw.s)){
+      const ein=lwRaw.s.filter(e=>e && lwTrigPruefen(e.t)), ziel=csvSchrittZuordnen(ein,newParts);
+      ein.forEach((e,x)=>{ if(ziel[x]) lwTrigger[ziel[x]]=lwTrigPruefen(e.t); else zuordnungFehlt++; });
+    }
     else if(!Array.isArray(lwRaw)) Object.keys(lwRaw).forEach(k=>{
       const p=newParts[+k], t=lwTrigPruefen(lwRaw[k]); if(p&&t) lwTrigger[p.id]=t;
     });
@@ -2953,10 +2981,10 @@ function csvV4Lesen(rohZeilen,einfuegen){
   const szRaw=jsonMeta('__SZENARIO__');
   if(szRaw && !einfuegen){
     const moves={};
-    if(Array.isArray(szRaw.moves)) szRaw.moves.forEach(e=>{
-      if(!e || typeof e.z!=='string') return;
-      const id=finde(e); if(id) moves[id]=e.z; else zuordnungFehlt++;
-    });
+    if(Array.isArray(szRaw.moves)){
+      const ein=szRaw.moves.filter(e=>e && typeof e.z==='string'), ziel=csvSchrittZuordnen(ein,newParts);
+      ein.forEach((e,x)=>{ if(ziel[x]) moves[ziel[x]]=e.z; else zuordnungFehlt++; });
+    }
     else if(szRaw.moves && typeof szRaw.moves==='object') Object.keys(szRaw.moves).forEach(k=>{
       const p=newParts[+k]; if(p) moves[p.id]=szRaw.moves[k];
     });
@@ -2979,7 +3007,7 @@ function csvV4Lesen(rohZeilen,einfuegen){
   const zahlOpt=k=>meta[k]?Math.max(0,zahlLesen(wert(k))):undefined;
   return {cols, parts:newParts, data:newData,
     projectName:meta.__PROJECT__?(wert('__PROJECT__')||null):undefined,
-    description:meta.__DESC__?werte('__DESC__')[0]||'':undefined,
+    description:meta.__DESC__?(werte('__DESC__')[0]||'').trim():undefined,
     sollzeit:zahlOpt('__SOLLZEIT__'), verteilzeit:zahlOpt('__VERTEILZEIT__'), stundensatz:zahlOpt('__STUNDENSATZ__'),
     colLabels:colLabelsParsed, mtmCustom:jsonMeta('__MTMCUSTOM__'), mtmCustomGE:jsonMeta('__MTMGE__'),
     takt:taktParsed, szenario:szenParsed, lwParams:lwParamRaw, lwTrigger,
@@ -2988,19 +3016,22 @@ function csvV4Lesen(rohZeilen,einfuegen){
 }
 /* Gemeinsamer CSV-Parser für Start-Import und laufenden Import */
 function parseImportedCSV(text){
-  const clean=String(text).replace(/^﻿/,'');
+  const clean=String(text).replace(/^\uFEFF/,'');
   /* Ohne diese Prüfungen wird eine Binärdatei zeichenweise als Tabelle gelesen
      und ersetzt das Projekt durch Datenmüll (ZIP-Signatur = .xlsx/.ods) */
   if(clean.startsWith('PK\x03\x04')) throw new Error('Das ist eine Excel-Datei (.xlsx), keine CSV. Bitte eine über „Export" als CSV gespeicherte Datei wählen.');
   if(clean.includes('\x00')) throw new Error('Die Datei ist keine Textdatei. Bitte als CSV (UTF-8) speichern.');
-  const sep=clean.includes(';')?';':(clean.includes('\t')?'\t':null);
+  /* Trennzeichen aus der ersten Zeile: Excel speichert „Unicode-Text" mit Tabulatoren —
+     ein Semikolon in irgendeiner Notiz darf daraus keine Semikolon-Datei machen */
+  const ersteRoh=clean.split('\n',1)[0];
+  const sep=(ersteRoh.includes('\t')&&!ersteRoh.includes(';'))?'\t':(clean.includes(';')?';':(clean.includes('\t')?'\t':null));
   if(!sep) throw new Error('Keine mit Semikolon getrennte CSV-Datei.');
-  const erste=clean.split('\n',1)[0].trim();
-  const fmt=erste.startsWith('__FORMAT__')?(parseInt(erste.split(';')[1])||1):null;
-  if(fmt!==null && fmt<4) return parseCsvAlt(clean);
-  const rows=csvZerlegen(clean,sep);
+  const erste=ersteRoh.trim();
+  const fmt=erste.startsWith('__FORMAT__')?(parseInt(erste.split(sep)[1])||1):null;
+  if(fmt!==null && fmt<4) return parseCsvAlt(sep===';'?clean:csvZerlegen(clean,sep).map(r=>r.join(';')).join('\n'));
+  const rows=csvAuspacken(clean,sep);
   if(rows.offen) throw new Error('In Zeile '+rows.offen+' beginnt ein Text in Anführungszeichen, der nicht geschlossen wird. Bitte die Datei prüfen.');
-  if(fmt===null && csvKopfSuchen(rows.map(r=>r.map(csvWert)),0,false)<0){
+  if(fmt===null && csvKopfSuchen(rows,0,false)<0){
     /* Vorversion (eine Zeile je Bauteil): beginnt mit Metazeilen oder mit „Level;Sachnummer;Bauteil" */
     if(sep===';' && (/^__/.test(erste) || /^(level;)?sachnummer;bauteil;/i.test(erste))) return parseCsvAlt(clean);
     throw new Error('Keine Spalte „Prozessschritt" gefunden. Die Überschriften müssen in der ersten Zeile stehen, z.B. Level;Prozessschritt;Sachnummer;Benennung;Menge – am einfachsten die leere Vorlage aus dem Export-Fenster nutzen.');
@@ -3345,14 +3376,15 @@ function zaehlZellen(tdv,tdt,v,c,summe){
 }
 /* Nach einer Zählung nur die betroffene Zeile und die Summenzeile nachführen. Ein Neuaufbau der
    Tabelle dauert bei ~300 Schritten rund eine Sekunde — bei jedem Tipp auf eine Kachel.
-   Mit aktivem Filter kann die Zeile ein- oder ausgeblendet werden müssen: dann doch neu aufbauen. */
+   Nur ein Filter auf diese Kategorie oder auf die Gesamtzeit kann die Zeile ein- oder ausblenden:
+   dann doch neu aufbauen. */
 function zaehlerZeigen(id,key){
   const c=COLS.find(x=>x.key===key);
   const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]');
   const sr=document.querySelector('#tblBody tr.sum-row');
   const zellen=x=>x?[x.querySelector('td[data-k="'+CSS.escape(key)+'"]'),x.querySelector('td[data-kt="'+CSS.escape(key)+'"]')]:[];
   const [tv,tt]=zellen(tr), [sv,st]=zellen(sr);
-  if(hasAnyFilter() || !c || !tv || !tt || !sv || !st || (key===LW_KAT && lwHat(id))){ renderBody(); return; }
+  if(colFilters['cat:'+key] || colFilters.total || !c || !tv || !tt || !sv || !st){ renderBody(); return; }
   zaehlZellen(tv,tt,data[id][key]||0,c,false);
   const tot=calcTotal(id);
   tr.querySelector('td.ct').textContent=tot>0?disp2(tot):'–';
@@ -3491,6 +3523,7 @@ function renderBody(){
     noteBtn.addEventListener('click',e=>{
       e.stopPropagation();
       openNotePopup(noteBtn,'Notiz: '+name, data[id].__note||'', val=>{
+        if(!data[id]) return;   // Schritt inzwischen gelöscht
         if((data[id].__note||'')!==val){
           data[id].__note=val;markDirty();
           noteBtn.classList.toggle('active',!!val);
@@ -3511,7 +3544,6 @@ function renderBody(){
 
     COLS.forEach(c=>{
       const v=data[id][c.key]||0;
-      const t=v*c.param;
       const tdv=document.createElement('td'), tdt=document.createElement('td');
       tdv.dataset.k=c.key; tdt.dataset.kt=c.key;
       zaehlZellen(tdv,tdt,v,c,false);
@@ -3632,8 +3664,7 @@ function doCount(key){
   const next = mode==='add' ? cur+1 : Math.max(0,cur-1);
   if(next===cur) return;
   data[p][key]=next;
-  undoStack.push({part:p,key,prev:cur});
-  if(undoStack.length>50) undoStack.shift();
+  undoPush({part:p,key,prev:cur});
   updGrid(); zaehlerZeigen(p,key); markDirty();
   const btn=document.getElementById('cb_'+key);
   /* Rückmeldung neu anstoßen, auch bei schnellem Mehrfachtippen auf dieselbe Kachel. Zwei Frames
@@ -3675,6 +3706,7 @@ function undoLast(){
     return;
   }
   if(last.typ==='einfuegen'){
+    if(notePopupTarget) closeNotePopup();
     const weg=new Set(last.ids);
     parts=parts.filter(p=>!weg.has(p.id));
     last.ids.forEach(id=>{ delete data[id]; delete teileOffen[id]; });
@@ -3759,8 +3791,7 @@ function addTeil(stepId){
 function delTeil(stepId,teilId){
   const d=data[stepId]; if(!d) return;
   const i=d.__teile.findIndex(t=>t.id===teilId); if(i<0) return;
-  undoStack.push({part:stepId,key:'__teile',prev:JSON.parse(JSON.stringify(d.__teile))});
-  if(undoStack.length>50) undoStack.shift();
+  undoPush({part:stepId,key:'__teile',prev:JSON.parse(JSON.stringify(d.__teile))});
   const t=d.__teile.splice(i,1)[0];
   renderBody(); markDirty();
   const bez=t.name||t.sachnr||'ohne Bezeichnung';
@@ -3853,6 +3884,7 @@ function delPart(id){
     ? `Prozessschritt "${name}" wirklich löschen?\n\nEr enthält erfasste Werte oder Teile. ↩ Undo holt ihn zurück.`
     : `Prozessschritt "${name}" löschen?`;
   if(!confirm(msg)) return;
+  if(notePopupTarget) closeNotePopup();   // offene Notiz zuerst sichern
   const idx=parts.findIndex(x=>x.id===id);
   if(idx<0) return;
   undoPush({typ:'geloescht',schritt:parts[idx],idx,daten:data[id],offen:!!teileOffen[id]});
@@ -5376,8 +5408,16 @@ function csvProjektV4(){
   /* Laufweg-Auslöser und Szenario hängen an Schritten: über Name und Vorkommen gespeichert, damit sie
      nach Einfügen, Löschen oder Umsortieren von Zeilen in Excel beim richtigen Schritt landen
      (i = Position, nur zur Orientierung beim Lesen der Datei) */
+  const nm=p=>String(p.name).trim();   // der Import liest Namen ohne Leerzeichen am Rand
+  const haeufig=new Map(); parts.forEach(p=>haeufig.set(nm(p),(haeufig.get(nm(p))||0)+1));
   const vorkommen=new Map();
-  const ref=parts.map((p,i)=>{ const k=vorkommen.get(p.name)||0; vorkommen.set(p.name,k+1); return {i,n:p.name,k}; });
+  const ref=parts.map((p,i)=>{
+    const n=nm(p), k=vorkommen.get(n)||0; vorkommen.set(n,k+1);
+    const r={i,n,k};
+    /* Bei mehrfach vergebenen Namen die Nachbarn mitschreiben — damit findet der Import den richtigen */
+    if(haeufig.get(n)>1){ r.v=i>0?nm(parts[i-1]):''; r.w=i<parts.length-1?nm(parts[i+1]):''; }
+    return r;
+  });
   const lwCsv={n:parts.length, s:parts.map((p,i)=>lwHat(p.id)?{...ref[i],t:lwTrig(p.id)}:null).filter(Boolean)};
   const szenCsv=taktSzenario ? {groupKey:taktSzenario.groupKey, extra:taktSzenario.extra, n:parts.length,
     moves:parts.map((p,i)=>taktHas(taktSzenario.moves,p.id)?{...ref[i],z:taktSzenario.moves[p.id]}:null).filter(Boolean)} : null;
@@ -5402,12 +5442,12 @@ function csvProjektV4(){
   ];
   return '\uFEFF'+[...meta,csvKopfV4(),...csvDatenV4()].map(csvZeile).join('\n');
 }
-/* Datei zum Speichern anbieten; die Objekt-URL wird danach wieder freigegeben */
+/* Datei zum Speichern anbieten. Die Objekt-URL bleibt bestehen: am iPad kann die Abfrage
+   „Laden?" beliebig lange offen stehen, eine freigegebene URL ließe den Download dann scheitern. */
 function dateiAnbieten(name,blob){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download=name;
   document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 function dateiBasis(name){ return String(name||'Zeitaufnahme').replace(/[\\/:*?"<>|]/g,'_'); }
 /* Leere Vorlage zum Ausfüllen in Excel: Kopfzeile in Zeile 1 (ohne Einstellungszeilen) und ein Beispiel.
@@ -5472,7 +5512,7 @@ function closePaste(){ clearTimeout(pasteTmr); pasteTmr=null; document.getElemen
 function pasteGeaendert(){ clearTimeout(pasteTmr); pasteTmr=setTimeout(()=>{ pasteTmr=null; pastePruefen(); },200); }
 function pasteLesen(text){
   if(!String(text).trim()) return null;
-  const rows=csvZerlegen(text,text.includes('\t')?'\t':';');
+  const rows=csvAuspacken(text,text.includes('\t')?'\t':';');
   if(rows.offen) return {fehler:'In Zeile '+rows.offen+' beginnt ein Text in Anführungszeichen, der nicht geschlossen wird.'};
   return csvV4Lesen(rows,true);
 }
@@ -5527,6 +5567,7 @@ function doPaste(){
   const ersetzen=document.querySelector('input[name="pasteModus"]:checked').value==='ersetzen';
   if(ersetzen){
     if(!confirm('Alle '+parts.length+' Prozessschritte durch die '+p.parts.length+' eingefügten ersetzen?\n\nErfasste Werte, Teile und Laufweg-Auslöser der bisherigen Schritte gehen verloren. Einstellungen und Kategorien bleiben.')) return;
+    if(notePopupTarget) closeNotePopup();
     parts=p.parts; data=p.data;
     teileOffen={}; colFilters={}; taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
     undoStack=[]; rowClipboard=null;
@@ -5587,6 +5628,8 @@ function dateiText(file,weiter){
    der aktuelle Wert; beim Start gilt der Standard. Ältere Formate liefern immer einen Wert. */
 function importUebernehmen(parsed,start,dateiname){
   const wert=(neu,alt,std)=>neu===undefined?(start?std:alt):neu;
+  if(notePopupTarget) closeNotePopup();
+  closeColPopup();
   COLS=lwKatUmstellen(parsed.cols);
   parts=parsed.parts;
   data=parsed.data;

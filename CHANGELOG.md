@@ -18,6 +18,98 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### CSV-Format 4: in Excel les- und bearbeitbar
+Die CSV lässt sich jetzt in Excel lesen, bearbeiten und auch von Hand anlegen. Geschrieben wird
+`__FORMAT__;4`. Dateien im Format 1 und 3 werden weiter eingelesen. Eine App-Version ohne Format 4
+kann die neuen Dateien nicht lesen.
+- **Teile als eigene Zeilen:** In der Zeile des Prozessschritts steht das erste Teil (Sachnummer,
+  Benennung, Menge). Weitere Teile folgen in den Zeilen darunter, die Spalte Prozessschritt bleibt
+  dort leer, wie in einer Stückliste.
+- **Spalten werden über die Überschrift erkannt**, nicht mehr über ihre Position:
+  - Spalten dürfen fehlen oder anders sortiert sein.
+  - Unbekannte Spalten werden ignoriert und beim Import gemeldet.
+  - Die kleinste gültige Datei hat nur die Spalten `Prozessschritt;Sachnummer;Benennung;Menge`.
+- **Je Kategorie nur die Anzahl.** Die Zeit-Spalten entfallen in der CSV. Leere Zellen bedeuten 0.
+  Im Excel-Export stehen weiterhin Anzahl und Zeit, die Zeit als Formel „Anzahl × Zeitwert".
+- **Klartext statt Kodierung:** Notizen, Projektbeschreibung und Spaltennamen stehen lesbar in
+  der Datei. Feldern mit Semikolon, Anführungszeichen oder Zeilenumbruch setzt die App
+  Anführungszeichen, wie Excel es auch tut.
+- **Einstellungen oben wie bisher, aber lesbar**, mit Dezimalkomma (sonst macht Excel aus
+  „10.5" den 10. Mai). Kodiert bleiben nur die internen Herleitungen: selbst angelegte Bausteine,
+  Szenario und Laufweg-Auslöser.
+- **Datei ohne Einstellungszeilen:** Beim Import in ein offenes Projekt bleiben dessen
+  Einstellungen erhalten (Sollzeit, Verteilzeit, Stundensatz, Takt, Laufweg-Meterwerte, Kategorien).
+- **Neu: „Aus Excel einfügen"** im Menü ⋯, in beiden Modi:
+  - In Excel die Zeilen samt Kopfzeile kopieren und in das Fenster einfügen. Eine Vorschau zeigt,
+    was erkannt wurde.
+  - Die Schritte werden am Ende angehängt; Undo nimmt sie wieder zurück. Alternativ ersetzen sie
+    alle bisherigen Schritte.
+  - Ohne Spalte „Prozessschritt", z. B. bei einer kopierten Stückliste, kommen die Teile an den
+    aktiven Schritt.
+- **Neu: „Leere Vorlage (CSV)"** im Export-Fenster: Kopfzeile mit allen Kategorien des Projekts
+  und Beispielzeilen zum Ausfüllen.
+- **Schutz vor Excel-Umwandlungen:**
+  - Texte, die Excel sonst umwandelt, schreibt die App als `="…"`, damit Excel sie unverändert
+    zeigt. Das betrifft Sachnummern mit führender Null, Werte wie `1-2` oder `3/4` (würden zu einem
+    Datum), lange Nummern und Texte, die mit `-`, `+`, `=` oder `@` beginnen (würden zur Formel).
+  - Der Import nimmt die Hülle wieder ab.
+  - Der Schutz hält für **ein** Öffnen und Speichern in Excel. Danach die Datei wieder über die App
+    importieren, bevor sie erneut in Excel geöffnet wird.
+- **Laufweg-Auslöser und Szenario hängen am Schritt, nicht an der Zeilennummer:**
+  - Zeilen dürfen in Excel eingefügt, gelöscht oder umsortiert werden; die Zuordnung folgt dem
+    Schrittnamen.
+  - Bei mehrfach vergebenen Namen helfen die Nachbarschritte, den richtigen zu finden.
+  - Was zu keinem Schritt mehr passt (z. B. umbenannt), wird beim Import gemeldet.
+- Wird links eine Spalte eingefügt, bleiben die Einstellungszeilen erkannt.
+- Eine Zusatzspalte darf heißen wie eine feste Spalte (z. B. „Menge", „Notiz", „Bemerkung"),
+  ohne dass Werte vertauscht werden.
+- **Zähler in Teil-Zeilen** werden zum Schritt darüber addiert. Texte dort (Station, Notiz …)
+  werden gemeldet statt still verworfen.
+- **Dateien aus Excel unter Windows:** „CSV (Trennzeichen-getrennt)" (Windows-1252) und
+  „Unicode-Text" (UTF-16, Tabulatoren) werden mit korrekten Umlauten gelesen.
+- **Klare Meldungen bei fehlerhaften Dateien:**
+  - Ein nicht geschlossenes Anführungszeichen wird mit Zeilennummer gemeldet.
+  - Fehlt eine Spalte „Prozessschritt", sagt der Import das, statt die Datei als altes Format
+    falsch zu lesen. Ersatznamen wie „Arbeitsgang" oder „Vorgang" werden erkannt.
+- **Excel-Report einfügen:** Aus dem Blatt „Arbeitsablauf" eingefügte Zeilen bringen ihre Teile
+  aus der Spalte „Teile" mit.
+- Interne Angaben werden auf mehrere Zellen verteilt, damit Excel nichts abschneidet (Grenze
+  32 767 Zeichen je Zelle).
+- „Aus Excel einfügen" beginnt immer mit „Am Ende anhängen".
+- Import-Hinweise im Toast dürfen umbrechen und verschwinden vollständig.
+
+### Code-Prüfung (gesamte App)
+- **Zählen ist bei großen Projekten schnell:**
+  - Bisher baute jeder Tipp auf eine Kachel die ganze Tabelle neu auf, bei 276 Schritten rund
+    15.000 Zellen in etwa 1 Sekunde.
+  - Jetzt werden nur die betroffene Zeile und die Summenzeile aktualisiert: 1–2 ms Rechenzeit,
+    inklusive Bildaufbau unter 0,1 s. Das gilt auch für Undo und „Zeile kopieren".
+- **Tastenkürzel** reagieren nicht mehr auf Cmd/Strg/Alt und nicht auf gehaltene Tasten. Bisher
+  zählte z. B. Cmd+R eine Kategorie und verhinderte das Neuladen.
+- **Kreisdiagramm** bleibt nicht mehr leer, wenn eine einzige Gruppe die gesamte Zeit hat.
+- **Kategorienamen mit Anführungszeichen** (z. B. `3/4" Schlauch`) werden in „Zeiten" beim
+  Speichern nicht mehr abgeschnitten. Spitze Klammern in Namen werden als Text gezeigt.
+- **Undo** holt jetzt auch einen gelöschten Prozessschritt und eine per „Einfügen" überschriebene
+  Zeile zurück.
+- **Projektwechsel und Import:**
+  - Spaltenfilter des vorigen Projekts werden zurückgesetzt; sie blendeten sonst Zeilen aus.
+  - Der Hinweis „nicht exportiert" übersteht ein Neuladen, sodass „Projekt wechseln" weiter warnt.
+- **Notizen:** Wird ein Schritt gelöscht, während seine Notiz offen ist, bleibt das Notizfenster
+  nicht mehr hängen.
+- **Popups** (Notiz, Spalten, Filter) bleiben im Einfach-Modus vollständig im Bild.
+- **Excel-Export:**
+  - Steuerzeichen in Notizen machten die Datei für Excel „beschädigt"; sie werden entfernt.
+  - Das Blatt „Zeitwerte" enthält die vollen Zeitwerte statt auf 3 Stellen gerundeter.
+- **Robustheit:**
+  - Beschädigte Baustein-Herleitungen im Speicher oder in Dateien bringen den Rechner nicht mehr
+    zum Absturz.
+  - Kategorie-Schlüssel aus Dateien werden geprüft.
+  - Negative Zeitwerte, Sollzeiten und Stundensätze werden auf 0 begrenzt.
+- **Aufgeräumt:**
+  - Den Service Worker hat kein Browser je registriert; er ist entfernt. Die App läuft weiter
+    offline.
+  - Doppelter Code beim Import ist zusammengefasst, toter Code entfernt.
+
 ### Design
 Die Daten, das CSV-Format, der Excel-Export, die Druckansicht und der gespeicherte Stand
 bleiben unverändert. Alle Funktionen sind dort, wo sie waren; neu angeordnet ist nur die Topbar.

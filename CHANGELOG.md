@@ -18,6 +18,16 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Filter in Auswertung und Summenzeile
+
+- **Auswertung:** Ist in der Tabelle ein Filter aktiv (z. B. auf die Station), erscheint oben
+  das Anhakfeld „Alle Prozessschritte auswerten“. Angehakt rechnen Übersicht, Taktabgleich
+  und Druck wieder über alle Prozessschritte, der Tabellenfilter bleibt bestehen. Ohne Haken
+  gilt wie bisher nur die gefilterte Auswahl. Die Wahl gilt, solange die App offen ist.
+- **Summenzeile:** Die Summenzeile unter der Tabelle zählt nur noch die gefilterten Zeilen
+  zusammen (Anzahl, ∑ minD und alle Kategorien) und heißt dann „∑ Gefiltert“. Ohne Filter
+  bleibt es bei „∑ Gesamt“ über alle Schritte.
+
 ### CSV-Format 4: in Excel les- und bearbeitbar
 Die CSV lässt sich jetzt in Excel lesen, bearbeiten und auch von Hand anlegen. Geschrieben wird
 `__FORMAT__;4`. Dateien im Format 1 und 3 werden weiter eingelesen. Eine App-Version ohne Format 4

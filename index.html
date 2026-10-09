@@ -668,8 +668,11 @@ body.beginner-mode .paste-text{font-size:var(--fs-m);}
 .verteil-presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .verteil-presets .tbtn.active{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
 .ana-soll-input-row input{flex:1;}
-.ana-scope-note{font-size:var(--fs-xs);color:var(--accent-bright);background:var(--accent-dim);border-radius:var(--r-s);padding:6px 9px;margin-bottom:12px;display:none;}
-.ana-scope-note.show{display:block;}
+.ana-scope-note{font-size:var(--fs-xs);color:var(--accent-bright);background:var(--accent-dim);border-radius:var(--r-s);padding:6px 9px;margin-bottom:12px;display:none;align-items:center;flex-wrap:wrap;gap:6px 16px;}
+.ana-scope-note.show{display:flex;}
+.ana-scope-note .takt-chk{color:var(--text);margin-left:auto;}
+body.beginner-mode .ana-scope-note .takt-chk{min-height:44px;font-size:var(--fs-s);}
+body.beginner-mode .ana-scope-note .takt-chk input{width:22px;height:22px;}
 .ana-kpi-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
 .ana-kpi{flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;}
 /* ── AUSWERTUNGS-REITER & TAKTABGLEICH ── */
@@ -1051,7 +1054,10 @@ body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
         <button class="ana-tab on" id="anaTabUeb" onclick="setAnaTab('ueberblick')">Übersicht</button>
         <button class="ana-tab" id="anaTabTakt" onclick="setAnaTab('takt')">Taktabgleich</button>
       </div>
-      <div class="ana-scope-note" id="anaScopeNote"></div>
+      <div class="ana-scope-note" id="anaScope">
+        <span id="anaScopeNote"></span>
+        <label class="takt-ctl-item takt-chk"><input type="checkbox" id="anaAlleChk" onchange="setAnaAlle(this.checked)"/>Alle Prozessschritte auswerten</label>
+      </div>
       <div id="anaPanelUeberblick">
       <div class="ana-grid">
       <div class="ana-links">
@@ -1867,9 +1873,15 @@ function bindFilterIcons(){
 
 /* ═══════════════════════════════════════
    AUSWERTUNG (Soll/Ist, Diagramm, Top-10, Vergleich)
-   Bezieht sich immer nur auf die aktuell gefilterten Prozessschritte.
+   Bezieht sich auf die aktuell gefilterten Prozessschritte, auf Wunsch auf alle (anaAlle).
 ═══════════════════════════════════════ */
 let anaDrillLevel='group'; // 'group' | 'category'
+let anaAlle=false;         // Auswertung trotz aktivem Tabellenfilter über alle Prozessschritte
+/* Grundlage für Übersicht, Taktabgleich und Druck: die gefilterten Schritte,
+   außer „Alle Prozessschritte auswerten“ ist angehakt */
+function anaGefiltert(){ return hasAnyFilter() && !anaAlle; }
+function anaParts(){ return anaGefiltert() ? parts.filter(partPassesFilters) : parts.slice(); }
+function setAnaAlle(on){ anaAlle=!!on; renderAnalysis(); }
 function grandTotal(list){ return (list||parts).reduce((s,p)=>s+calcTotal(p.id),0); }
 function openAnalysis(){
   document.getElementById('sollInput').value = sollzeit ? dispParam(sollzeit) : '';
@@ -1885,7 +1897,7 @@ function closeAnalysis(){ document.getElementById('anaModal').classList.remove('
 function printAnalysis(){
   const pa=document.getElementById('printArea');
   const u=ul();
-  const fParts=getFilteredParts();
+  const fParts=anaParts();
   const top=topParts(fParts);
   const takt=taktData();
   const stLbl=taktGroupLabel();
@@ -2026,7 +2038,7 @@ function printAnalysis(){
       ${projectDescription?`<p class="pr-desc">${escHtml(projectDescription)}</p>`:''}
       <div class="pr-meta">${new Date().toLocaleString('de-DE')} · ${meta.join(' · ')}</div>
     </div>
-    ${hasAnyFilter()?`<div class="pr-scope">🔍 Ausgewertet wurden nur die ${fParts.length} gefilterten Prozessschritte.</div>`:''}
+    ${anaGefiltert()?`<div class="pr-scope">🔍 Ausgewertet wurden nur die ${fParts.length} gefilterten Prozessschritte.</div>`:''}
 
     <div class="pr-sec">
       <h2>Kennzahlen</h2>
@@ -2161,7 +2173,7 @@ function taktData(szen){
   const map=new Map();
   let ohne=null;
   const station=name=>{ if(!map.has(name)) map.set(name,{name,rows:0,teile:0,minD:0,parts:[]}); return map.get(name); };
-  getFilteredParts().forEach(p=>{
+  anaParts().forEach(p=>{
     const st=taktStation(p,szen);
     const e=st ? station(st) : (ohne||(ohne={name:taktEmptyLabel(),rows:0,teile:0,minD:0,parts:[],ohne:true}));
     e.rows++;                 // Prozessschritte
@@ -2414,7 +2426,7 @@ function renderTaktabgleich(){
   taktListe=rowsList;
   let h=`<div class="takt-szen">
     <div class="ana-chart-head"><span class="ana-chart-title">Szenario – Prozessschritte verschieben</span></div>
-    <div class="takt-hint">Die Basisdaten bleiben unverändert, bis du übernimmst. ${nMoves?nMoves+' Prozessschritt(e) verschoben.':'Noch nichts verschoben.'}${hasAnyFilter()?' Gezeigt werden nur die gefilterten Prozessschritte.':''}</div>
+    <div class="takt-hint">Die Basisdaten bleiben unverändert, bis du übernimmst. ${nMoves?nMoves+' Prozessschritt(e) verschoben.':'Noch nichts verschoben.'}${anaGefiltert()?' Gezeigt werden nur die gefilterten Prozessschritte.':''}</div>
     <div class="takt-szen-btns">
       <button class="tbtn" onclick="taktNeueStation()">${ic('plus')}${escHtml(stLbl)}</button>
       <button class="tbtn" onclick="taktSzenUebernehmen()"${nMoves?'':' disabled'}>${ic('haken')}In Tabelle übernehmen</button>
@@ -2449,15 +2461,14 @@ function renderTaktabgleich(){
   sw.innerHTML=h+'</div>';
 }
 function renderAnalysis(){
-  const fParts=getFilteredParts();
+  const fParts=anaParts();
 
-  const scopeNote=document.getElementById('anaScopeNote');
-  if(hasAnyFilter()){
-    scopeNote.innerHTML=ic('filter')+'Bezieht sich nur auf die '+fParts.length+' gefilterten Prozessschritte';
-    scopeNote.classList.add('show');
-  } else {
-    scopeNote.classList.remove('show');
-  }
+  /* Hinweis und Anhakfeld nur, solange in der Tabelle ein Filter aktiv ist */
+  document.getElementById('anaScope').classList.toggle('show',hasAnyFilter());
+  document.getElementById('anaAlleChk').checked=anaAlle;
+  document.getElementById('anaScopeNote').innerHTML=ic('filter')+(anaAlle
+    ? 'Tabellenfilter aktiv – ausgewertet werden alle '+fParts.length+' Prozessschritte'
+    : 'Bezieht sich nur auf die '+fParts.length+' gefilterten Prozessschritte');
 
   const ist=grandTotal(fParts);
   const istVz=ist*(1+(verteilzeitFactor||0)/100);
@@ -3388,8 +3399,9 @@ function zaehlerZeigen(id,key){
   zaehlZellen(tv,tt,data[id][key]||0,c,false);
   const tot=calcTotal(id);
   tr.querySelector('td.ct').textContent=tot>0?disp2(tot):'–';
-  zaehlZellen(sv,st,parts.reduce((s,p)=>s+(data[p.id][key]||0),0),c,true);
-  sr.querySelector('td.ct').textContent=disp2(parts.reduce((s,p)=>s+calcTotal(p.id),0));
+  const vis=getFilteredParts();   // Summenzeile = nur die sichtbaren Schritte
+  zaehlZellen(sv,st,vis.reduce((s,p)=>s+(data[p.id][key]||0),0),c,true);
+  sr.querySelector('td.ct').textContent=disp2(vis.reduce((s,p)=>s+calcTotal(p.id),0));
 }
 function einfuegeKnopf(b){
   b.classList.toggle('active',!!rowClipboard);
@@ -3564,8 +3576,8 @@ function renderBody(){
     }
   });
 
-  // Summen werden über ALLE Schritte berechnet (unabhängig vom Filter)
-  parts.forEach(part=>{
+  // Summen nur über die sichtbaren (gefilterten) Schritte
+  visibleParts.forEach(part=>{
     const id=part.id;
     totQty+=stepQty(id);
     totT+=calcTotal(id);
@@ -3576,7 +3588,7 @@ function renderBody(){
   const sr=document.createElement('tr');sr.className='sum-row';
   sr.appendChild(td('nr'));
   sr.appendChild(td('level',vis.level,L.level));
-  const s0=td('cn',vis.name,L.cn);s0.textContent='∑ Gesamt';sr.appendChild(s0);
+  const s0=td('cn',vis.name,L.cn);s0.textContent=hasAnyFilter()?'∑ Gefiltert':'∑ Gesamt';sr.appendChild(s0);
   sr.appendChild(td('sachnr',vis.sachnr));
   sr.appendChild(td('teilname',vis.teilname));
   extraFlds.forEach(()=>sr.appendChild(td('extra')));
@@ -3819,7 +3831,7 @@ function refreshStepSummary(id){
     const c=tr.querySelector('.teil-caret'); if(c) c.classList.toggle('leer',!teile.length);
   }
   const sq=document.querySelector('#tblBody tr.sum-row td.qty');
-  if(sq){ const tot=parts.reduce((s,p)=>s+stepQty(p.id),0); sq.textContent=tot>0?tot:'–'; }
+  if(sq){ const tot=getFilteredParts().reduce((s,p)=>s+stepQty(p.id),0); sq.textContent=tot>0?tot:'–'; }
 }
 function renamePart(id,newName,inp){
   const p=parts.find(x=>x.id===id);

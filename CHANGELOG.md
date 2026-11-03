@@ -27,6 +27,13 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 - **Zeiten:** Der Knopf unten heißt „Neuer Baustein“ statt „Neue Kategorie“.
 - **Spaltenfilter:** Die Werteliste steht in der Reihenfolge, in der die Werte in der Tabelle
   von oben auftauchen, nicht mehr alphabetisch.
+- **„Meter in total“** ist in der Tabelle die erste Kategoriespalte (direkt nach ∑). Kacheln,
+  Tastenkürzel und Exporte behalten ihre Reihenfolge.
+- **Einrückung nach Level:** Der Prozessschritt rückt je Level ein Stück ein (12 px pro Stufe).
+- **Spaltenbreite ziehen:** Prozessschritt, Sachnummer, Bauteilbenennung und die Zusatzspalten
+  lassen sich am rechten Rand des Spaltenkopfs breiter oder schmaler ziehen, mit Maus oder
+  Finger. Die Breiten gelten nur auf diesem Gerät. Doppelklick auf den Rand oder „Breiten
+  zurücksetzen“ im Menü „Spalten“ stellt die automatische Breite wieder her.
 
 ### Filter in Auswertung und Summenzeile
 

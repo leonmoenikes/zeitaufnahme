@@ -283,6 +283,14 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 .flt-range span{font-size:var(--fs-xs);color:var(--text3);}
 /* Filter-Icon im Spaltenkopf */
 .data-tbl thead th{position:relative;}
+/* Griff zum Ziehen der Spaltenbreite (rechter Rand des Spaltenkopfs) */
+/* Ganz innerhalb der Zelle: jede Kopfzelle ist sticky mit eigenem z-index, die rechte Nachbarzelle
+   läge sonst über einem überstehenden Griff. */
+.col-griff{position:absolute;top:0;right:0;width:8px;height:100%;cursor:col-resize;z-index:2;touch-action:none;}
+.col-griff::after{content:"";position:absolute;top:22%;bottom:22%;right:0;width:1px;background:var(--border2);}
+.col-griff:hover::after,.col-griff.zieht::after{width:3px;background:var(--accent);}
+body.beginner-mode .col-griff{width:20px;}
+body.beginner-mode .col-griff::after{width:2px;}
 .flt-ico{
   display:inline-block;margin-left:3px;font-size:var(--fs-xs);opacity:.45;cursor:pointer;
   -webkit-user-select:none;user-select:none;
@@ -392,6 +400,13 @@ body.sub .active-bar{box-shadow:inset 4px 0 0 var(--red);}
 .extra-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
 .cn-wrap{display:flex;align-items:center;gap:0;}
 .cn-wrap .ni{flex:1;min-width:50px;}
+/* Prozessschritt je Level etwas eingerückt, damit die Gliederung sichtbar wird */
+.data-tbl tbody tr.lvl-2 td.cn .cn-wrap{padding-left:12px;}
+.data-tbl tbody tr.lvl-3 td.cn .cn-wrap{padding-left:24px;}
+.data-tbl tbody tr.lvl-4 td.cn .cn-wrap{padding-left:36px;}
+.data-tbl tbody tr.lvl-5 td.cn .cn-wrap{padding-left:48px;}
+.data-tbl tbody tr.lvl-6 td.cn .cn-wrap{padding-left:60px;}
+.data-tbl tbody tr.lvl-7 td.cn .cn-wrap{padding-left:72px;}
 /* Aufklapp-Symbol der Teile */
 .teil-caret{flex-shrink:0;width:22px;height:22px;border:none;background:none;padding:0;
   color:var(--text2);font-size:var(--fs-s);cursor:pointer;border-radius:var(--r-s);}
@@ -1744,6 +1759,12 @@ function openColMenu(anchorEl){
   const bNone=document.createElement('button');bNone.className='tbtn';bNone.textContent='Keine';
   bNone.addEventListener('click',()=>{OPT_COLS.forEach(o=>colVis[o.key]=false);markDirty();buildHead();renderBody();openColMenu(anchorEl);});
   act.appendChild(bAll);act.appendChild(bNone);
+  if(Object.keys(spaltenBreiten).length){
+    const bB=document.createElement('button');bB.className='tbtn';bB.textContent='Breiten zurücksetzen';
+    bB.title='Selbst gezogene Spaltenbreiten auf diesem Gerät verwerfen';
+    bB.addEventListener('click',()=>{ spaltenBreiten={}; breitenSpeichern(); openColMenu(anchorEl); });
+    act.appendChild(bB);
+  }
   body.appendChild(act);
   pop.classList.add('open');
   positionPopup(pop,anchorEl);
@@ -3351,22 +3372,29 @@ function stickyLeft(){
 /* Kategoriebereich einer Unterzeile als eine einzige Zelle — statt 22 bzw. 44 leerer Zellen
    je Teil. Jeder Tipp auf eine Kachel baut die Tabelle neu, da zählt jede Zelle. */
 function kategorieSpan(){ return COLS.length*(uiMode==='beginner'?1:2); }
+/* Reihenfolge der Kategoriespalten in der Tabelle: „Meter in total" vorne, weil fast jeder Schritt
+   einen Laufweg hat. Nur Anzeige — Kacheln, Tastenkürzel und Exporte behalten die COLS-Reihenfolge. */
+function tabCols(){
+  const m=COLS.find(c=>c.key===LW_KAT);
+  return m ? [m,...COLS.filter(c=>c!==m)] : COLS;
+}
 function buildHead(){
   const tr=document.getElementById('tblHead');
   const L=stickyLeft();
   const hide=k=>isColVisible(k)?'':'display:none;';
   let h='<th class="nr">#</th>';
   h+=`<th class="level" style="left:${L.level}px;${hide('level')}">Lvl${fltIco('level','Level','set')}</th>`;
-  h+=`<th class="cn" style="left:${L.cn}px;${hide('name')}">Prozessschritt${fltIco('name','Prozessschritt','set')}</th>`;
-  h+=`<th class="sachnr" style="${hide('sachnr')}">Sachnr.${fltIco('sachnr','Sachnummer','set')}</th>`;
-  h+=`<th class="teilname" style="${hide('teilname')}">Bauteilbenennung${fltIco('teilname','Bauteilbenennung','set')}</th>`;
+  const griff=k=>`<span class="col-griff" data-bk="${k}" title="Breite ziehen · Doppelklick: zurücksetzen"></span>`;
+  h+=`<th class="cn" style="left:${L.cn}px;${hide('name')}">Prozessschritt${fltIco('name','Prozessschritt','set')}${griff('cn')}</th>`;
+  h+=`<th class="sachnr" style="${hide('sachnr')}">Sachnr.${fltIco('sachnr','Sachnummer','set')}${griff('sachnr')}</th>`;
+  h+=`<th class="teilname" style="${hide('teilname')}">Bauteilbenennung${fltIco('teilname','Bauteilbenennung','set')}${griff('teilname')}</th>`;
   OPT_COLS.filter(o=>!o.own).forEach(o=>{
-    if(isColVisible(o.key)){const Lb=colLabel(o.key);h+=`<th class="extra">${escHtml(Lb)}${fltIco(o.key,Lb,'set')}</th>`;}
+    if(isColVisible(o.key)){const Lb=colLabel(o.key);h+=`<th class="extra x-${o.key}">${escHtml(Lb)}${fltIco(o.key,Lb,'set')}${griff(o.key)}</th>`;}
   });
   h+=`<th class="th-qty">Anzahl${fltIco('qty','Anzahl','range')}</th>`;
   h+='<th class="acts"></th>';
   h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
-  COLS.forEach(c=>{
+  tabCols().forEach(c=>{
     const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
     h+=`<th class="th-q" title="${escAttr(c.label)}" style="background:${gCol}e6;border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).map(escHtml).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
     h+=`<th class="th-t adv-only" style="background:${gCol}b3;">[${ul()}]</th>`;
@@ -3378,7 +3406,46 @@ function buildHead(){
     th.classList.toggle('flt-active', !!(ico && colFilters[ico.dataset.fk]));
   });
   bindFilterIcons();
+  tr.querySelectorAll('.col-griff').forEach(griffBinden);
 }
+/* ── Spaltenbreite ziehen (wie in Excel) ──
+   Prozessschritt, Sachnummer, Bauteilbenennung und die Zusatzspalten. Die Breiten gelten nur auf
+   diesem Gerät (eigener Speichereintrag) — nicht im Projekt, nicht in der CSV. Doppelklick auf den
+   Griff oder „Breiten zurücksetzen" im Spalten-Menü gibt die Spalte wieder frei. */
+const BREITEN_KEY='zeitaufnahme_spaltenbreiten';
+let spaltenBreiten={};
+try{ const b=JSON.parse(localStorage.getItem(BREITEN_KEY)||'{}'); if(b && typeof b==='object') spaltenBreiten=b; }catch(e){}
+function breiteSel(k){ return ['cn','sachnr','teilname'].includes(k) ? '.data-tbl :is(th,td).'+k : '.data-tbl :is(th,td).x-'+k; }
+function breitenAnwenden(){
+  let st=document.getElementById('spaltenBreitenCss');
+  if(!st){ st=document.createElement('style'); st.id='spaltenBreitenCss'; document.head.appendChild(st); }
+  st.textContent=Object.entries(spaltenBreiten)
+    .filter(([k,w])=>/^[a-z0-9]+$/.test(k) && w>0)
+    .map(([k,w])=>`${breiteSel(k)}{width:${w}px!important;min-width:${w}px!important;max-width:${w}px!important;overflow:hidden;text-overflow:ellipsis;}`
+      +`${breiteSel(k)} input{min-width:0;}`).join('\n');
+}
+function breitenSpeichern(){
+  breitenAnwenden();
+  try{ localStorage.setItem(BREITEN_KEY,JSON.stringify(spaltenBreiten)); }catch(e){}
+}
+function griffBinden(g){
+  const k=g.dataset.bk;
+  g.addEventListener('click',e=>e.stopPropagation());
+  g.addEventListener('dblclick',e=>{ e.stopPropagation(); delete spaltenBreiten[k]; breitenSpeichern(); });
+  g.addEventListener('pointerdown',e=>{
+    e.preventDefault(); e.stopPropagation();
+    const x0=e.clientX, w0=g.parentElement.getBoundingClientRect().width;
+    try{ g.setPointerCapture(e.pointerId); }catch(_){}
+    g.classList.add('zieht');
+    const move=ev=>{ spaltenBreiten[k]=Math.round(Math.max(40,Math.min(700,w0+ev.clientX-x0))); breitenAnwenden(); };
+    const ende=()=>{
+      g.removeEventListener('pointermove',move); g.removeEventListener('pointerup',ende); g.removeEventListener('pointercancel',ende);
+      g.classList.remove('zieht'); breitenSpeichern();
+    };
+    g.addEventListener('pointermove',move); g.addEventListener('pointerup',ende); g.addEventListener('pointercancel',ende);
+  });
+}
+breitenAnwenden();
 /* ═══════════════════════════════════════
    BEGINNER / ADVANCED MODUS
    Reine Anzeigeeinstellung — verändert oder verbirgt keine Daten
@@ -3514,7 +3581,7 @@ function renderBody(){
 
     // Zusatzspalten (optional, Inhalte bleiben unabhängig von der Anzeige erhalten)
     extraFlds.forEach(fld=>{
-      const tdE=td('extra');
+      const tdE=td('extra x-'+fld.slice(2));
       const ei=document.createElement('input');
       ei.type='text';ei.className='extra-input';
       ei.value=data[id][fld]||'';
@@ -3571,7 +3638,7 @@ function renderBody(){
     const tdtot=td('ct');
     tdtot.textContent=tot>0?disp2(tot):'–';tr.appendChild(tdtot);
 
-    COLS.forEach(c=>{
+    tabCols().forEach(c=>{
       const v=data[id][c.key]||0;
       const tdv=document.createElement('td'), tdt=document.createElement('td');
       tdv.dataset.k=c.key; tdt.dataset.kt=c.key;
@@ -3608,11 +3675,11 @@ function renderBody(){
   const s0=td('cn',vis.name,L.cn);s0.textContent=hasAnyFilter()?'∑ Gefiltert':'∑ Gesamt';sr.appendChild(s0);
   sr.appendChild(td('sachnr',vis.sachnr));
   sr.appendChild(td('teilname',vis.teilname));
-  extraFlds.forEach(()=>sr.appendChild(td('extra')));
+  extraFlds.forEach(f=>sr.appendChild(td('extra x-'+f.slice(2))));
   const sQty=td('qty');sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
   sr.appendChild(td('acts'));
   const stot=td('ct');stot.textContent=disp2(totT);sr.appendChild(stot);
-  COLS.forEach(c=>{
+  tabCols().forEach(c=>{
     const tdv=document.createElement('td'), tdt=document.createElement('td');
     tdv.dataset.k=c.key; tdt.dataset.kt=c.key;
     zaehlZellen(tdv,tdt,totQ[c.key],c,true);
@@ -3647,7 +3714,7 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   };
   feld('sachnr',vis.sachnr,'sachnr',{type:'text',maxLength:8,inputMode:'numeric',className:'sachnr-input',placeholder:'Sachnr.'});
   feld('teilname',vis.teilname,'name',{type:'text',className:'teil-name-in',placeholder:'Bezeichnung'});
-  extraFlds.forEach(()=>tr.appendChild(td('extra')));
+  extraFlds.forEach(f=>tr.appendChild(td('extra x-'+f.slice(2))));
   feld('qty',true,'menge',{type:'number',min:0,step:1,inputMode:'numeric',className:'qi',title:'Menge'});
   const tdA=td('acts');
   const del=document.createElement('button');
@@ -3668,7 +3735,7 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
   tr.appendChild(td('level',vis.level,L.level));
   const tdCn=td('cn',vis.name,L.cn), tdS=td('sachnr',vis.sachnr), tdT=td('teilname',vis.teilname);
   tr.appendChild(tdCn); tr.appendChild(tdS); tr.appendChild(tdT);
-  extraFlds.forEach(()=>tr.appendChild(td('extra')));
+  extraFlds.forEach(f=>tr.appendChild(td('extra x-'+f.slice(2))));
   tr.appendChild(td('qty')); tr.appendChild(td('acts')); tr.appendChild(td('ct'));
   const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest);
   /* Knopf in die erste sichtbare der linken Spalten, damit er ohne Scrollen erreichbar ist */

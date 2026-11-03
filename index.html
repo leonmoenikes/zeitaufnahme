@@ -724,6 +724,23 @@ body.beginner-mode .ana-scope-note .takt-chk input{width:22px;height:22px;}
 .takt-tbl td.tk-pos{color:var(--red);}
 .takt-tbl td.tk-neg{color:var(--green);}
 .tj-st{margin-bottom:14px;}
+.tj-uebersicht{margin-bottom:18px;}
+.tj-bars{display:flex;flex-direction:column;gap:7px;}
+.tj-bar-row{display:flex;align-items:center;gap:8px;font-size:var(--fs-xs);}
+.tj-bar-tracks{flex:1;display:flex;flex-direction:column;gap:3px;min-width:80px;}
+.tj-track{position:relative;background:var(--surface2);border-radius:3px;}
+.tj-track-a{height:14px;}
+.tj-track-m{height:7px;}
+.tj-fill-a{height:100%;border-radius:3px;background:var(--bar);}
+.tj-fill-m{height:100%;border-radius:3px;background:var(--bar);opacity:.4;}
+.tj-ghost{position:absolute;top:0;left:0;height:100%;border:1.5px dashed var(--text2);border-radius:3px;box-sizing:border-box;pointer-events:none;}
+.tj-bar-val{width:150px;flex-shrink:0;text-align:right;font-family:var(--mono);color:var(--text2);line-height:1.35;}
+.tj-bar-val b{color:var(--text);}
+.tj-bar-val .tk-pos{color:var(--red);}
+.tj-bar-val .tk-neg{color:var(--green);}
+.takt-legend i{display:inline-block;width:14px;vertical-align:middle;margin-right:5px;border-radius:2px;background:var(--bar);}
+.takt-legend i.tj-lg-a{height:10px;}
+.takt-legend i.tj-lg-m{height:5px;opacity:.4;}
 .tj-kopf{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:6px 2px;border-bottom:2px solid var(--accent);margin-bottom:4px;}
 .tj-name{font-weight:700;font-size:var(--fs-m);color:var(--text);}
 /* Feste Spaltenbreiten, damit die Tabellen aller Stationen untereinander fluchten */
@@ -960,6 +977,9 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
 .pr-swatch{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;}
 .pr-bar{height:8px;background:#eceff5;border:1px solid #d5daea;position:relative;}
 .pr-bar-fill{height:100%;background:#5c8bd1;}
+.pr-bar.pr-tj-a{height:9px;}
+.pr-bar.pr-tj-m{height:5px;margin-top:2px;}
+.pr-bar.pr-tj-m .pr-bar-fill{background:#a9c0e6;}
 .pr-stack{display:flex;height:100%;}
 .pr-seg{display:block;height:100%;}
 .pr-bar-fill.pr-max,.pr-bar-fill.pr-over{background:#b32020;}
@@ -2101,10 +2121,28 @@ function printAnalysis(){
   /* Teile je Station: Stand wie am Bildschirm gewählt (Ist oder Szenario) */
   const tjSzen=(taktAnsicht==='szenario' && szenP) ? szenP : null;
   const tj=teileJeStation(tjSzen);
+  const tjIst=tjSzen ? teileJeStation(null) : null;
+  const tjIstBy=tjIst ? new Map(tjIst.map(e=>[e.ohne?'':e.name,e])) : null;
+  const tjMaxA=Math.max(1,...tj.map(e=>e.arten),...(tjIst||[]).map(e=>e.arten));
+  const tjMaxM=Math.max(1,...tj.map(e=>e.menge),...(tjIst||[]).map(e=>e.menge));
+  const tjK=tjKennzahlen(tj);
+  const tjBar=(v,ist,max,cls)=>`<div class="pr-bar ${cls}"><div class="pr-bar-fill" style="width:${(v/max*100).toFixed(1)}%"></div>${ist?`<div class="pr-bar-ghost" style="width:${(ist/max*100).toFixed(1)}%"></div>`:''}</div>`;
   const tjSec=!tj.some(e=>e.teile.length) ? '' : `<div class="pr-sec">
       <h2>Teile je ${escHtml(stLbl)}${tjSzen?' – Szenario':''}</h2>
+      <div class="pr-kpis" style="margin-bottom:7px">
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Ladungsträger gesamt</span><span class="pr-kpi-val">${tjK.arten}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Stückzahl gesamt</span><span class="pr-kpi-val">${tjK.menge}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Meiste Teilearten</span><span class="pr-kpi-val">${tjK.max&&tjK.max.arten?escHtml(tjK.max.name)+' · '+tjK.max.arten:'–'}</span></div>
+      </div>
+      <table class="pr-tbl" style="margin-bottom:7px">
+        <thead><tr><th>${escHtml(stLbl)}</th><th>Schritte</th><th>Teilearten</th>${tjIst?'<th>Δ</th>':''}<th>Stück</th>${tjIst?'<th>Δ</th>':''}<th class="pr-txt">Teilearten (kräftig) · Stückzahl (hell)</th></tr></thead>
+        <tbody>${tj.map(e=>{ const i=tjIstBy?tjIstBy.get(e.ohne?'':e.name):null;
+          const d=(a,b)=>{ const x=a-b; return `<td class="${x>0?'pr-pos':(x<0?'pr-neg':'')}">${x?(x>0?'+':'')+x:''}</td>`; };
+          return `<tr><td class="pr-txt">${escHtml(e.name)}${e.entfaellt?' (entfällt)':''}</td><td>${e.rows}</td><td>${e.arten}</td>${tjIst?d(e.arten,i?i.arten:0):''}<td>${e.menge}</td>${tjIst?d(e.menge,i?i.menge:0):''}
+            <td style="width:34%">${tjBar(e.arten,tjIst?(i?i.arten:0):null,tjMaxA,'pr-tj-a')}${tjBar(e.menge,tjIst?(i?i.menge:0):null,tjMaxM,'pr-tj-m')}</td></tr>`; }).join('')}</tbody>
+      </table>
       <table class="pr-tbl">
-        <thead><tr><th>Sachnr.</th><th class="pr-txt">Benennung</th><th>Anzahl</th><th class="pr-txt">Prozessschritt(e)</th></tr></thead>
+        <thead><tr><th>Sachnr.</th><th class="pr-txt">Benennung</th><th>Stück</th><th class="pr-txt">Prozessschritt(e)</th></tr></thead>
         <tbody>${tj.map(e=>`<tr class="pr-sum"><td class="pr-txt" colspan="4">${escHtml(e.name)}${e.entfaellt?' (entfällt)':''} · ${tjKopfText(e)}</td></tr>`
           +e.teile.map(t=>`<tr>
             <td class="pr-txt">${escHtml(t.sachnr||'–')}</td>
@@ -2113,7 +2151,7 @@ function printAnalysis(){
             <td class="pr-txt">${escHtml(t.schritte.join(', '))}${t.aus.length?' (↪ aus '+escHtml(t.aus.join(', '))+')':''}</td>
           </tr>`).join('')).join('')}</tbody>
       </table>
-      <p class="pr-hint">Gleiche Sachnummern einer ${escHtml(stLbl)} zusammengefasst, Anzahl = Summe der Mengen.${tjSzen?' Szenario-Stand: verschobene Schritte bringen ihre Teile mit.':''}</p>
+      <p class="pr-hint">Teileart = verschiedene Sachnummer (je ein Ladungsträger), Stück = Summe der Mengen; gleiche Sachnummern einer ${escHtml(stLbl)} zusammengefasst.${tjSzen?' Szenario-Stand: verschobene Schritte bringen ihre Teile mit, gestrichelt = Ist.':''}</p>
     </div>`;
 
   const topMax=Math.max(...top.map(it=>it.value),0.0001);
@@ -2642,11 +2680,50 @@ function teileJeStation(szen,liste){
       });
     });
     const teile=[...m.values()];
-    return {name:e.name, ohne:!!e.ohne, entfaellt:!!e.entfaellt, rows:e.rows, teile, menge:teile.reduce((s,t)=>s+t.menge,0)};
+    /* Teilearten = verschiedene Sachnummern: je eine braucht einen eigenen Ladungsträger an der Station */
+    return {name:e.name, ohne:!!e.ohne, entfaellt:!!e.entfaellt, rows:e.rows, teile, arten:teile.length, menge:teile.reduce((s,t)=>s+t.menge,0)};
   });
 }
 function tjKopfText(e){
-  return e.rows+' Schritt'+(e.rows===1?'':'e')+' · '+e.teile.length+' Position'+(e.teile.length===1?'':'en')+' · '+e.menge+' Teil'+(e.menge===1?'':'e');
+  return e.rows+' Schritt'+(e.rows===1?'':'e')+' · '+e.arten+' Teileart'+(e.arten===1?'':'en')+' · '+e.menge+' Stück';
+}
+/* Kennzahlen der Übersicht: Σ Teilearten = benötigte Ladungsträger (eine Sachnummer an zwei
+   Stationen braucht zwei), Σ Stück, Station mit den meisten Teilearten */
+function tjKennzahlen(liste){
+  const st=liste.filter(e=>!e.entfaellt);
+  const max=st.reduce((m,e)=>(!m||e.arten>m.arten)?e:m,null);
+  return {arten:st.reduce((s,e)=>s+e.arten,0), menge:st.reduce((s,e)=>s+e.menge,0), max};
+}
+/* Übersicht über den Listen: je Station ein kräftiger Balken für die Teilearten und darunter ein
+   schmaler für die Stückzahl, jeder mit eigenem Maßstab. Im Szenario zeigt ein gestrichelter
+   Rahmen den Ist-Wert, dazu die Änderung. */
+function tjUebersichtHtml(liste,ist){
+  const stLbl=taktGroupLabel();
+  const istBy=ist ? new Map(ist.map(e=>[e.ohne?'':e.name,e])) : null;
+  const ia=e=>{ const x=istBy&&istBy.get(e.ohne?'':e.name); return x||null; };
+  const maxA=Math.max(1,...liste.map(e=>e.arten),...(ist||[]).map(e=>e.arten));
+  const maxM=Math.max(1,...liste.map(e=>e.menge),...(ist||[]).map(e=>e.menge));
+  const k=tjKennzahlen(liste), ki=ist?tjKennzahlen(ist):null;
+  const sub=t=>ki?`<span class="ana-kpi-sub">Ist: ${t}</span>`:'';
+  const maxTxt=x=>x&&x.arten?escHtml(x.name)+' · '+x.arten:'–';
+  const delta=(a,b)=>{ const d=a-b; return d?`<span class="${d>0?'tk-pos':'tk-neg'}">${d>0?'+':''}${d}</span>`:''; };
+  return `<div class="ana-kpi-row">
+      <div class="ana-kpi" title="Summe der Teilearten über alle ${escAttr(taktMehrzahl())} – je Teileart ein Ladungsträger">
+        <span class="ana-kpi-lbl">Ladungsträger gesamt</span><span class="ana-kpi-val">${k.arten}</span>${sub(ki?ki.arten:'')}</div>
+      <div class="ana-kpi"><span class="ana-kpi-lbl">Stückzahl gesamt</span><span class="ana-kpi-val">${k.menge}</span>${sub(ki?ki.menge:'')}</div>
+      <div class="ana-kpi"><span class="ana-kpi-lbl">Meiste Teilearten</span><span class="ana-kpi-val">${maxTxt(k.max)}</span>${sub(ki?maxTxt(ki.max):'')}</div>
+    </div>
+    <div class="tj-bars">${liste.map(e=>{
+      const i=ia(e);
+      return `<div class="tj-bar-row">
+        <span class="takt-bar-name" title="${escAttr(e.name)}">${escHtml(e.name)}</span>
+        <div class="tj-bar-tracks">
+          <div class="tj-track tj-track-a"><div class="tj-fill-a" style="width:${(e.arten/maxA*100).toFixed(1)}%"></div>${i&&i.arten?`<div class="tj-ghost" style="width:${(i.arten/maxA*100).toFixed(1)}%"></div>`:''}</div>
+          <div class="tj-track tj-track-m"><div class="tj-fill-m" style="width:${(e.menge/maxM*100).toFixed(1)}%"></div>${i&&i.menge?`<div class="tj-ghost" style="width:${(i.menge/maxM*100).toFixed(1)}%"></div>`:''}</div>
+        </div>
+        <span class="tj-bar-val"><b>${e.arten}</b> Teileart${e.arten===1?'':'en'} ${ist?delta(e.arten,i?i.arten:0):''}<br>${e.menge} Stück ${ist?delta(e.menge,i?i.menge:0):''}</span>
+      </div>`; }).join('')}</div>
+    <div class="takt-legend"><span><i class="tj-lg-a"></i>Teilearten (je ein Ladungsträger)</span><span><i class="tj-lg-m"></i>Stückzahl</span>${ist?'<span>gestrichelter Rahmen = Ist vor der Umverteilung</span>':''}<span>eigener Maßstab je Balkenart</span></div>`;
 }
 function renderTeileJeStation(){
   const stLbl=taktGroupLabel();
@@ -2663,7 +2740,7 @@ function renderTeileJeStation(){
   sb.disabled=!szen;
   sb.title=szen?'Teile im Szenario-Stand':'Noch kein Szenario – im Taktabgleich anlegen';
   sb.innerHTML=ic('szenario')+'Szenario'+(nMoves?' ('+nMoves+')':'');
-  document.getElementById('tjHinweis').textContent='Gleiche Sachnummern sind je '+stLbl+' zusammengefasst, Anzahl = Summe der Mengen.'
+  document.getElementById('tjHinweis').textContent='Teileart = verschiedene Sachnummer (je ein Ladungsträger), Stückzahl = Summe der Mengen.'
     +(inSzen?' Stand im Szenario: verschobene Schritte bringen ihre Teile mit.':'');
   const liste=teileJeStation(inSzen?szen:null);
   const w=document.getElementById('tjWrap');
@@ -2671,11 +2748,14 @@ function renderTeileJeStation(){
     w.innerHTML='<div class="leer-hinweis">Noch keine Teile erfasst – in der Tabelle je Prozessschritt über ▸ Sachnummer, Benennung und Anzahl eintragen.</div>';
     return;
   }
-  w.innerHTML=liste.map(e=>`<div class="tj-st">
+  w.innerHTML=`<div class="tj-uebersicht"><div class="ana-chart-head"><span class="ana-chart-title">Übersicht je ${escHtml(stLbl)}</span></div>`
+    +tjUebersichtHtml(liste,inSzen?teileJeStation(null):null)+'</div>'
+    +`<div class="ana-chart-head mt5"><span class="ana-chart-title">Teile je ${escHtml(stLbl)} im Einzelnen</span></div>`
+    +liste.map(e=>`<div class="tj-st">
     <div class="tj-kopf"><span class="tj-name">${escHtml(e.name)}${e.entfaellt?' <span class="takt-hint">entfällt</span>':''}</span>
       <span class="takt-st-meta">${tjKopfText(e)}</span></div>
     ${e.teile.length?`<table class="takt-tbl tj-tbl">
-      <thead><tr><th>Sachnr.</th><th>Benennung</th><th>Anzahl</th><th>Prozessschritt(e)</th></tr></thead>
+      <thead><tr><th>Sachnr.</th><th>Benennung</th><th>Stück</th><th>Prozessschritt(e)</th></tr></thead>
       <tbody>${e.teile.map(t=>`<tr${t.aus.length?' class="tj-moved"':''}>
         <td class="tj-sn">${escHtml(t.sachnr||'–')}</td>
         <td class="tk-name">${escHtml(t.name||'–')}</td>
@@ -5583,11 +5663,17 @@ function xlsxSheetTeileJeStation(){
   const stLbl=taktGroupLabel();
   let rows='',rn=1;
   rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Teile je '+stLbl+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
-  rows+=`<row r="${rn}">${xc(1,rn,'Gleiche Sachnummern je '+stLbl+' zusammengefasst, Anzahl = Summe der Mengen · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Teileart = verschiedene Sachnummer (je ein Ladungsträger) · Stückzahl = Summe der Mengen · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
   const block=(titel,liste)=>{
     rn++;
     rows+=`<row r="${rn}">${xc(1,rn,titel,40)}</row>`;rn++;
-    rows+=`<row r="${rn}" ht="18" customHeight="1">${[stLbl,'Sachnummer','Benennung','Anzahl','Prozessschritt(e)','verschoben aus'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+    /* Übersicht: Teilearten (je ein Ladungsträger) und Stückzahl je Station */
+    rows+=`<row r="${rn}" ht="18" customHeight="1">${[stLbl,'Schritte','Teilearten','Stückzahl'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+    liste.forEach(e=>{ rows+=`<row r="${rn}">${xc(1,rn,e.name+(e.entfaellt?' (entfällt)':''),33)}${xc(2,rn,e.rows,33,true)}${xc(3,rn,e.arten,33,true)}${xc(4,rn,e.menge,33,true)}</row>`;rn++; });
+    const k=tjKennzahlen(liste);
+    rows+=`<row r="${rn}">${xc(1,rn,'∑ Gesamt',35)}${xc(2,rn,liste.reduce((s,e)=>s+e.rows,0),36,true)}${xc(3,rn,k.arten,36,true)}${xc(4,rn,k.menge,36,true)}</row>`;rn++;
+    rn++;
+    rows+=`<row r="${rn}" ht="18" customHeight="1">${[stLbl,'Sachnummer','Benennung','Stück','Prozessschritt(e)','verschoben aus'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
     liste.forEach(e=>{
       rows+=`<row r="${rn}">${xc(1,rn,e.name+(e.entfaellt?' (entfällt)':''),35)}${xc(2,rn,tjKopfText(e),35)}${xc(3,rn,'',35)}${xc(4,rn,e.menge,36,true)}${xc(5,rn,'',35)}${xc(6,rn,'',35)}</row>`;rn++;
       e.teile.forEach(t=>{

@@ -723,6 +723,20 @@ body.beginner-mode .ana-scope-note .takt-chk input{width:22px;height:22px;}
 .takt-tbl tr:nth-child(even) td{background:var(--surface2);}
 .takt-tbl td.tk-pos{color:var(--red);}
 .takt-tbl td.tk-neg{color:var(--green);}
+.tj-st{margin-bottom:14px;}
+.tj-kopf{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:6px 2px;border-bottom:2px solid var(--accent);margin-bottom:4px;}
+.tj-name{font-weight:700;font-size:var(--fs-m);color:var(--text);}
+/* Feste Spaltenbreiten, damit die Tabellen aller Stationen untereinander fluchten */
+.tj-tbl{table-layout:fixed;}
+.tj-tbl th:nth-child(1){width:110px;}
+.tj-tbl th:nth-child(2){width:32%;}
+.tj-tbl th:nth-child(3){width:70px;}
+.tj-tbl td{overflow:hidden;text-overflow:ellipsis;}
+.tj-tbl td.tj-sn{text-align:left;white-space:nowrap;}
+.tj-tbl td.tk-name{font-weight:500;}
+.tj-tbl td.tj-sch{text-align:left;font-family:var(--sans);color:var(--text2);}
+.tj-tbl tr.tj-moved td{background:var(--accent-dim);}
+.tj-leer{font-size:var(--fs-xs);color:var(--text3);padding:4px 2px;}
 .takt-tbl tr.tk-sum td{background:var(--sum-bg);font-weight:700;border-top:2px solid var(--accent);}
 .takt-bars{display:flex;flex-direction:column;gap:5px;}
 .takt-bar-row{display:flex;align-items:center;gap:8px;font-size:var(--fs-xs);}
@@ -762,6 +776,14 @@ body.beginner-mode .ana-scope-note .takt-chk input{width:22px;height:22px;}
 .takt-parts{padding:2px 0 8px 24px;border-bottom:1px solid var(--border);}
 .takt-part{display:flex;align-items:center;gap:8px;min-height:42px;font-size:var(--fs-xs);border-bottom:1px dashed var(--border);padding:0 4px;}
 .takt-part.moved{background:var(--accent-dim);}
+.takt-part-wahl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;cursor:pointer;align-self:stretch;}
+.takt-part-wahl input,.takt-wahl input{width:18px;height:18px;margin:0;flex-shrink:0;}
+.takt-wahl{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;padding:6px 4px;border-bottom:1px solid var(--border2);font-size:var(--fs-xs);color:var(--text2);}
+.takt-wahl-n{min-width:96px;}
+.takt-wahl select{min-height:36px;max-width:200px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-s);color:var(--text);font-size:var(--fs-xs);padding:0 6px;}
+body.beginner-mode .takt-part-wahl input,body.beginner-mode .takt-wahl input{width:22px;height:22px;}
+body.beginner-mode .takt-wahl .takt-chk{min-height:44px;}
+body.beginner-mode .takt-wahl select{min-height:44px;}
 .takt-part-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
 .takt-part-from{font-size:var(--fs-xs);color:var(--accent-bright);white-space:nowrap;}
 .takt-part-t{font-family:var(--mono);color:var(--text2);width:84px;text-align:right;flex-shrink:0;}
@@ -928,7 +950,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
 .pr-tbl thead{display:table-header-group;}      /* Kopfzeile auf Folgeseiten wiederholen */
 .pr-tbl tr{break-inside:avoid;page-break-inside:avoid;}
 .pr-tbl th{background:#e7ecf6;border:1px solid #9aa0b5;padding:3px 5px;text-align:right;font-weight:700;color:#1a1e2e;}
-.pr-tbl th:first-child{text-align:left;}
+.pr-tbl th:first-child,.pr-tbl th.pr-txt{text-align:left;}
 .pr-tbl td{border:1px solid #c5cbe0;padding:3px 5px;text-align:right;font-family:'Courier New',monospace;color:#1a1e2e;}
 .pr-tbl td.pr-txt{text-align:left;font-family:var(--sans);}
 .pr-tbl tbody tr:nth-child(even) td{background:#f7f9fc;}
@@ -1081,6 +1103,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
       <div class="ana-tabs">
         <button class="ana-tab on" id="anaTabUeb" onclick="setAnaTab('ueberblick')">Übersicht</button>
         <button class="ana-tab" id="anaTabTakt" onclick="setAnaTab('takt')">Taktabgleich</button>
+        <button class="ana-tab" id="anaTabTeile" onclick="setAnaTab('teile')">Teile je Station</button>
       </div>
       <div class="ana-scope-note" id="anaScope">
         <span id="anaScopeNote"></span>
@@ -1146,7 +1169,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
       </div>
 
       <div class="ana-top-head">
-        <span class="ana-chart-title">Top 10 Prozessschritte (Gesamtzeit)</span>
+        <span class="ana-chart-title">Top 10 <select class="takt-sel" id="anaTopSel" onchange="setAnaTop(this.value)" aria-label="Top 10 nach"></select> (Gesamtzeit)</span>
         <span class="takt-hint">Balkenlänge = Gesamtzeit · Farben = Kategorie-Gruppen</span>
       </div>
       <div id="anaTopHigh"></div>
@@ -1180,6 +1203,21 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
         </div>
         </div>
         <div id="taktSzenWrap"></div>
+      </div>
+
+      <div id="anaPanelTeile" style="display:none;">
+        <div class="ana-chart-head">
+          <span class="ana-chart-title" id="tjTitel">Teile je Station</span>
+          <span class="takt-hint">Gruppiert nach Spalte <select class="takt-sel" id="tjGroupSel" onchange="setTaktGroup(this.value)"></select></span>
+        </div>
+        <div class="takt-ctl">
+          <div class="toggle-group takt-view">
+            <button class="tg-btn" id="tjViewIst" onclick="setTaktAnsicht('ist')">Ist</button>
+            <button class="tg-btn" id="tjViewSzen" onclick="setTaktAnsicht('szenario')"><svg class="ic"><use href="#i-szenario"/></svg>Szenario</button>
+          </div>
+          <span class="takt-hint" id="tjHinweis"></span>
+        </div>
+        <div id="tjWrap"></div>
       </div>
 
     </div>
@@ -1936,7 +1974,8 @@ function printAnalysis(){
   const pa=document.getElementById('printArea');
   const u=ul();
   const fParts=anaParts();
-  const top=topParts(fParts);
+  const topOpt=anaTopGueltig();
+  const top=topParts(fParts,topOpt.k);
   const takt=taktData();
   const stLbl=taktGroupLabel();
 
@@ -2059,12 +2098,31 @@ function printAnalysis(){
     </div>`;
   }
 
+  /* Teile je Station: Stand wie am Bildschirm gewählt (Ist oder Szenario) */
+  const tjSzen=(taktAnsicht==='szenario' && szenP) ? szenP : null;
+  const tj=teileJeStation(tjSzen);
+  const tjSec=!tj.some(e=>e.teile.length) ? '' : `<div class="pr-sec">
+      <h2>Teile je ${escHtml(stLbl)}${tjSzen?' – Szenario':''}</h2>
+      <table class="pr-tbl">
+        <thead><tr><th>Sachnr.</th><th class="pr-txt">Benennung</th><th>Anzahl</th><th class="pr-txt">Prozessschritt(e)</th></tr></thead>
+        <tbody>${tj.map(e=>`<tr class="pr-sum"><td class="pr-txt" colspan="4">${escHtml(e.name)}${e.entfaellt?' (entfällt)':''} · ${tjKopfText(e)}</td></tr>`
+          +e.teile.map(t=>`<tr>
+            <td class="pr-txt">${escHtml(t.sachnr||'–')}</td>
+            <td class="pr-txt">${escHtml(t.name||'–')}</td>
+            <td>${t.menge}</td>
+            <td class="pr-txt">${escHtml(t.schritte.join(', '))}${t.aus.length?' (↪ aus '+escHtml(t.aus.join(', '))+')':''}</td>
+          </tr>`).join('')).join('')}</tbody>
+      </table>
+      <p class="pr-hint">Gleiche Sachnummern einer ${escHtml(stLbl)} zusammengefasst, Anzahl = Summe der Mengen.${tjSzen?' Szenario-Stand: verschobene Schritte bringen ihre Teile mit.':''}</p>
+    </div>`;
+
   const topMax=Math.max(...top.map(it=>it.value),0.0001);
   const topTbl=list=>`<table class="pr-tbl">
-    <thead><tr><th>#</th><th>Prozessschritt</th><th>Gesamt [${u}]</th><th>Zusammensetzung nach Kategorie-Gruppe</th></tr></thead>
+    <thead><tr><th>#</th><th class="pr-txt">${escHtml(topOpt.e)}</th>${topOpt.k==='schritt'?'':'<th>Schritte</th>'}<th>Gesamt [${u}]</th><th>Zusammensetzung nach Kategorie-Gruppe</th></tr></thead>
     <tbody>${list.map((it,i)=>`<tr>
       <td class="pr-txt" style="width:18px">${i+1}</td>
       <td class="pr-txt">${escHtml(it.name)}</td>
+      ${topOpt.k==='schritt'?'':`<td>${it.n}</td>`}
       <td>${disp2(it.value)}</td>
       <td style="width:46%"><div class="pr-bar"><div class="pr-stack" style="width:${(it.value/topMax*100).toFixed(1)}%">${stackSegments(it,'pr-seg')}</div></div></td>
     </tr>`).join('')}</tbody></table>
@@ -2094,9 +2152,10 @@ function printAnalysis(){
       ${taktBody}
     </div>
     ${szenSec}
+    ${tjSec}
 
     <div class="pr-sec pr-keep">
-      <h2>Top 10 Prozessschritte – höchste Gesamtzeit</h2>
+      <h2>Top 10 ${escHtml(topOpt.l)} – höchste Gesamtzeit</h2>
       ${topTbl(top)}
     </div>
 
@@ -2152,24 +2211,32 @@ function setAnaTab(t){
   document.getElementById('anaTabTakt').className='ana-tab'+(t==='takt'?' on':'');
   document.getElementById('anaPanelUeberblick').style.display=(t==='ueberblick')?'':'none';
   document.getElementById('anaPanelTakt').style.display=(t==='takt')?'':'none';
+  document.getElementById('anaTabTeile').className='ana-tab'+(t==='teile'?' on':'');
+  document.getElementById('anaPanelTeile').style.display=(t==='teile')?'':'none';
+  document.getElementById('anaTabTeile').textContent='Teile je '+taktGroupLabel();
   if(t==='takt') renderTaktabgleich();
+  if(t==='teile') renderTeileJeStation();
 }
+/* Gruppierung und Ist/Szenario teilen sich Taktabgleich und „Teile je Station" */
+function taktNeuZeichnen(){ if(anaTab==='teile') renderTeileJeStation(); else renderTaktabgleich(); }
 /* Zeiten je Gruppe ermitteln — durchgängig minD, unabhängig von der Anzeigeeinheit */
 function taktGroupLabel(){ return colLabel(taktGroupKey); }
 function taktEmptyLabel(){ return '(ohne '+taktGroupLabel()+')'; }
 /* Mehrzahl für Kennzahl-Beschriftungen — die Spalte kann umbenannt sein, „+en" ergäbe „Quelleen" */
-function taktMehrzahl(){
-  const l=taktGroupLabel();
+function mehrzahl(l){
   if(/e$/i.test(l)) return l+'n';           // Quelle → Quellen, Montagestufe → Montagestufen
   if(/ion$/i.test(l)) return l+'en';        // Station → Stationen
-  return 'Anzahl '+l;                       // Werkzeug / WT → Anzahl Werkzeug / WT
+  return null;
 }
+function taktMehrzahl(){ const l=taktGroupLabel(); return mehrzahl(l)||'Anzahl '+l; }   // Werkzeug / WT → Anzahl Werkzeug / WT
 function setTaktGroup(k){
   if(!OPT_COLS.some(o=>!o.own&&o.key===k)) return;
   taktGroupKey=k;
   taktOffen=null;
+  taktAuswahl.clear();
   markDirty();
-  renderTaktabgleich();
+  document.getElementById('anaTabTeile').textContent='Teile je '+taktGroupLabel();
+  taktNeuZeichnen();
 }
 
 /* ── Soll-Taktzeit und Was-wäre-wenn-Szenario ──
@@ -2183,6 +2250,8 @@ let taktSzenario=null;
 let taktAnsicht='ist';     // 'ist' | 'szenario' — reine Anzeige
 let taktOffen=null;        // aufgeklappte Station in der Szenario-Liste
 let taktListe=[];          // zuletzt gezeigte Stationen, damit onclick einen Index statt eines Namens trägt
+let taktAuswahl=new Set(); // angehakte Schritte der aufgeklappten Station (Szenario: mehrere auf einmal verschieben)
+let taktZiele=[];          // Zielnamen der Sammel-Auswahl, Index im <select> — erspart das Escapen im onclick
 
 const taktHas=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 function taktFaktor(){ return taktMitVz ? 1+(verteilzeitFactor||0)/100 : 1; }
@@ -2206,12 +2275,12 @@ function taktSzenPruefen(o){
   return {groupKey:o.groupKey,moves,extra};
 }
 
-function taktData(szen){
+function taktData(szen,liste){
   const f=taktFaktor();
   const map=new Map();
   let ohne=null;
   const station=name=>{ if(!map.has(name)) map.set(name,{name,rows:0,teile:0,minD:0,parts:[]}); return map.get(name); };
-  anaParts().forEach(p=>{
+  (liste||anaParts()).forEach(p=>{
     const st=taktStation(p,szen);
     const e=st ? station(st) : (ohne||(ohne={name:taktEmptyLabel(),rows:0,teile:0,minD:0,parts:[],ohne:true}));
     e.rows++;                 // Prozessschritte
@@ -2267,7 +2336,7 @@ function setTaktSoll(v){
   markDirty(); renderTaktabgleich();
 }
 function setTaktMitVz(on){ taktMitVz=!!on; markDirty(); renderTaktabgleich(); }
-function setTaktAnsicht(a){ taktAnsicht=a==='szenario'?'szenario':'ist'; renderTaktabgleich(); }
+function setTaktAnsicht(a){ taktAnsicht=a==='szenario'?'szenario':'ist'; taktNeuZeichnen(); }
 
 /* ── Szenario bearbeiten ── */
 function taktSzenStart(){
@@ -2284,7 +2353,45 @@ function taktToggle(i){
   const e=taktListe[i]; if(!e) return;
   const k=e.ohne?'':e.name;
   taktOffen=taktOffen===k?null:k;
+  taktAuswahl.clear();
   renderTaktabgleich();
+}
+/* ── Mehrere Schritte auf einmal verschieben ──
+   Häkchen setzen nur die Auswahl und die Sammelleiste nach; erst „Verschieben" baut neu. */
+function taktWahl(cb){
+  if(cb.checked) taktAuswahl.add(cb.dataset.pid); else taktAuswahl.delete(cb.dataset.pid);
+  taktWahlZeigen();
+}
+function taktWahlAlle(on){
+  document.querySelectorAll('#taktSzenWrap .takt-wahl-chk').forEach(cb=>{
+    cb.checked=on;
+    if(on) taktAuswahl.add(cb.dataset.pid); else taktAuswahl.delete(cb.dataset.pid);
+  });
+  taktWahlZeigen();
+}
+function taktWahlZeigen(){
+  const alle=[...document.querySelectorAll('#taktSzenWrap .takt-wahl-chk')];
+  const n=alle.filter(cb=>cb.checked).length;
+  const a=document.getElementById('taktWahlAlle'), z=document.getElementById('taktWahlN'), b=document.getElementById('taktWahlBtn');
+  if(a){ a.checked=n>0&&n===alle.length; a.indeterminate=n>0&&n<alle.length; }
+  if(z) z.textContent=n ? n+' ausgewählt' : 'nichts ausgewählt';
+  if(b) b.disabled=!n;
+}
+function taktWahlVerschieben(){
+  const i=parseInt(document.getElementById('taktWahlZiel').value,10);
+  if(isNaN(i) || i<0 || i>=taktZiele.length){ toast('⚠ Erst das Ziel wählen'); return; }
+  const ziel=taktZiele[i];
+  /* Nur was gerade sichtbar angehakt ist — nie eine Auswahl aus einer zuvor offenen Station */
+  const ids=[...document.querySelectorAll('#taktSzenWrap .takt-wahl-chk:checked')].map(cb=>cb.dataset.pid).filter(id=>parts.some(p=>p.id===id));
+  if(!ids.length) return;
+  const szen=taktSzenStart();
+  ids.forEach(id=>{
+    const p=parts.find(x=>x.id===id);
+    if(ziel===taktBasis(p)) delete szen.moves[id]; else szen.moves[id]=ziel;
+  });
+  taktAuswahl.clear();
+  markDirty(); renderTaktabgleich();
+  toast('✓ '+ids.length+' Prozessschritt(e) nach „'+(ziel||taktEmptyLabel())+'" verschoben');
 }
 function taktNeueStation(){
   const name=(prompt('Name der neuen '+taktGroupLabel()+' im Szenario:')||'').trim();
@@ -2485,10 +2592,20 @@ function renderTaktabgleich(){
     </div>`;
     if(offen){
       const f=taktFaktor();
-      h+='<div class="takt-parts">'+e.parts.map(p=>{
+      /* Sammelleiste: alle oder einzelne Schritte anhaken und gemeinsam verschieben */
+      const ziele=['',...namen.filter(n=>n!==k)];
+      taktZiele=ziele;
+      h+=`<div class="takt-parts"><div class="takt-wahl">
+        <label class="takt-ctl-item takt-chk"><input type="checkbox" id="taktWahlAlle" onchange="taktWahlAlle(this.checked)"/>Alle</label>
+        <span class="takt-wahl-n" id="taktWahlN"></span>
+        <span class="takt-wahl-ziel">nach <select id="taktWahlZiel" aria-label="Ziel-${escAttr(stLbl)}"><option value="" selected disabled>${escHtml(stLbl)} wählen …</option>${
+          ziele.map((n,j)=>`<option value="${j}">${escHtml(n||taktEmptyLabel())}</option>`).join('')}</select></span>
+        <button class="tbtn" id="taktWahlBtn" onclick="taktWahlVerschieben()" disabled>${ic('szenario')}Verschieben</button>
+      </div>`+e.parts.map(p=>{
         const basis=taktBasis(p), ziel=taktStation(p,szen), moved=ziel!==basis;
         return `<div class="takt-part${moved?' moved':''}">
-          <span class="takt-part-name" title="${escAttr(p.name)}">${escHtml(p.name)}</span>
+          <label class="takt-part-wahl"><input type="checkbox" class="takt-wahl-chk" data-pid="${escAttr(p.id)}"${taktAuswahl.has(p.id)?' checked':''} onchange="taktWahl(this)"/>
+          <span class="takt-part-name" title="${escAttr(p.name)}">${escHtml(p.name)}</span></label>
           ${moved?`<span class="takt-part-from">↪ aus ${escHtml(basis||taktEmptyLabel())}</span>`:''}
           <span class="takt-part-t">${(calcTotal(p.id)*f).toFixed(2)} minD</span>
           <select onchange="taktMove('${escAttr(p.id)}',this.value)" title="Ziel-${escAttr(stLbl)}">${optionen(ziel)}</select>
@@ -2497,6 +2614,75 @@ function renderTaktabgleich(){
     }
   });
   sw.innerHTML=h+'</div>';
+  taktWahlZeigen();
+}
+/* ── Teile je Station ──
+   Je Station die Teile, die dort angestellt werden müssen: gleiche Sachnummer (ohne Sachnummer:
+   gleiche Benennung) zusammengefasst, Anzahl = Summe der Mengen, Reihenfolge wie in der Tabelle.
+   Mit Szenario wandern die Teile mit ihren verschobenen Schritten. */
+function teileJeStation(szen,liste){
+  const d=taktData(szen,liste);
+  const stationen=szen ? taktVergleichsListe(d,taktData(null,liste)) : d.list;
+  const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
+  return stationen.map(e=>{
+    const m=new Map();
+    e.parts.forEach(p=>{
+      const aus=(szen && taktStation(p,szen)!==taktBasis(p)) ? (taktBasis(p)||taktEmptyLabel()) : null;
+      stepTeile(p.id).forEach(t=>{
+        const sn=String(t.sachnr||'').trim(), bn=String(t.name||'').trim();
+        if(!sn && !bn) return;   // leere Teilzeile
+        const key=sn ? 's|'+sn : 'n|'+bn;
+        let x=m.get(key);
+        if(!x){ x={sachnr:sn,name:bn,menge:0,schritte:[],aus:[]}; m.set(key,x); }
+        if(!x.name && bn) x.name=bn;
+        x.menge+=parseInt(t.menge,10)||0;
+        const sch='#'+nr.get(p.id)+' '+p.name;
+        if(!x.schritte.includes(sch)) x.schritte.push(sch);
+        if(aus && !x.aus.includes(aus)) x.aus.push(aus);
+      });
+    });
+    const teile=[...m.values()];
+    return {name:e.name, ohne:!!e.ohne, entfaellt:!!e.entfaellt, rows:e.rows, teile, menge:teile.reduce((s,t)=>s+t.menge,0)};
+  });
+}
+function tjKopfText(e){
+  return e.rows+' Schritt'+(e.rows===1?'':'e')+' · '+e.teile.length+' Position'+(e.teile.length===1?'':'en')+' · '+e.menge+' Teil'+(e.menge===1?'':'e');
+}
+function renderTeileJeStation(){
+  const stLbl=taktGroupLabel();
+  document.getElementById('anaTabTeile').textContent='Teile je '+stLbl;
+  document.getElementById('tjTitel').textContent='Teile je '+stLbl+' – was angestellt werden muss';
+  document.getElementById('tjGroupSel').innerHTML=OPT_COLS.filter(o=>!o.own).map(o=>
+    `<option value="${o.key}"${o.key===taktGroupKey?' selected':''}>${escHtml(colLabel(o.key))}</option>`).join('');
+  const szen=taktSzenAktiv();
+  const nMoves=taktMoves(szen).length;
+  const inSzen=taktAnsicht==='szenario' && !!szen;
+  document.getElementById('tjViewIst').className='tg-btn'+(inSzen?'':' on-mode');
+  const sb=document.getElementById('tjViewSzen');
+  sb.className='tg-btn'+(inSzen?' on-mode':'');
+  sb.disabled=!szen;
+  sb.title=szen?'Teile im Szenario-Stand':'Noch kein Szenario – im Taktabgleich anlegen';
+  sb.innerHTML=ic('szenario')+'Szenario'+(nMoves?' ('+nMoves+')':'');
+  document.getElementById('tjHinweis').textContent='Gleiche Sachnummern sind je '+stLbl+' zusammengefasst, Anzahl = Summe der Mengen.'
+    +(inSzen?' Stand im Szenario: verschobene Schritte bringen ihre Teile mit.':'');
+  const liste=teileJeStation(inSzen?szen:null);
+  const w=document.getElementById('tjWrap');
+  if(!liste.some(e=>e.teile.length)){
+    w.innerHTML='<div class="leer-hinweis">Noch keine Teile erfasst – in der Tabelle je Prozessschritt über ▸ Sachnummer, Benennung und Anzahl eintragen.</div>';
+    return;
+  }
+  w.innerHTML=liste.map(e=>`<div class="tj-st">
+    <div class="tj-kopf"><span class="tj-name">${escHtml(e.name)}${e.entfaellt?' <span class="takt-hint">entfällt</span>':''}</span>
+      <span class="takt-st-meta">${tjKopfText(e)}</span></div>
+    ${e.teile.length?`<table class="takt-tbl tj-tbl">
+      <thead><tr><th>Sachnr.</th><th>Benennung</th><th>Anzahl</th><th>Prozessschritt(e)</th></tr></thead>
+      <tbody>${e.teile.map(t=>`<tr${t.aus.length?' class="tj-moved"':''}>
+        <td class="tj-sn">${escHtml(t.sachnr||'–')}</td>
+        <td class="tk-name">${escHtml(t.name||'–')}</td>
+        <td>${t.menge}</td>
+        <td class="tj-sch">${escHtml(t.schritte.join(', '))}${t.aus.length?` <span class="takt-part-from">↪ aus ${escHtml(t.aus.join(', '))}</span>`:''}</td>
+      </tr>`).join('')}</tbody></table>`:'<div class="tj-leer">keine Teile</div>'}
+  </div>`).join('');
 }
 function renderAnalysis(){
   const fParts=anaParts();
@@ -2547,8 +2733,12 @@ function renderAnalysis(){
   renderAnaPie(items,total);
   renderAnaLegend(items,total);
 
-  renderAnaTopList('anaTopHigh',topParts(fParts));
+  const topOpt=anaTopGueltig();
+  document.getElementById('anaTopSel').innerHTML=anaTopOptionen().map(o=>
+    `<option value="${escAttr(o.k)}"${o.k===topOpt.k?' selected':''}>${escHtml(o.l)}</option>`).join('');
+  renderAnaTopList('anaTopHigh',topParts(fParts,topOpt.k));
   if(anaTab==='takt') renderTaktabgleich();
+  if(anaTab==='teile') renderTeileJeStation();
 
 }
 /* Zeitanteile je Gruppe bzw. Kategorie — Grundlage für Diagramm, Legende und Druck */
@@ -2567,19 +2757,31 @@ function analysisItems(fParts,level){
   }
   return {items, total:items.reduce((s,it)=>s+it.value,0)};
 }
-/* Top 10 nach Gesamtzeit, je Prozessschritt aufgeschlüsselt nach Kategorie-Gruppen */
-function topParts(fParts){
-  return fParts.map(p=>{
-    const perGroup={};
-    COLS.forEach(c=>{ perGroup[c.group]=(perGroup[c.group]||0)+(data[p.id][c.key]||0)*c.param; });
-    return {
-      name:p.name,
-      value:calcTotal(p.id),
-      segments:Object.entries(GROUPS)
-        .map(([k,g])=>({name:g.name,color:g.color,value:perGroup[k]||0}))
-        .filter(s=>s.value>0),
-    };
-  }).sort((a,b)=>b.value-a.value).slice(0,10);
+/* Top 10 nach Gesamtzeit — je Prozessschritt oder zusammengefasst nach einer Zusatzspalte
+   (Station, Baugruppe …). Jeder Balken ist nach Kategorie-Gruppen geschichtet. */
+let anaTopNach='schritt';   // 'schritt' | Schlüssel einer Zusatzspalte
+/* Auswahl: Prozessschritte und alle Zusatzspalten, in denen etwas eingetragen ist */
+function anaTopOptionen(){
+  return [{k:'schritt',l:'Prozessschritte',e:'Prozessschritt'}].concat(
+    OPT_COLS.filter(o=>!o.own && parts.some(p=>String(data[p.id]['__'+o.key]||'').trim()))
+      .map(o=>{ const l=colLabel(o.key); return {k:o.key,l:mehrzahl(l)||l,e:l}; }));
+}
+function anaTopGueltig(){ return anaTopOptionen().find(o=>o.k===anaTopNach)||anaTopOptionen()[0]; }
+function setAnaTop(k){ anaTopNach=k; markDirty(); renderAnalysis(); }
+function topParts(fParts,nach){
+  nach=nach||anaTopGueltig().k;
+  const gruppen=new Map();
+  fParts.forEach(p=>{
+    const name = nach==='schritt' ? p.id : (String(data[p.id]['__'+nach]||'').trim()||'(ohne '+colLabel(nach)+')');
+    let g=gruppen.get(name);
+    if(!g){ g={name:nach==='schritt'?p.name:name,value:0,n:0,perGroup:{}}; gruppen.set(name,g); }
+    g.n++;
+    COLS.forEach(c=>{ const v=(data[p.id][c.key]||0)*c.param; g.perGroup[c.group]=(g.perGroup[c.group]||0)+v; g.value+=v; });
+  });
+  return [...gruppen.values()].map(g=>({
+    name:g.name, value:g.value, n:g.n,
+    segments:Object.entries(GROUPS).map(([k,gr])=>({name:gr.name,color:gr.color,value:g.perGroup[k]||0})).filter(s=>s.value>0),
+  })).sort((a,b)=>b.value-a.value).slice(0,10);
 }
 /* Segmente eines gestapelten Balkens; Breite je Segment = Anteil an der Schrittzeit */
 function stackSegments(it,cls){
@@ -2594,7 +2796,7 @@ function renderAnaTopList(elId,list){
   const max=Math.max(...list.map(it=>it.value),0.0001);
   el.innerHTML=list.map((it,i)=>`<div class="ana-top-row">
     <span class="ana-top-rank">${i+1}.</span>
-    <span class="ana-top-name" title="${escAttr(it.name)}">${escHtml(it.name)}</span>
+    <span class="ana-top-name" title="${escAttr(it.name+(anaTopNach!=='schritt'?' · '+it.n+' Schritt(e)':''))}">${escHtml(it.name)}</span>
     <div class="ana-top-track"><div class="ana-top-stack" style="width:${(it.value/max*100).toFixed(1)}%">${stackSegments(it,'ana-top-seg')}</div></div>
     <span class="ana-top-val">${disp2(it.value)} ${ul()}</span>
   </div>`).join('');
@@ -4945,7 +5147,7 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
                   ungesichert: hasUnsavedChanges,
                   saved: new Date().toISOString() };
     localStorage.setItem(LS_KEY, JSON.stringify(state));
@@ -4982,6 +5184,7 @@ function loadState(){
     hourlyRate = s.hourlyRate || 0;
     if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
     if(s.taktGroupKey && OPT_COLS.some(o=>!o.own&&o.key===s.taktGroupKey)) taktGroupKey=s.taktGroupKey;
+    if(typeof s.anaTopNach==='string') anaTopNach=s.anaTopNach;   // ungültig → anaTopGueltig() fällt auf Prozessschritte zurück
     if(typeof s.taktSoll==='number' && s.taktSoll>=0) taktSoll=s.taktSoll;
     if(typeof s.taktMitVz==='boolean') taktMitVz=s.taktMitVz;
     taktSzenario=taktSzenPruefen(s.taktSzenario);
@@ -5357,6 +5560,15 @@ function xlsxSheetAuswertung(){
     const v=fParts.reduce((s,p)=>s+(data[p.id][col.key]||0)*col.param,0);
     rows+=`<row r="${rn}">${xc(1,rn,col.label,33)}${xcf(2,rn,aRef(ci),32,xn(v*fU))}${anteil(rn,v)}</row>`;rn++;
   });
+  /* Top 10 in der Ansicht, die in der Auswertung gewählt ist — Festwerte zum Exportzeitpunkt,
+     weil Excel eine Rangfolge nicht von selbst neu sortiert */
+  const topOpt=anaTopGueltig();
+  rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Top 10 '+topOpt.l+' (Gesamtzeit)',31)}${xc(2,rn,'['+u+']',31)}${xc(3,rn,'Anteil [%]',31)}</row>`;rn++;
+  topParts(fParts,topOpt.k).forEach((it,i)=>{
+    const name=(i+1)+'. '+it.name+(topOpt.k==='schritt'?'':' ('+it.n+' Schritt'+(it.n===1?'':'e')+')');
+    rows+=`<row r="${rn}">${xc(1,rn,name,33)}${xc(2,rn,xn(it.value*fU),32,true)}${xc(3,rn,gSum>0?(it.value/gSum*100).toFixed(1):'0',39,true)}</row>`;rn++;
+  });
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 <dimension ref="A1:C${rn}"/>
@@ -5365,6 +5577,38 @@ function xlsxSheetAuswertung(){
 <sheetData>${rows}</sheetData>
 </worksheet>`;
 }
+/* Blatt 6: Teile je Station (Gruppierung wie im Taktabgleich), alle Prozessschritte. Gibt es ein
+   Szenario mit Verschiebungen, folgt darunter derselbe Aufbau im Szenario-Stand. */
+function xlsxSheetTeileJeStation(){
+  const stLbl=taktGroupLabel();
+  let rows='',rn=1;
+  rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Teile je '+stLbl+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Gleiche Sachnummern je '+stLbl+' zusammengefasst, Anzahl = Summe der Mengen · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
+  const block=(titel,liste)=>{
+    rn++;
+    rows+=`<row r="${rn}">${xc(1,rn,titel,40)}</row>`;rn++;
+    rows+=`<row r="${rn}" ht="18" customHeight="1">${[stLbl,'Sachnummer','Benennung','Anzahl','Prozessschritt(e)','verschoben aus'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+    liste.forEach(e=>{
+      rows+=`<row r="${rn}">${xc(1,rn,e.name+(e.entfaellt?' (entfällt)':''),35)}${xc(2,rn,tjKopfText(e),35)}${xc(3,rn,'',35)}${xc(4,rn,e.menge,36,true)}${xc(5,rn,'',35)}${xc(6,rn,'',35)}</row>`;rn++;
+      e.teile.forEach(t=>{
+        /* Sachnummer als Text — führende Nullen dürfen nicht verloren gehen */
+        rows+=`<row r="${rn}">${xc(1,rn,e.name,33)}${xc(2,rn,t.sachnr,33)}${xc(3,rn,t.name,33)}${xc(4,rn,t.menge,33,true)}${xc(5,rn,t.schritte.join(', '),33)}${xc(6,rn,t.aus.join(', '),33)}</row>`;rn++;
+      });
+    });
+  };
+  block('Ist (Basisdaten)',teileJeStation(null,parts));
+  const szen=taktSzenAktiv();
+  if(szen && taktMoves(szen).length) block('Szenario (nicht in den Basisdaten)',teileJeStation(szen,parts));
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:F${rn}"/>
+<sheetFormatPr defaultRowHeight="12"/>
+<cols><col min="1" max="1" width="16" customWidth="1"/><col min="2" max="2" width="30" customWidth="1"/><col min="3" max="3" width="36" customWidth="1"/><col min="4" max="4" width="9" customWidth="1"/><col min="5" max="5" width="50" customWidth="1"/><col min="6" max="6" width="16" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+</worksheet>`;
+}
+/* Blattname: höchstens 31 Zeichen, ohne die in Excel verbotenen Zeichen */
+function xlsxBlattName(n){ return n.replace(/[\\\/?*\[\]:]/g,' ').replace(/^'+|'+$/g,'').slice(0,31).trim()||'Blatt'; }
 /* Blatt 4: Kategorie-Zeitwerte */
 function xlsxSheetZeitwerte(){
   const u=ul();
@@ -5450,19 +5694,20 @@ function doExportXlsx(){
     const filterNamen=`<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'Arbeitsablauf'!${abs(blatt1.filter)}</definedName><definedName name="_xlnm._FilterDatabase" localSheetId="1" hidden="1">'Teileliste'!${abs(blatt2.filter)}</definedName></definedNames>`;
     const files=[
       {name:'[Content_Types].xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet5.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet5.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet6.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
       {name:'_rels/.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
       {name:'xl/workbook.xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/><sheet name="Laufwege" sheetId="5" r:id="rId5"/></sheets>${filterNamen}<calcPr fullCalcOnLoad="1"/></workbook>`},
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/><sheet name="Laufwege" sheetId="5" r:id="rId5"/><sheet name="${xmlEsc(xlsxBlattName('Teile je '+taktGroupLabel()))}" sheetId="6" r:id="rId7"/></sheets>${filterNamen}<calcPr fullCalcOnLoad="1"/></workbook>`},
       {name:'xl/_rels/workbook.xml.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet5.xml"/><Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet5.xml"/><Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet6.xml"/></Relationships>`},
       {name:'xl/styles.xml',content:xlsxStyles()},
       {name:'xl/worksheets/sheet1.xml',content:blatt1.xml},
       {name:'xl/worksheets/sheet2.xml',content:blatt2.xml},
       {name:'xl/worksheets/sheet3.xml',content:xlsxSheetAuswertung()},
       {name:'xl/worksheets/sheet4.xml',content:xlsxSheetZeitwerte()},
-      {name:'xl/worksheets/sheet5.xml',content:xlsxSheetLaufwege()}
+      {name:'xl/worksheets/sheet5.xml',content:xlsxSheetLaufwege()},
+      {name:'xl/worksheets/sheet6.xml',content:xlsxSheetTeileJeStation()}
     ];
     const bytes=zipStore(files);
     dateiAnbieten(filename,new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));

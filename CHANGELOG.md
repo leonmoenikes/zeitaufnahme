@@ -18,6 +18,38 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Bedienung
+
+- **Projektname bearbeitbar:** Der Stift neben dem Projektnamen (oder ein Klick auf den Namen)
+  öffnet „Projekt“ mit Projektname und Beschreibung. Ein leeres Namensfeld behält den alten Namen.
+- **„Zeiten“ und „Bausteine“** stehen nicht mehr in der oberen Leiste, sondern im Menü „⋯“
+  (Erweitert-Modus).
+- **Zeiten:** Der Knopf unten heißt „Neuer Baustein“ statt „Neue Kategorie“.
+- **Spaltenfilter:** Die Werteliste steht in der Reihenfolge, in der die Werte in der Tabelle
+  von oben auftauchen, nicht mehr alphabetisch.
+- **„Meter in total“** ist in der Tabelle die erste Kategoriespalte (direkt nach ∑). Kacheln,
+  Tastenkürzel und Exporte behalten ihre Reihenfolge.
+- **Einrückung nach Level:** Der Prozessschritt rückt je Level ein Stück ein (12 px pro Stufe).
+- **Spaltenbreite ziehen:** Prozessschritt, Sachnummer, Bauteilbenennung und die Zusatzspalten
+  lassen sich am rechten Rand des Spaltenkopfs breiter oder schmaler ziehen, mit Maus oder
+  Finger. Die Breiten gelten nur auf diesem Gerät. Doppelklick auf den Rand oder „Breiten
+  zurücksetzen“ im Menü „Spalten“ stellt die automatische Breite wieder her.
+
+### Auswertung
+
+- **Top 10 mit Auswahl:** Über der Top-10-Liste wählt ein Auswahlfeld, wonach zusammengefasst
+  wird: Prozessschritte oder eine befüllte Zusatzspalte (Stationen, Baugruppen …). Jeder Balken
+  bleibt nach Kategorie-Gruppen geschichtet. Die Wahl gilt auch für Drucken/PDF und steht als
+  Tabelle im Blatt „Auswertung“ der Excel-Datei.
+- **Szenario: mehrere Schritte auf einmal verschieben:** In der aufgeklappten Station lassen sich
+  Schritte anhaken („Alle“ für die ganze Station) und gemeinsam in eine andere Station schieben.
+  Das Auswahlfeld je Schritt bleibt.
+- **Neuer Reiter „Teile je Station“:** Je Station (Gruppierung wie im Taktabgleich) alle Teile mit
+  Sachnummer, Benennung, Anzahl und Prozessschritt(en). Gleiche Sachnummern einer Station sind
+  zusammengefasst. Umschaltbar zwischen Ist und Szenario: verschobene Schritte bringen ihre Teile
+  mit. Auch in Drucken/PDF (Stand wie am Bildschirm gewählt) und als eigenes Blatt in der
+  Excel-Datei (Ist, bei einem Szenario mit Verschiebungen zusätzlich der Szenario-Stand).
+
 ### Filter in Auswertung und Summenzeile
 
 - **Auswertung:** Ist in der Tabelle ein Filter aktiv (z. B. auf die Station), erscheint oben

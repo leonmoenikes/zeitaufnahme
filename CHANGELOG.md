@@ -18,6 +18,16 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Bedienung
+
+- **Projektname bearbeitbar:** Der Stift neben dem Projektnamen (oder ein Klick auf den Namen)
+  öffnet „Projekt“ mit Projektname und Beschreibung. Ein leeres Namensfeld behält den alten Namen.
+- **„Zeiten“ und „Bausteine“** stehen nicht mehr in der oberen Leiste, sondern im Menü „⋯“
+  (Erweitert-Modus).
+- **Zeiten:** Der Knopf unten heißt „Neuer Baustein“ statt „Neue Kategorie“.
+- **Spaltenfilter:** Die Werteliste steht in der Reihenfolge, in der die Werte in der Tabelle
+  von oben auftauchen, nicht mehr alphabetisch.
+
 ### Filter in Auswertung und Summenzeile
 
 - **Auswertung:** Ist in der Tabelle ein Filter aktiv (z. B. auf die Station), erscheint oben

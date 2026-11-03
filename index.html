@@ -115,6 +115,7 @@ body.beginner-mode .tb-export{padding:0 18px;}
   border-radius:var(--r-s);font-size:var(--fs-m);color:var(--text);cursor:pointer;text-align:left;}
 body.beginner-mode .mehr-menue button{min-height:48px;}
 .mehr-menue button.danger{color:var(--red);}
+.mehr-trenner{height:1px;background:var(--border);margin:var(--sp1) 0;}
 .mehr-menue button:active{background:var(--surface2);}
 /* Hover nur auf Geräten mit Maus — am iPad bliebe er nach dem Tippen hängen */
 @media (hover:hover){
@@ -292,6 +293,15 @@ body.sub .cat-btn.has-v .cb-cnt{color:var(--red);}
 
 .note-popup{z-index:600;}
 .note-popup.open{display:block;}
+.note-popup-name{display:none;margin-bottom:6px;}
+.note-popup-name.show{display:block;}
+.note-popup-name input{width:100%;height:32px;font-size:var(--fs-m);font-weight:600;padding:0 8px;border:1px solid var(--border2);
+  border-radius:var(--r-s);background:var(--surface2);color:var(--text);box-sizing:border-box;font-family:var(--sans);}
+.note-popup-name input:focus{outline:none;border-color:var(--accent);}
+.note-popup-name span,.note-popup-desc-lbl{display:block;font-size:var(--fs-xs);color:var(--text2);margin-bottom:3px;}
+.note-popup-desc-lbl{display:none;}
+.note-popup.mit-name .note-popup-desc-lbl{display:block;}
+.proj-label{cursor:pointer;}
 .note-popup-textarea{
   width:100%;min-height:74px;font-size:var(--fs-s);padding:6px 8px;border:1px solid var(--border2);
   border-radius:var(--r-s);background:var(--surface2);color:var(--text);resize:vertical;
@@ -845,6 +855,7 @@ body.beginner-mode .col-rename{min-width:44px;min-height:44px;}
 body.beginner-mode :is(.flt-search,.flt-range input){min-height:44px;font-size:var(--fs-m);}
 body.beginner-mode .col-popup-actions .tbtn{font-size:var(--fs-m);}
 body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
+body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
 
 /* ── BREAKPOINTS ──
    Drei Stufen: ≤ 900 px (iPad hoch), 901–1279 px (iPad quer), ≥ 1280 px (Laptop).
@@ -961,8 +972,8 @@ body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
 <div class="topbar">
   <div class="tb-gruppe tb-kopf">
     <span class="topbar-title"><svg class="ic"><use href="#i-uhr"/></svg><span class="tb-titel">ZEITAUFNAHME</span></span>
-    <span class="proj-label" id="projLabel"></span>
-    <button class="row-icon-btn tb-ic" id="projDescBtn" title="Projektbeschreibung" aria-label="Projektbeschreibung"><svg class="ic"><use href="#i-notiz"/></svg></button>
+    <span class="proj-label" id="projLabel" title="Projektname und Beschreibung bearbeiten"></span>
+    <button class="row-icon-btn tb-ic" id="projDescBtn" title="Projektname und Beschreibung bearbeiten" aria-label="Projektname und Beschreibung bearbeiten"><svg class="ic"><use href="#i-notiz"/></svg></button>
   </div>
   <div class="toggle-group mode-toggle" title="Bedienmodus">
     <button class="tg-btn on-mode" id="modeBeginnerBtn" onclick="setUIMode('beginner')" title="Einfach"><svg class="ic"><use href="#i-tablet"/></svg><span class="tg-label">Einfach</span></button>
@@ -982,8 +993,6 @@ body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
   </div>
   <div class="sep adv-only"></div>
   <div class="tb-gruppe adv-only" aria-label="Analyse">
-    <button class="tbtn" onclick="openCfg()"><svg class="ic"><use href="#i-zeiten"/></svg>Zeiten</button>
-    <button class="tbtn" onclick="openMtm()"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine</button>
     <button class="tbtn" onclick="openLw()"><svg class="ic"><use href="#i-laufwege"/></svg>Laufwege</button>
     <button class="tbtn" onclick="openAnalysis()"><svg class="ic"><use href="#i-auswertung"/></svg>Auswertung</button>
   </div>
@@ -1001,6 +1010,10 @@ body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
       <button class="simple-only" onclick="switchProject()"><svg class="ic"><use href="#i-projekt"/></svg>Projekt wechseln</button>
       <button class="simple-only" onclick="openImport()"><svg class="ic"><use href="#i-import"/></svg>CSV importieren</button>
       <button onclick="openPaste()"><svg class="ic"><use href="#i-tabelle"/></svg>Aus Excel einfügen</button>
+      <div class="mehr-trenner adv-only"></div>
+      <button class="adv-only" onclick="openCfg()"><svg class="ic"><use href="#i-zeiten"/></svg>Zeiten</button>
+      <button class="adv-only" onclick="openMtm()"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine</button>
+      <div class="mehr-trenner adv-only"></div>
       <button class="adv-only danger" onclick="resetAll()"><svg class="ic"><use href="#i-reset"/></svg>Alle Zähler zurücksetzen</button>
     </div>
   </div>
@@ -1167,7 +1180,7 @@ body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
     </div>
     <div class="mbody" id="cfgBody"></div>
     <div class="mfooter">
-      <button class="btn-add-row" onclick="addCfgRow()"><svg class="ic"><use href="#i-plus"/></svg>Neue Kategorie</button>
+      <button class="btn-add-row" onclick="addCfgRow()"><svg class="ic"><use href="#i-plus"/></svg>Neuer Baustein</button>
       <button class="btn-save" onclick="saveCfg()">Speichern</button>
     </div>
   </div>
@@ -1281,6 +1294,8 @@ body.beginner-mode .note-popup-textarea{font-size:var(--fs-m);min-height:110px;}
     <span class="note-popup-title" id="notePopupTitle">Notiz</span>
     <button class="note-popup-close" aria-label="Schließen" onclick="closeNotePopup()"><svg class="ic"><use href="#i-x"/></svg></button>
   </div>
+  <label class="note-popup-name" id="notePopupNameWrap"><span>Projektname</span><input type="text" id="notePopupName" autocomplete="off"/></label>
+  <span class="note-popup-desc-lbl">Beschreibung</span>
   <textarea class="note-popup-textarea" id="notePopupTextarea" placeholder="Notiz…"></textarea>
 </div>
 
@@ -1503,28 +1518,34 @@ function migrateLegacyStep(d,stepName){
    Wiederverwendbar für Kategorie- und Schritt-Notizen
 ═══════════════════════════════════════ */
 let notePopupTarget=null;
-function openNotePopup(anchorEl,title,value,onSave){
+/* name: nur beim Projekt — dann steht über dem Text ein Feld für den Projektnamen,
+   und onSave bekommt (text, name). */
+function notePopupSpeichern(){
+  if(!notePopupTarget || !notePopupTarget.onSave) return;
+  const ta=document.getElementById('notePopupTextarea'), ni=document.getElementById('notePopupName');
+  try{ notePopupTarget.onSave(ta.value.trim(), notePopupTarget.mitName ? ni.value.trim() : undefined); }catch(e){}
+}
+function openNotePopup(anchorEl,title,value,onSave,name){
   // falls bereits eine andere Notiz offen ist: erst deren Änderungen übernehmen
-  if(notePopupTarget && notePopupTarget.onSave){
-    const prevTa=document.getElementById('notePopupTextarea');
-    try{ notePopupTarget.onSave(prevTa.value.trim()); }catch(e){}
-  }
+  notePopupSpeichern();
   const pop=document.getElementById('notePopup');
   const ta=document.getElementById('notePopupTextarea');
+  const mitName=name!==undefined;
   document.getElementById('notePopupTitle').textContent=title;
+  document.getElementById('notePopupNameWrap').classList.toggle('show',mitName);
+  pop.classList.toggle('mit-name',mitName);
+  document.getElementById('notePopupName').value=mitName?name:'';
   ta.value=value||'';
+  ta.placeholder=mitName?'Beschreibung (optional) …':'Notiz…';
   pop.classList.add('open');
   positionPopup(pop,anchorEl);
-  notePopupTarget={onSave};
-  setTimeout(()=>ta.focus(),50);
+  notePopupTarget={onSave,mitName};
+  setTimeout(()=>(mitName?document.getElementById('notePopupName'):ta).focus(),50);
 }
 function closeNotePopup(){
   const pop=document.getElementById('notePopup');
-  const ta=document.getElementById('notePopupTextarea');
   /* Speichern darf das Schließen nie verhindern — sonst bliebe das Popup stehen */
-  if(notePopupTarget && notePopupTarget.onSave){
-    try{ notePopupTarget.onSave(ta.value.trim()); }catch(e){}
-  }
+  notePopupSpeichern();
   pop.classList.remove('open');
   notePopupTarget=null;
 }
@@ -1766,12 +1787,8 @@ function openColFilter(anchorEl,fk,label,kind){
     const saved=colFilters[fk];delete colFilters[fk];
     const base=parts.filter(partPassesFilters);
     if(saved) colFilters[fk]=saved;
-    const vals=[...new Set(base.flatMap(p=>fltWerte(colValue(p,fk))))]
-      .sort((a,b)=>{
-        const na=parseFloat(a),nb=parseFloat(b);
-        if(!isNaN(na)&&!isNaN(nb)) return na-nb;
-        return a.localeCompare(b,'de');
-      });
+    /* Reihenfolge wie in der Tabelle (erstes Auftreten von oben), nicht alphabetisch */
+    const vals=[...new Set(base.flatMap(p=>fltWerte(colValue(p,fk))))];
     /* Arbeitskopie: übernommen wird erst mit OK, Abbrechen/Zuklappen verwirft */
     const sel=new Set(colFilters[fk]&&colFilters[fk].type==='set'?colFilters[fk].values:vals);
     /* Solange gesucht wird, gelten die Treffer als Auswahl (wie in Excel), ohne sel zu überschreiben */
@@ -3942,7 +3959,7 @@ function closeCfg(){document.getElementById('cfgModal').classList.remove('open')
 function addCfgRow(){
   const b=document.getElementById('cfgBody');
   const row=document.createElement('div');row.className='prow';
-  row.innerHTML=`<input class="plbl" type="text" value="Neue Kategorie" placeholder="Bezeichnung"/>`
+  row.innerHTML=`<input class="plbl" type="text" value="Neuer Baustein" placeholder="Bezeichnung"/>`
     +`<input class="pval" type="number" step="0.001" value="0.1" placeholder="0.000"/>`
     +`<span class="punit">minD</span>`
     +`<select class="pgrp">${groupOptions('process')}</select>`
@@ -5747,18 +5764,21 @@ startAutosaveReminder();
 setInterval(updateExportIndicator, 30000);
 updateFilterClearBtn();
 
+/* Stift oder Projektname: Name und Beschreibung bearbeiten. Ein leerer Name bleibt beim alten. */
 const projDescBtn=document.getElementById('projDescBtn');
-if(projDescBtn){
-  projDescBtn.addEventListener('click', e=>{
-    e.stopPropagation();
-    openNotePopup(projDescBtn,'Projektbeschreibung', projectDescription||'', val=>{
-      if((projectDescription||'')!==val){
-        projectDescription=val;markDirty();
-        projDescBtn.classList.toggle('active',!!val);
-      }
-    });
-  });
+function projektBearbeiten(e){
+  e.stopPropagation();
+  if(!currentProject) return;
+  openNotePopup(projDescBtn,'Projekt', projectDescription||'', (val,name)=>{
+    let geaendert=false;
+    if((projectDescription||'')!==val){ projectDescription=val; geaendert=true; }
+    if(name && name!==currentProject){ currentProject=name; geaendert=true; }
+    if(geaendert){ markDirty(); updateProjLabel(); }
+  }, currentProject);
 }
+if(projDescBtn) projDescBtn.addEventListener('click',projektBearbeiten);
+document.getElementById('notePopupName').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); closeNotePopup(); } });
+document.getElementById('projLabel').addEventListener('click',projektBearbeiten);
 
 /* ── Menü „Weitere Aktionen" (⋯) ── jeder Klick außerhalb des Knopfs schließt es, auch auf einen Eintrag */
 function toggleMehrMenue(e){ if(e) e.stopPropagation(); document.getElementById('mehrMenue').classList.toggle('open'); }

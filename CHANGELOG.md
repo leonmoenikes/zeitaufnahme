@@ -49,6 +49,13 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   zusammengefasst. Umschaltbar zwischen Ist und Szenario: verschobene Schritte bringen ihre Teile
   mit. Auch in Drucken/PDF (Stand wie am Bildschirm gewählt) und als eigenes Blatt in der
   Excel-Datei (Ist, bei einem Szenario mit Verschiebungen zusätzlich der Szenario-Stand).
+- **Teile je Station: Teilearten und Stückzahl:** Unterschieden wird jetzt zwischen
+  *Teilearten* (verschiedene Sachnummern – je eine braucht einen Ladungsträger an der Station)
+  und *Stückzahl* (Summe der Mengen). Über den Listen steht eine Übersicht mit den Kennzahlen
+  „Ladungsträger gesamt“, „Stückzahl gesamt“ und „Meiste Teilearten“ sowie je Station einem
+  kräftigen Balken für die Teilearten und einem hellen für die Stückzahl (eigener Maßstab je
+  Balkenart). Im Szenario zeigt ein gestrichelter Rahmen den Ist-Stand, dazu die Änderung.
+  Übersicht auch in Drucken/PDF und im Excel-Blatt.
 
 ### Filter in Auswertung und Summenzeile
 

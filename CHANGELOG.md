@@ -35,6 +35,74 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   Finger. Die Breiten gelten nur auf diesem Gerät. Doppelklick auf den Rand oder „Breiten
   zurücksetzen“ im Menü „Spalten“ stellt die automatische Breite wieder her.
 
+### Daten schützen
+
+- **Projekte auf diesem Gerät:** „Projekt wechseln“ verwirft das Projekt nicht mehr, sondern legt es
+  auf dem Gerät ab. Die Startseite listet alle abgelegten Projekte (Schritte, minD, letzte Änderung)
+  zum Öffnen oder Löschen. Abgelegt wird als CSV-Text (Format 4), rund 30 KB bei 300 Schritten.
+- **Sicherungsstände:** Je Projekt bis zu 10 Stände, automatisch alle 10 Minuten mit Änderungen,
+  beim Wechsel in eine andere App sowie vor Import, „Alle Zähler zurücksetzen“, Szenario-Übernahme
+  und Wiederherstellen. Menü „⋯ → Sicherungsstände“: jetzt sichern, wiederherstellen oder als
+  Datei ausgeben. Ist der Speicher voll, fallen die ältesten Sicherungsstände weg.
+- **Speicher-Hinweis:** Startseite und Sicherungsstände zeigen, seit wann auf dem Gerät gespeichert
+  wird und wie viel belegt ist. Fehlen nach einem Neustart Projekte, hat das Gerät den Speicher
+  geleert. Kann ein Aufruf gar nichts speichern, erscheint eine Warnung.
+- **Teilen-Menü am iPad:** CSV, Excel, Vorlage und Sicherungsstände öffnen am iPad das Teilen-Menü
+  (Dateien, OneDrive, Mail …). Am Laptop bleibt es beim Download.
+- **Warnung in „Zeiten“:** Wird ein Baustein mit Zählungen entfernt, fragt die App nach („3× gezählt,
+  in 2 Prozessschritten“). Beim Baustein der Laufwege kommt ein eigener Hinweis.
+- **Undo für alles:** Rückgängig lassen sich jetzt auch „Alle Zähler zurücksetzen“, Umbenennen,
+  Level, Zusatzspalten, Notizen, Teile (Hinzufügen und Ändern, ein Schritt je Feld), „Schritt
+  hinzufügen“, Zeiten, Bausteine, Laufwege, Sollzeit/Verteilzeit/Stundensatz, Soll-Taktzeit,
+  Spaltenüberschriften, Projektname und alle Szenario-Änderungen.
+
+### Stoppuhr (Einfach-Modus)
+
+- **Zeit messen an der Linie:** Unter der gelben Aktiv-Leiste sitzt im Einfach-Modus die Stoppuhr.
+  „Zeit messen“ startet für den aktiven Schritt; der große Knopf „Stop · Nächster“ speichert die
+  Zeit und startet im selben Augenblick den nächsten Schritt (Überschriften mit Level 1 werden
+  übersprungen). Wurde während der Messung eine andere Zeile angetippt, geht es dort weiter.
+  „■ Stop“ hält an, ✕ verwirft. Während der Messung bleibt der Bildschirm an (wo das Gerät es
+  erlaubt).
+- **Mehrere Messungen je Schritt:** Alle Werte werden gespeichert (Sekunden), angezeigt wird der
+  Mittelwert. Neue Tabellenspalte „⏱ Ø gem.“ (erscheint mit der ersten Messung) — antippen zeigt
+  die Einzelwerte, Ausreißer lassen sich löschen; Undo holt sie zurück.
+- **Ausreißer ausschließen statt löschen:** Einen Messwert antippen (im Popup der Tabelle oder in
+  der Auswertung) nimmt ihn aus Mittelwert und Auswertung, er bleibt aber gespeichert und wird
+  grau durchgestrichen angezeigt. Erneutes Antippen nimmt ihn wieder auf; ✕ löscht endgültig.
+  In CSV, Excel und Druck stehen ausgeschlossene Werte in Klammern, z. B. „12,3|(31,0)“.
+- **Untermodus „Zeitaufnahme“ (Einfach):** Neuer Schalter „Zählen | Zeitaufnahme“ neben
+  Einfach/Erweitert. In der Zeitaufnahme sind Kacheln, Legende, Add/Sub, ∑ minD und alle
+  Kategoriespalten ausgeblendet – es bleiben die Prozessschritte mit ihren Info-Spalten, die
+  Stoppuhr und „⏱ Ø gem.“ direkt hinter dem Prozessschritt. Zählen per Tastenkürzel ist dort
+  gesperrt. Die Wahl wird gespeichert; im Erweitert-Modus gilt sie nicht.
+- **Auswertung „Zeitmessung“:** neuer Reiter mit MTM gegen gemessen je Schritt (Einzelwerte, Ø,
+  Abweichung, Leistungsgrad = MTM ÷ gemessen) und Summen. Auch in Drucken/PDF und als Blatt
+  „Zeitmessung“ in der Excel-Datei.
+- **CSV:** neue Spalte „Messungen [s]“ nach „Notiz“ (Werte mit | getrennt). Ältere App-Versionen
+  melden sie als unbekannte Spalte und lassen sie aus.
+
+### Tabelle: Tempo, Verschieben, Suche
+
+- **Schneller bei großen Projekten:** Aufklappen, Teil hinzufügen/löschen, Umbenennen, Schritt
+  hinzufügen/löschen, Zeile einfügen und die meisten Undos zeichnen nur noch die betroffenen
+  Zeilen neu statt der ganzen Tabelle. Bei 300 Schritten (CPU gedrosselt wie am iPad) sinkt das
+  von 3–12 s auf 0,1–0,3 s. Im Einfach-Modus legt die Tabelle die ausgeblendeten [minD]-Zellen
+  und Laptop-Knöpfe gar nicht erst an.
+- **Schritte verschieben:** Ein Tipp auf die Nummer (Spalte #) öffnet „Schritt verschieben“:
+  ▲/▼ oder „An Position …“. Ein Schritt mit Unterschritten (folgende Schritte mit höherem Level)
+  nimmt sie auf Wunsch mit. Am Laptop geht es auch mit Alt+↑/↓. Undo stellt die Reihenfolge wieder
+  her. Die aktive Zeile zeigt unter der Nummer ein ⇅.
+- **Schnellsuche:** Suchfeld über der Tabelle (Prozessschritt, Sachnummer, Benennung,
+  Zusatzspalten). Springt zum Treffer, klappt bei Teilen den Schritt auf und markiert die Zeile
+  kurz; Enter/Umschalt+Enter oder ‹ › blättern. Treffer, die ein Filter ausblendet, werden als
+  „(+n)“ angezeigt.
+
+### Behoben
+
+- Die farbigen Spaltenköpfe der Kategorien waren leicht durchsichtig — beim Blättern schienen
+  Zahlen der Tabelle durch.
+
 ### Auswertung
 
 - **Top 10 mit Auswahl:** Über der Top-10-Liste wählt ein Auswahlfeld, wonach zusammengefasst

@@ -131,6 +131,7 @@ body:not(.beginner-mode) .simple-only{display:none!important;}
    Moduswahl nur als Symbol (mit Tooltip — dort gibt es Hover). Im Einfach-Modus bleiben alle Beschriftungen. */
 @media (max-width:1799px){ body:not(.beginner-mode) .tb-titel{display:none;} }
 @media (max-width:1679px){ body:not(.beginner-mode) :is(.mode-toggle .tg-label,.tb-lbl){display:none;} }
+@media (max-width:1000px){ body.beginner-mode .mode-toggle .tg-label{display:none;} }
 @media (max-width:1279px){ body.beginner-mode .tb-titel{display:none;} }
 .spacer{flex:1;}
 
@@ -152,6 +153,21 @@ body:not(.beginner-mode) .simple-only{display:none!important;}
 .start-input:focus{outline:none;border-color:var(--accent);}
 .start-btn{width:100%;padding:11px;border-radius:var(--radius);border:none;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:var(--fs-m);cursor:pointer;}
 .start-btn.secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border2);}
+.start-projekte{margin-bottom:18px;}
+.start-proj{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);}
+.start-proj-info{flex:1;min-width:0;}
+.start-proj-name{font-weight:600;font-size:var(--fs-m);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.start-proj-meta{font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);}
+.start-proj .tbtn{min-height:40px;}
+.start-speicher{margin-top:16px;font-size:var(--fs-xs);color:var(--text3);line-height:1.45;}
+.start-speicher.warn,.sich-status.warn{color:var(--red);}
+.sich-modal{max-width:640px;}
+.sich-status{font-size:var(--fs-xs);color:var(--text2);background:var(--surface2);border-radius:var(--r-s);padding:8px 10px;margin-bottom:10px;line-height:1.5;}
+.sich-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.sich-info{flex:1;min-width:180px;}
+.sich-zeit{font-weight:600;font-size:var(--fs-s);color:var(--text);}
+.sich-meta{font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);}
+body.beginner-mode .start-proj .tbtn,body.beginner-mode .sich-row .tbtn{min-height:44px;}
 .start-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--text3);font-size:var(--fs-xs);}
 .start-divider::before,.start-divider::after{content:'';flex:1;height:1px;background:var(--border);}
 .proj-label{font-size:var(--fs-s);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
@@ -323,6 +339,59 @@ body.beginner-mode .col-griff::after{width:2px;}
   padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);
   flex-wrap:wrap;
 }
+
+.such-box{margin-left:auto;display:flex;align-items:center;gap:4px;color:var(--text3);}
+.such-box input{width:230px;height:30px;font-size:var(--fs-s);padding:0 8px;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);font-family:var(--sans);}
+.such-box input:focus{outline:none;border-color:var(--accent);}
+.such-info{font-size:var(--fs-xs);font-family:var(--mono);min-width:44px;text-align:center;color:var(--text2);white-space:nowrap;}
+.such-info.leer{color:var(--red);}
+.such-box .tb-ic{width:30px;height:30px;padding:0;justify-content:center;}
+body.beginner-mode .such-box input{height:44px;font-size:var(--fs-m);width:260px;}
+body.beginner-mode .such-box .tb-ic{width:44px;height:44px;}
+@media (max-width:900px){ .such-box{margin-left:0;flex:1 1 100%;} .such-box input{flex:1;width:auto;} }
+.data-tbl tbody tr.such-hit td{animation:suchBlink 1.6s ease-out;}
+@keyframes suchBlink{0%,35%{box-shadow:inset 0 0 0 999px rgba(255,196,0,.45);}100%{box-shadow:inset 0 0 0 999px rgba(255,196,0,0);}}
+/* Spalte #: antippen öffnet „Verschieben"; die aktive Zeile zeigt den Hinweis ⇅ */
+.data-tbl tbody tr[data-id] td.nr{cursor:pointer;}
+.data-tbl tbody tr.ar td.nr::after{content:"⇅";display:block;font-size:9px;line-height:1;color:var(--accent-bright);}
+.versch-pop .vp-row{display:flex;gap:6px;align-items:center;margin-top:6px;}
+.versch-pop .vp-row .tbtn{flex:1;justify-content:center;}
+.versch-pop input[type=number]{width:72px;height:32px;font-size:var(--fs-m);text-align:center;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);}
+body.beginner-mode .versch-pop input[type=number]{height:44px;}
+.versch-pop .vp-info{font-size:var(--fs-xs);color:var(--text2);}
+
+/* ── UNTERMODUS ZEITAUFNAHME (nur Einfach): ohne Kacheln, Zählen und Kategoriespalten ── */
+body.zeitaufnahme :is(.grid-wrap,.tb-addsub,.sub-leiste,.act-time){display:none!important;}
+.za-toggle .tg-btn.on-mode{background:var(--green-dim);color:var(--green);}
+
+/* ── STOPPUHR ── */
+.stopp-leiste{flex-shrink:0;display:flex;align-items:center;gap:10px;min-height:56px;padding:6px var(--sp3);
+  background:var(--surface);border-bottom:1px solid var(--border2);box-shadow:inset 4px 0 0 var(--yellow);}
+.stopp-leiste button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:var(--radius);
+  font-size:var(--fs-m);font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text);}
+.stopp-leiste .stopp-start{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+.stopp-leiste .stopp-weiter{background:var(--green);border-color:var(--green);color:#fff;font-size:var(--fs-l);min-width:200px;justify-content:center;}
+.stopp-leiste .stopp-weg{padding:0 12px;color:var(--red);}
+.stopp-zeit{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);min-width:110px;}
+.stopp-info{flex:1;min-width:0;font-size:var(--fs-xs);color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.stopp-leiste:not(.laeuft) :is(.stopp-zeit,.stopp-weiter,.stopp-stop,.stopp-weg){display:none;}
+.stopp-leiste.laeuft .stopp-start{display:none;}
+.stopp-leiste.laeuft{background:var(--green-dim,#e5f5ec);box-shadow:inset 4px 0 0 var(--green);}
+/* Spalte „Ø gemessen" */
+.data-tbl th.mess,.data-tbl td.mess{width:1px;white-space:nowrap;text-align:center;font-family:var(--mono);}
+.data-tbl th.mess{color:var(--green);background:var(--surface2);}
+.data-tbl tbody td.mess{color:var(--text);cursor:pointer;}
+.data-tbl tbody td.mess small{color:var(--text3);margin-left:2px;}
+.mess-chips{display:flex;flex-wrap:wrap;gap:4px;}
+.mess-chip{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--border2);border-radius:999px;padding:1px 2px 1px 8px;font-family:var(--mono);font-size:var(--fs-xs);background:var(--surface);}
+.mess-chip .mc-wert{cursor:pointer;padding:2px 0;}
+.mess-chip.aus{background:var(--surface2);color:var(--text3);border-style:dashed;}
+.mess-chip.aus .mc-wert{text-decoration:line-through;}
+.mess-chip button{border:none;background:none;color:var(--text3);cursor:pointer;padding:2px 5px;min-height:28px;}
+body.beginner-mode .mess-chip button{min-height:36px;min-width:36px;}
+.mess-tbl td.tk-name{font-weight:500;}
+.mess-tbl td:nth-child(3){min-width:170px;}
+.mess-tbl .mess-chip button{min-height:24px;}
 
 /* ── ACTIVE BAR ──
    Gleiches Gelb wie die aktive Tabellenzeile: auf einen Blick klar, worauf die Kacheln zählen */
@@ -1013,12 +1082,14 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
   <div class="start-card">
     <div class="start-title"><svg class="ic"><use href="#i-uhr"/></svg>ZEITAUFNAHME</div>
     <div class="start-sub">Projekt wählen, um zu starten</div>
+    <div id="startProjekte"></div>
     <label class="start-lbl">Neues Projekt</label>
     <input type="text" class="start-input" id="startProjectName" placeholder="z.B. Linie3_Getriebe_Welle" onkeydown="if(event.key==='Enter')startNewProject()"/>
     <input type="text" class="start-input" id="startProjectDesc" placeholder="Kurzbeschreibung (optional, z.B. Baugruppen-Nr.)"/>
     <button class="start-btn" onclick="startNewProject()"><svg class="ic"><use href="#i-plus"/></svg>Projekt erstellen</button>
     <div class="start-divider">oder</div>
     <button class="start-btn secondary" onclick="openStartImport()"><svg class="ic"><use href="#i-import"/></svg>Projekt aus CSV laden</button>
+    <div class="start-speicher" id="startSpeicher"></div>
   </div>
 </div>
 <input type="file" id="startImportFileInput" accept=".csv" class="hidden" onchange="handleStartImport(event)"/>
@@ -1035,6 +1106,10 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
   <div class="toggle-group mode-toggle" title="Bedienmodus">
     <button class="tg-btn on-mode" id="modeBeginnerBtn" onclick="setUIMode('beginner')" title="Einfach"><svg class="ic"><use href="#i-tablet"/></svg><span class="tg-label">Einfach</span></button>
     <button class="tg-btn" id="modeAdvancedBtn" onclick="setUIMode('advanced')" title="Erweitert"><svg class="ic"><use href="#i-laptop"/></svg><span class="tg-label">Erweitert</span></button>
+  </div>
+  <div class="toggle-group za-toggle simple-only" title="Zählen oder nur Zeitaufnahme mit der Stoppuhr">
+    <button class="tg-btn" id="zaZaehlenBtn" onclick="setZeitModus(false)"><svg class="ic"><use href="#i-bausteine"/></svg><span class="tg-label">Zählen</span></button>
+    <button class="tg-btn" id="zaZeitBtn" onclick="setZeitModus(true)"><svg class="ic"><use href="#i-uhr"/></svg><span class="tg-label">Zeitaufnahme</span></button>
   </div>
   <div class="sep"></div>
   <div class="tb-gruppe" aria-label="Erfassung">
@@ -1067,6 +1142,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
       <button class="simple-only" onclick="switchProject()"><svg class="ic"><use href="#i-projekt"/></svg>Projekt wechseln</button>
       <button class="simple-only" onclick="openImport()"><svg class="ic"><use href="#i-import"/></svg>CSV importieren</button>
       <button onclick="openPaste()"><svg class="ic"><use href="#i-tabelle"/></svg>Aus Excel einfügen</button>
+      <button onclick="openSicherungen()"><svg class="ic"><use href="#i-uhr"/></svg>Sicherungsstände</button>
       <div class="mehr-trenner adv-only"></div>
       <button class="adv-only" onclick="openCfg()"><svg class="ic"><use href="#i-zeiten"/></svg>Zeiten</button>
       <button class="adv-only" onclick="openMtm()"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine</button>
@@ -1095,12 +1171,29 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
   <span class="act-time"><span>∑ </span><span id="actTime">0.000</span> <span id="actUnit">minD</span></span>
 </div>
 
+<!-- STOPPUHR (Einfach-Modus): misst den aktiven Schritt; „Stop · Nächster" startet ohne Lücke den nächsten -->
+<div class="stopp-leiste simple-only" id="stoppLeiste">
+  <button class="stopp-start" onclick="stoppStart()"><svg class="ic"><use href="#i-uhr"/></svg>Zeit messen</button>
+  <span class="stopp-zeit" id="stoppZeit">0:00,0</span>
+  <span class="stopp-info" id="stoppInfo"></span>
+  <button class="stopp-weiter" onclick="stoppWeiter()" title="Messung speichern und sofort den nächsten Schritt messen"><svg class="ic"><use href="#i-rechts"/></svg>Stop · Nächster</button>
+  <button class="stopp-stop" onclick="stoppStop()" title="Messung speichern und anhalten">■ Stop</button>
+  <button class="stopp-weg" onclick="stoppVerwerfen()" title="Laufende Messung verwerfen" aria-label="Messung verwerfen"><svg class="ic"><use href="#i-x"/></svg></button>
+</div>
+
 <!-- WERKZEUGE -->
 <div class="filter-bar">
   <button class="tbtn" onclick="addPart()"><svg class="ic"><use href="#i-plus"/></svg>Schritt</button>
   <button class="tbtn" id="teileAllBtn" onclick="toggleAlleTeile()"><svg class="ic"><use href="#i-unten"/></svg>Alle aufklappen</button>
   <button class="tbtn" onclick="openColMenu(this)" id="colMenuBtn"><svg class="ic"><use href="#i-spalten"/></svg>Spalten</button>
   <button class="tbtn" id="filterClearBtn" onclick="clearAllFilters()" style="display:none;"><svg class="ic"><use href="#i-x"/></svg>Filter zurücksetzen</button>
+  <div class="such-box">
+    <svg class="ic"><use href="#i-suche"/></svg>
+    <input type="search" id="suchFeld" placeholder="Suchen: Schritt, Sachnr., Benennung …" autocomplete="off" aria-label="In der Tabelle suchen"/>
+    <span class="such-info" id="suchInfo"></span>
+    <button class="tbtn tb-ic" onclick="suchSprung(-1)" title="Vorheriger Treffer (Umschalt+Enter)" aria-label="Vorheriger Treffer"><svg class="ic"><use href="#i-links"/></svg></button>
+    <button class="tbtn tb-ic" onclick="suchSprung(1)" title="Nächster Treffer (Enter)" aria-label="Nächster Treffer"><svg class="ic"><use href="#i-rechts"/></svg></button>
+  </div>
 </div>
 
 <!-- TABLE -->
@@ -1124,6 +1217,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
         <button class="ana-tab on" id="anaTabUeb" onclick="setAnaTab('ueberblick')">Übersicht</button>
         <button class="ana-tab" id="anaTabTakt" onclick="setAnaTab('takt')">Taktabgleich</button>
         <button class="ana-tab" id="anaTabTeile" onclick="setAnaTab('teile')">Teile je Station</button>
+        <button class="ana-tab" id="anaTabMess" onclick="setAnaTab('mess')">Zeitmessung</button>
       </div>
       <div class="ana-scope-note" id="anaScope">
         <span id="anaScopeNote"></span>
@@ -1225,6 +1319,8 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
         <div id="taktSzenWrap"></div>
       </div>
 
+      <div id="anaPanelMess" style="display:none;"><div id="messWrap"></div></div>
+
       <div id="anaPanelTeile" style="display:none;">
         <div class="ana-chart-head">
           <span class="ana-chart-title" id="tjTitel">Teile je Station</span>
@@ -1309,7 +1405,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
     <div class="exp-row">
       <label class="exp-label">Dateiname</label>
       <input class="exp-input" id="expFilename" type="text" placeholder="z.B. Linie3_Getriebe_Welle"/>
-      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import, auch in Excel bearbeitbar · Excel = formatierter Report (5 Blätter)</span>
+      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import, auch in Excel bearbeitbar · Excel = formatierter Report (6 Blätter) · am iPad öffnet sich das Teilen-Menü (Dateien, OneDrive, Mail …)</span>
       <button class="exp-vorlage" onclick="doExportVorlage()"><svg class="ic"><use href="#i-tabelle"/></svg>Leere Vorlage (CSV) zum Ausfüllen in Excel</button>
     </div>
     <div class="exp-btns mfooter">
@@ -1317,6 +1413,17 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
       <button class="exp-go" onclick="doExportXlsx()"><svg class="ic"><use href="#i-tabelle"/></svg>Excel (.xlsx)</button>
       <button class="exp-go" onclick="doExport()"><svg class="ic"><use href="#i-export"/></svg>CSV</button>
     </div>
+  </div>
+</div>
+
+<!-- SICHERUNGSSTÄNDE -->
+<div class="modal-bg" id="sichModal">
+  <div class="modal sich-modal">
+    <div class="mh">
+      <span class="mh-title"><svg class="ic"><use href="#i-uhr"/></svg>Sicherungsstände</span>
+      <button class="mclose" aria-label="Schließen" onclick="closeSicherungen()"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="mbody" id="sichBody"></div>
   </div>
 </div>
 
@@ -1772,7 +1879,7 @@ function positionPopup(pop,anchorEl){
 }
 function closeColPopup(){
   const p=document.getElementById('colPopup');
-  if(p) p.classList.remove('open');
+  if(p) p.classList.remove('open','versch-pop');
 }
 document.addEventListener('click',e=>{
   const p=document.getElementById('colPopup');
@@ -1784,7 +1891,7 @@ document.addEventListener('click',e=>{
 
 /* ── Spalten-Menü ── */
 function openColMenu(anchorEl){
-  const pop=document.getElementById('colPopup');
+  const pop=document.getElementById('colPopup'); pop.classList.remove('versch-pop');
   const body=document.getElementById('colPopupBody');
   document.getElementById('colPopupTitle').textContent='Spalten anzeigen';
   body.innerHTML='';
@@ -1805,6 +1912,7 @@ function openColMenu(anchorEl){
       const val=prompt('Neue Überschrift für diese Spalte:',cur);
       if(val===null) return;
       const t=val.replace(/[\r\n]/g,' ').trim();   // einzeilig — Semikolon u.ä. schützt die CSV mit Anführungszeichen
+      undoStand('Spalte „'+cur+'" umbenannt');
       if(t && t!==oc.label) colLabels[oc.key]=t; else delete colLabels[oc.key];
       markDirty();buildHead();renderBody();openColMenu(anchorEl);
     });
@@ -1830,7 +1938,7 @@ function openColMenu(anchorEl){
 
 /* ── Spaltenfilter-Popup ── */
 function openColFilter(anchorEl,fk,label,kind){
-  const pop=document.getElementById('colPopup');
+  const pop=document.getElementById('colPopup'); pop.classList.remove('versch-pop');
   const body=document.getElementById('colPopupBody');
   document.getElementById('colPopupTitle').textContent='Filter: '+label;
   body.innerHTML='';
@@ -2154,6 +2262,27 @@ function printAnalysis(){
       <p class="pr-hint">Teileart = verschiedene Sachnummer (je ein Ladungsträger), Stück = Summe der Mengen; gleiche Sachnummern einer ${escHtml(stLbl)} zusammengefasst.${tjSzen?' Szenario-Stand: verschobene Schritte bringen ihre Teile mit, gestrichelt = Ist.':''}</p>
     </div>`;
 
+  /* Zeitmessung: nur wenn gemessen wurde */
+  const md=messDaten(fParts), mk=messKennzahlen(md);
+  const mpct=v=>v==null?'–':v.toFixed(0)+' %';
+  const messSec=!md.length ? '' : `<div class="pr-sec">
+      <h2>Zeitmessung – MTM gegen gemessen</h2>
+      <div class="pr-kpis" style="margin-bottom:7px">
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Gemessene Schritte</span><span class="pr-kpi-val">${mk.schritte} von ${fParts.length} · ${mk.n} Messungen</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">MTM (gemessene Schritte)</span><span class="pr-kpi-val">${disp2(mk.mtm)} ${u}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Gemessen (Ø)</span><span class="pr-kpi-val">${disp2(mk.ist)} ${u}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Leistungsgrad</span><span class="pr-kpi-val">${mpct(mk.lg)}</span></div>
+      </div>
+      <table class="pr-tbl">
+        <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>Ø gem. [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+        <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${messText(e.p.id,' / ')}</td><td>${e.n?sekText(e.avg):'–'}</td>
+          <td>${e.n?disp2(e.ist):'–'}</td><td>${disp2(e.mtm)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td><td>${mpct(e.lg)}</td></tr>`).join('')}
+          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
+        </tbody>
+      </table>
+      <p class="pr-hint">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 %. Werte in Klammern sind ausgeschlossen und zählen nicht mit.</p>
+    </div>`;
+
   const topMax=Math.max(...top.map(it=>it.value),0.0001);
   const topTbl=list=>`<table class="pr-tbl">
     <thead><tr><th>#</th><th class="pr-txt">${escHtml(topOpt.e)}</th>${topOpt.k==='schritt'?'':'<th>Schritte</th>'}<th>Gesamt [${u}]</th><th>Zusammensetzung nach Kategorie-Gruppe</th></tr></thead>
@@ -2191,6 +2320,7 @@ function printAnalysis(){
     </div>
     ${szenSec}
     ${tjSec}
+    ${messSec}
 
     <div class="pr-sec pr-keep">
       <h2>Top 10 ${escHtml(topOpt.l)} – höchste Gesamtzeit</h2>
@@ -2203,17 +2333,20 @@ function printAnalysis(){
 }
 function updateSoll(){
   const v=Math.max(0,parseFloat(document.getElementById('sollInput').value)||0);
+  undoStand('Sollzeit geändert');
   sollzeit = unit==='minD' ? v : v/MIND_FACTOR; // kanonisch in minD
   markDirty();
   renderAnalysis();
 }
 function updateVerteil(){
+  undoStand('Verteilzeit geändert');
   verteilzeitFactor=Math.max(0,parseFloat(document.getElementById('verteilInput').value)||0);
   markVerteilPreset();
   markDirty();
   renderAnalysis();
 }
 function updateStundensatz(){
+  undoStand('Stundensatz geändert');
   hourlyRate=Math.max(0,parseFloat(document.getElementById('stundensatzInput').value)||0);
   markDirty();
   renderAnalysis();
@@ -2252,8 +2385,11 @@ function setAnaTab(t){
   document.getElementById('anaTabTeile').className='ana-tab'+(t==='teile'?' on':'');
   document.getElementById('anaPanelTeile').style.display=(t==='teile')?'':'none';
   document.getElementById('anaTabTeile').textContent='Teile je '+taktGroupLabel();
+  document.getElementById('anaTabMess').className='ana-tab'+(t==='mess'?' on':'');
+  document.getElementById('anaPanelMess').style.display=(t==='mess')?'':'none';
   if(t==='takt') renderTaktabgleich();
   if(t==='teile') renderTeileJeStation();
+  if(t==='mess') renderMess();
 }
 /* Gruppierung und Ist/Szenario teilen sich Taktabgleich und „Teile je Station" */
 function taktNeuZeichnen(){ if(anaTab==='teile') renderTeileJeStation(); else renderTaktabgleich(); }
@@ -2370,10 +2506,11 @@ function taktStationNamen(szen){
 /* ── Eingaben ── */
 function setTaktSoll(v){
   const n=parseFloat(String(v).replace(',','.'));
+  undoStand('Soll-Taktzeit geändert');
   taktSoll=(isNaN(n)||n<0) ? 0 : n;
   markDirty(); renderTaktabgleich();
 }
-function setTaktMitVz(on){ taktMitVz=!!on; markDirty(); renderTaktabgleich(); }
+function setTaktMitVz(on){ undoStand('Taktabgleich mit/ohne Verteilzeit'); taktMitVz=!!on; markDirty(); renderTaktabgleich(); }
 function setTaktAnsicht(a){ taktAnsicht=a==='szenario'?'szenario':'ist'; taktNeuZeichnen(); }
 
 /* ── Szenario bearbeiten ── */
@@ -2383,6 +2520,7 @@ function taktSzenStart(){
 }
 function taktMove(pid,ziel){
   const p=parts.find(x=>x.id===pid); if(!p) return;
+  undoStand('Szenario: „'+p.name+'" verschoben');
   const szen=taktSzenStart();
   if(ziel===taktBasis(p)) delete szen.moves[pid]; else szen.moves[pid]=ziel;
   markDirty(); renderTaktabgleich();
@@ -2422,6 +2560,7 @@ function taktWahlVerschieben(){
   /* Nur was gerade sichtbar angehakt ist — nie eine Auswahl aus einer zuvor offenen Station */
   const ids=[...document.querySelectorAll('#taktSzenWrap .takt-wahl-chk:checked')].map(cb=>cb.dataset.pid).filter(id=>parts.some(p=>p.id===id));
   if(!ids.length) return;
+  undoStand('Szenario: '+ids.length+' Prozessschritt(e) verschoben');
   const szen=taktSzenStart();
   ids.forEach(id=>{
     const p=parts.find(x=>x.id===id);
@@ -2436,6 +2575,7 @@ function taktNeueStation(){
   if(!name) return;
   const szen=taktSzenStart();
   if(taktStationNamen(szen).includes(name)){ toast('⚠ „'+name+'" gibt es schon'); return; }
+  undoStand('Szenario: „'+name+'" angelegt');
   szen.extra.push(name);
   taktOffen=name;
   markDirty(); renderTaktabgleich();
@@ -2446,6 +2586,7 @@ function taktStationEntfernen(i,ev){
   const szen=taktSzenAktiv(); if(!szen) return;
   const name=szen.extra[i]; if(name===undefined) return;
   if(parts.some(p=>taktStation(p,szen)===name)){ toast('⚠ „'+name+'" ist noch belegt — erst die Prozessschritte wegverschieben'); return; }
+  undoStand('Szenario: „'+name+'" entfernt');
   szen.extra.splice(i,1);
   if(taktOffen===name) taktOffen=null;
   markDirty(); renderTaktabgleich();
@@ -2457,17 +2598,17 @@ function taktSzenUebernehmen(){
   const fld='__'+taktGroupKey;
   if(!confirm(mv.length+' Prozessschritt(e) in der Spalte „'+taktGroupLabel()+'" umtragen?\n\n'
     +'Damit ändern sich die Basisdaten. Mit ↩ Undo lässt es sich Schritt für Schritt zurücknehmen.')) return;
-  mv.forEach(p=>{
-    undoPush({part:p.id,key:fld,prev:data[p.id][fld]||''});
-    data[p.id][fld]=szen.moves[p.id];
-  });
+  sicherungAnlegen('vor Szenario-Übernahme',true);
+  undoStand('Szenario in die Tabelle übernommen');
+  mv.forEach(p=>{ data[p.id][fld]=szen.moves[p.id]; });
   taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
   renderBody(); markDirty(); renderTaktabgleich();
   toast('✓ '+mv.length+' Prozessschritt(e) umgetragen');
 }
 function taktSzenVerwerfen(){
   if(!taktSzenario) return;
-  if(!confirm('Szenario verwerfen?\n\nDie Verschiebungen gehen verloren, die Basisdaten bleiben unverändert.')) return;
+  if(!confirm('Szenario verwerfen?\n\nDie Verschiebungen gehen verloren, die Basisdaten bleiben unverändert. ↩ Undo holt es zurück.')) return;
+  undoStand('Szenario verworfen');
   taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
   markDirty(); renderTaktabgleich();
 }
@@ -2819,6 +2960,7 @@ function renderAnalysis(){
   renderAnaTopList('anaTopHigh',topParts(fParts,topOpt.k));
   if(anaTab==='takt') renderTaktabgleich();
   if(anaTab==='teile') renderTeileJeStation();
+  if(anaTab==='mess') renderMess();
 
 }
 /* Zeitanteile je Gruppe bzw. Kategorie — Grundlage für Diagramm, Legende und Druck */
@@ -2927,6 +3069,7 @@ function startNewProject(){
   const descInput=document.getElementById('startProjectDesc');
   const name=nameInput.value.trim();
   if(!name){ toast('⚠ Bitte Projektnamen eingeben'); nameInput.focus(); return; }
+  projektId=neueProjektId();
   currentProject=name;
   projectDescription=descInput?descInput.value.trim():'';
   parts = Array.from({length:10},(_,i)=>({id:newPartId(), name:`Schritt ${i+1}`}));
@@ -2971,6 +3114,7 @@ function handleStartImport(evt){
     try{
       const parsed=parseImportedCSV(text);
       if(!parsed||parsed.parts.length===0){ toast('⚠ Keine Prozessschritte gefunden oder CSV ungültig'); return; }
+      projektId=neueProjektId();
       importUebernehmen(parsed,true,file.name);
       importHinweis(parsed,'✓ Projekt "'+currentProject+'" geladen');
     }catch(err){
@@ -2980,8 +3124,11 @@ function handleStartImport(evt){
 }
 
 function switchProject(){
-  if(hasUnsavedChanges && !confirm('Zum Projekt-Start wechseln?\n\nNicht exportierte Änderungen gehen verloren.\nVorher über „Export" als CSV sichern!')) return;
-  currentProject=null;
+  if(saveTmr){ clearTimeout(saveTmr); saveTmr=null; saveState(); }
+  if(!projektAblegen() && !confirm('Das Projekt ließ sich auf dem Gerät nicht ablegen (Speicher voll?).\n\nTrotzdem wechseln? Nicht exportierte Änderungen gingen verloren.')) return;
+  if(currentProject) toast('✓ „'+currentProject+'" auf diesem Gerät abgelegt');
+  currentProject=null; projektId=null;
+  renderStartProjekte();
   updateProjLabel();
   document.getElementById('startScreen').classList.add('open');
   const inp=document.getElementById('startProjectName');
@@ -3098,6 +3245,7 @@ const CSV_FELDER={
   teilname:['benennung','bauteilbenennung','bauteil','bezeichnung','teilbenennung','objektkurztext'],
   menge:   ['menge','anzahl','stück','stk','stk.'],
   note:    ['notiz','bemerkung','kommentar'],
+  mess:    ['messungen [s]','messungen','gemessen [s]','zeitmessung'],
 };
 /* Ordnet jede Spalte der Kopfzeile einem Feld oder einer Kategorie zu.
    katMeta[j] = Kategorie-Schlüssel aus der __COLS__-Zeile genau über dieser Spalte (falls vorhanden).
@@ -3112,7 +3260,7 @@ function csvKopfZuordnen(kopf,katMeta,cols,labelsDatei){
     const km=katMeta&&katMeta[j];
     if(km && cols.some(c=>c.key===km) && !belegt.has(km)){ belegt.add(km); kat.push({key:km,j}); fertig.add(j); }
   });
-  const exportNamen=['level','name','sachnr','teilname','menge',...CSV_V4_EXTRAS,'note'].map(k=>[k,
+  const exportNamen=['level','name','sachnr','teilname','menge',...CSV_V4_EXTRAS,'note','mess'].map(k=>[k,
     CSV_V4_EXTRAS.includes(k) ? [labelsDatei&&labelsDatei[k],colLabel(k)].filter(Boolean).map(csvNorm) : [CSV_FELDER[k][0]]]);
   const ersatzNamen=[];
   CSV_V4_EXTRAS.forEach(k=>ersatzNamen.push([k,[OPT_COLS.find(o=>o.key===k).label,k].map(csvNorm)]));
@@ -3290,6 +3438,11 @@ function csvV4Lesen(rows,einfuegen){
     nTeile+=d.__teile.length;
     CSV_V4_EXTRAS.forEach(k=>{ d['__'+k]=zelle(row,k); });
     d.__note=zelle(row,'note');
+    /* Stoppuhr-Messungen in Sekunden, mit | getrennt */
+    /* ausgeschlossene stehen in Klammern: „12,3|(25,8)" */
+    const messRoh=zelle(row,'mess').split(/[|;]/).map(x=>x.trim()).filter(Boolean)
+      .map(x=>({aus:/^\(.*\)$/.test(x), v:Math.round(zahlLesen(x.replace(/[()]/g,''))*10)/10})).filter(x=>x.v>0);
+    if(messRoh.length){ d.__mess=messRoh.map(x=>x.v); if(messRoh.some(x=>x.aus)) d.__messAus=messRoh.map(x=>x.aus); }
     cols.forEach(c=>{ d[c.key]=0; });
     kat.forEach(({key,j})=>{ d[key]=zahl(row,j); });
   }
@@ -3596,6 +3749,7 @@ function buildGrid(){
         e.stopPropagation();
         openNotePopup(tgl,'Notiz: '+c.label, c.note||'', val=>{
           if((c.note||'')!==val){
+            undoStand('Notiz „'+c.label+'"');
             c.note=val;markDirty();
             tgl.classList.toggle('has-note',!!val);
           }
@@ -3639,6 +3793,7 @@ function updateActiveBar(){
   document.getElementById('actName').textContent=activePart?partName(activePart):'—';
   document.getElementById('actTime').textContent=disp2(calcTotal(activePart));
   document.getElementById('actUnit').textContent=ul();
+  stoppInfo();
 }
 
 /* ═══════════════════════════════════════
@@ -3653,7 +3808,7 @@ function stickyLeft(){
 }
 /* Kategoriebereich einer Unterzeile als eine einzige Zelle — statt 22 bzw. 44 leerer Zellen
    je Teil. Jeder Tipp auf eine Kachel baut die Tabelle neu, da zählt jede Zelle. */
-function kategorieSpan(){ return COLS.length*(uiMode==='beginner'?1:2); }
+function kategorieSpan(){ return zeitAktiv() ? 0 : COLS.length*(uiMode==='beginner'?1:2); }
 /* Reihenfolge der Kategoriespalten in der Tabelle: „Meter in total" vorne, weil fast jeder Schritt
    einen Laufweg hat. Nur Anzeige — Kacheln, Tastenkürzel und Exporte behalten die COLS-Reihenfolge. */
 function tabCols(){
@@ -3668,6 +3823,9 @@ function buildHead(){
   h+=`<th class="level" style="left:${L.level}px;${hide('level')}">Lvl${fltIco('level','Level','set')}</th>`;
   const griff=k=>`<span class="col-griff" data-bk="${k}" title="Breite ziehen · Doppelklick: zurücksetzen"></span>`;
   h+=`<th class="cn" style="left:${L.cn}px;${hide('name')}">Prozessschritt${fltIco('name','Prozessschritt','set')}${griff('cn')}</th>`;
+  /* Zeitaufnahme: „Ø gemessen" gleich hinter dem Prozessschritt, damit sie am iPad ohne Blättern sichtbar ist */
+  const messTh=`<th class="mess" title="Mittelwert der Stoppuhr-Messungen (×Anzahl) — antippen zeigt die Einzelwerte">⏱ Ø gem.<br>[${ul()}]</th>`;
+  if(zeitAktiv()) h+=messTh;
   h+=`<th class="sachnr" style="${hide('sachnr')}">Sachnr.${fltIco('sachnr','Sachnummer','set')}${griff('sachnr')}</th>`;
   h+=`<th class="teilname" style="${hide('teilname')}">Bauteilbenennung${fltIco('teilname','Bauteilbenennung','set')}${griff('teilname')}</th>`;
   OPT_COLS.filter(o=>!o.own).forEach(o=>{
@@ -3675,11 +3833,12 @@ function buildHead(){
   });
   h+=`<th class="th-qty">Anzahl${fltIco('qty','Anzahl','range')}</th>`;
   h+='<th class="acts"></th>';
-  h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
-  tabCols().forEach(c=>{
+  if(!zeitAktiv()) h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
+  if(messSpalteAn() && !zeitAktiv()) h+=messTh;
+  katSpalten().forEach(c=>{
     const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
-    h+=`<th class="th-q" title="${escAttr(c.label)}" style="background:${gCol}e6;border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).map(escHtml).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
-    h+=`<th class="th-t adv-only" style="background:${gCol}b3;">[${ul()}]</th>`;
+    h+=`<th class="th-q" title="${escAttr(c.label)}" style="background:linear-gradient(${gCol}e6,${gCol}e6),var(--surface);border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).map(escHtml).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
+    if(uiMode!=='beginner') h+=`<th class="th-t adv-only" style="background:linear-gradient(${gCol}b3,${gCol}b3),var(--surface);">[${ul()}]</th>`;
   });
   tr.innerHTML=h;
   // aktive Filter im Kopf markieren
@@ -3737,6 +3896,7 @@ function setUIMode(m){
   document.getElementById('modeBeginnerBtn').className='tg-btn'+(m==='beginner'?' on-mode':'');
   document.getElementById('modeAdvancedBtn').className='tg-btn'+(m==='advanced'?' on-mode':'');
   document.body.classList.toggle('beginner-mode', m==='beginner');
+  zeitModusAnwenden();
   buildGrid();
   buildHead();
   renderBody();
@@ -3746,7 +3906,8 @@ function setUIMode(m){
 /* Anzahl- und Zeitzelle einer Kategorie füllen — beim Aufbau der Tabelle und nach einer Zählung */
 function zaehlZellen(tdv,tdt,v,c,summe){
   const t=v*c.param;
-  tdv.className=v>0?'vnz':''; tdv.textContent=v>0?v:'–';
+  if(tdv){ tdv.className=v>0?'vnz':''; tdv.textContent=v>0?v:'–'; }
+  if(!tdt) return;   // Einfach-Modus: keine Zeitzellen
   tdt.className=(t>0?'tnz':'')+' adv-only'; tdt.textContent=t>0?disp2(t):'–';
   if(t>0) tdt.style.background=((GROUPS[c.group]||{}).color||'#dde1ed')+(summe?'8c':'59');
   else tdt.removeAttribute('style');
@@ -3756,12 +3917,13 @@ function zaehlZellen(tdv,tdt,v,c,summe){
    Nur ein Filter auf diese Kategorie oder auf die Gesamtzeit kann die Zeile ein- oder ausblenden:
    dann doch neu aufbauen. */
 function zaehlerZeigen(id,key){
+  if(zeitAktiv()) return;   // keine Kategoriespalten
   const c=COLS.find(x=>x.key===key);
   const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]');
   const sr=document.querySelector('#tblBody tr.sum-row');
   const zellen=x=>x?[x.querySelector('td[data-k="'+CSS.escape(key)+'"]'),x.querySelector('td[data-kt="'+CSS.escape(key)+'"]')]:[];
   const [tv,tt]=zellen(tr), [sv,st]=zellen(sr);
-  if(colFilters['cat:'+key] || colFilters.total || !c || !tv || !tt || !sv || !st){ renderBody(); return; }
+  if(colFilters['cat:'+key] || colFilters.total || !c || !tv || !sv || (uiMode!=='beginner' && (!tt || !st))){ renderBody(); return; }
   zaehlZellen(tv,tt,data[id][key]||0,c,false);
   const tot=calcTotal(id);
   tr.querySelector('td.ct').textContent=tot>0?disp2(tot):'–';
@@ -3773,13 +3935,10 @@ function einfuegeKnopf(b){
   b.classList.toggle('active',!!rowClipboard);
   b.title=rowClipboard?('Inhalte von "'+rowClipboard.sourceName+'" einfügen'):'Erst eine Zeile kopieren';
 }
-function renderBody(){
-  const body=document.getElementById('tblBody');
-  body.innerHTML='';
-  let totQ={},totT=0,totQty=0;
-  COLS.forEach(c=>totQ[c.key]=0);
-
-  const visibleParts=getFilteredParts();
+const LEVEL_SEL_VORLAGE=(()=>{ const s=document.createElement('select'); s.className='level-select';
+  for(let n=1;n<=7;n++){ const o=document.createElement('option'); o.value=n; o.textContent=n; s.appendChild(o); } return s; })();
+/* Alles, was zum Aufbau einer Tabellenzeile gebraucht wird — einmal je Neuaufbau ermittelt */
+function tabKontext(){
   const L=stickyLeft();
   const vis={level:isColVisible('level'),name:isColVisible('name'),sachnr:isColVisible('sachnr'),teilname:isColVisible('teilname')};
   const extraFlds=OPT_COLS.filter(o=>!o.own&&isColVisible(o.key)).map(o=>'__'+o.key);
@@ -3789,9 +3948,16 @@ function renderBody(){
     if(left!==undefined) c.style.left=left+'px';
     return c;
   };
-
   const posNr=new Map(parts.map((p,i)=>[p.id,i+1]));   // statt findIndex je Zeile
-  visibleParts.forEach(part=>{
+  /* Einfach-Modus: die ausgeblendeten [minD]-Zellen und Laptop-Knöpfe gar nicht erst anlegen —
+     das halbiert die Zellen der Tabelle, und ihr Layout ist bei ~300 Schritten der größte Posten */
+  tabZeit=zeitAktiv();
+  tabMess=messSpalteAn()||tabZeit;
+  return {L,vis,extraFlds,td,posNr,einfach:uiMode==='beginner',mess:tabMess,zeit:tabZeit};
+}
+/* Hauptzeile eines Schritts und — aufgeklappt — seine Teile-Zeilen */
+function schrittZeilen(part,k){
+  const {L,vis,extraFlds,td,posNr,einfach}=k;
     const id=part.id, name=part.name;
     const offen=!!teileOffen[id];
     const teile=stepTeile(id);
@@ -3811,21 +3977,18 @@ function renderBody(){
     const tdNr=td('nr');
     if(!vis.name) tdNr.appendChild(caret);
     tdNr.appendChild(document.createTextNode(posNr.get(id)));
+    tdNr.title='Verschieben';
+    tdNr.addEventListener('click',e=>{ e.stopPropagation(); selectPart(id); openVerschieben(id); });
     tr.appendChild(tdNr);
 
     // Level (Gliederung der Prozessschritte, 1-7)
     const tdLevel=td('level',vis.level,L.level);
-    const lvSel=document.createElement('select');
-    lvSel.className='level-select';
-    for(let n=1;n<=7;n++){
-      const opt=document.createElement('option');
-      opt.value=n;opt.textContent=n;
-      if(lvl===n) opt.selected=true;
-      lvSel.appendChild(opt);
-    }
+    const lvSel=LEVEL_SEL_VORLAGE.cloneNode(true);
+    lvSel.value=String(lvl);
     lvSel.addEventListener('focus',e=>{e.stopPropagation();selectPart(id);});
     lvSel.addEventListener('click',e=>e.stopPropagation());
     lvSel.addEventListener('change',()=>{
+      undoPush({part:id,key:'__level',prev:data[id].__level});
       data[id].__level=parseInt(lvSel.value)||1;
       markDirty();
       tr.className=tr.className.replace(/\blvl-\d\b/,'lvl-'+data[id].__level);
@@ -3846,6 +4009,12 @@ function renderBody(){
     wrap.appendChild(inp);
     td0.appendChild(wrap);
     tr.appendChild(td0);
+    const messTd=()=>{
+      const tdm=td('mess'); messZelleFuellen(tdm,id);
+      tdm.addEventListener('click',e=>{ e.stopPropagation(); selectPart(id); openMessPopup(id,tdm); });
+      return tdm;
+    };
+    if(k.zeit) tr.appendChild(messTd());
 
     // Sachnummer / Bauteilbenennung: zugeklappt erster Eintrag + „+n", nur Anzeige
     /* Antippen klappt die Teile auf und zu — größere Fläche als das kleine ▸ */
@@ -3871,7 +4040,7 @@ function renderBody(){
       ei.addEventListener('keydown',e=>{if(e.key==='Enter')ei.blur();});
       ei.addEventListener('blur',()=>{
         const val=ei.value;
-        if((data[id][fld]||'')!==val){ data[id][fld]=val; markDirty(); }
+        if((data[id][fld]||'')!==val){ undoPush({part:id,key:fld,prev:data[id][fld]||''}); data[id][fld]=val; markDirty(); }
       });
       tdE.appendChild(ei);
       tr.appendChild(tdE);
@@ -3884,16 +4053,18 @@ function renderBody(){
 
     // Zeilen-Aktionen (wirken auf den Schritt samt Teilen)
     const tdActs=td('acts');
-    const copyBtn=document.createElement('button');
-    copyBtn.type='button';copyBtn.className='row-icon-btn adv-only';copyBtn.title='Zeile kopieren (inkl. Teile)';copyBtn.innerHTML=ic('kopieren');
-    copyBtn.addEventListener('click',e=>{e.stopPropagation();copyRow(id);});
-    tdActs.appendChild(copyBtn);
-    const pasteBtn=document.createElement('button');
-    pasteBtn.type='button';pasteBtn.className='row-icon-btn adv-only paste-btn';
-    einfuegeKnopf(pasteBtn);
-    pasteBtn.innerHTML=ic('einfuegen');
-    pasteBtn.addEventListener('click',e=>{e.stopPropagation();pasteRow(id);});
-    tdActs.appendChild(pasteBtn);
+    if(!einfach){
+      const copyBtn=document.createElement('button');
+      copyBtn.type='button';copyBtn.className='row-icon-btn adv-only';copyBtn.title='Zeile kopieren (inkl. Teile)';copyBtn.innerHTML=ic('kopieren');
+      copyBtn.addEventListener('click',e=>{e.stopPropagation();copyRow(id);});
+      tdActs.appendChild(copyBtn);
+      const pasteBtn=document.createElement('button');
+      pasteBtn.type='button';pasteBtn.className='row-icon-btn adv-only paste-btn';
+      einfuegeKnopf(pasteBtn);
+      pasteBtn.innerHTML=ic('einfuegen');
+      pasteBtn.addEventListener('click',e=>{e.stopPropagation();pasteRow(id);});
+      tdActs.appendChild(pasteBtn);
+    }
     const noteBtn=document.createElement('button');
     noteBtn.type='button';noteBtn.className='row-icon-btn'+(data[id].__note?' active':'');
     noteBtn.title='Notiz zum Prozessschritt';
@@ -3903,6 +4074,7 @@ function renderBody(){
       openNotePopup(noteBtn,'Notiz: '+name, data[id].__note||'', val=>{
         if(!data[id]) return;   // Schritt inzwischen gelöscht
         if((data[id].__note||'')!==val){
+          undoPush({part:id,key:'__note',prev:data[id].__note||''});
           data[id].__note=val;markDirty();
           noteBtn.classList.toggle('active',!!val);
         }
@@ -3917,58 +4089,481 @@ function renderBody(){
 
     // Summe
     const tot=calcTotal(id);
-    const tdtot=td('ct');
-    tdtot.textContent=tot>0?disp2(tot):'–';tr.appendChild(tdtot);
+    if(!k.zeit){ const tdtot=td('ct'); tdtot.textContent=tot>0?disp2(tot):'–'; tr.appendChild(tdtot); }
+    if(k.mess && !k.zeit) tr.appendChild(messTd());
 
-    tabCols().forEach(c=>{
+    katSpalten().forEach(c=>{
       const v=data[id][c.key]||0;
-      const tdv=document.createElement('td'), tdt=document.createElement('td');
-      tdv.dataset.k=c.key; tdt.dataset.kt=c.key;
+      const tdv=document.createElement('td'); tdv.dataset.k=c.key;
+      let tdt=null; if(!einfach){ tdt=document.createElement('td'); tdt.dataset.kt=c.key; }
       zaehlZellen(tdv,tdt,v,c,false);
       tr.appendChild(tdv);
       if(c.key===LW_KAT && lwHat(id)){
         const f=document.createElement('span'); f.className='lw-f'; f.textContent='ƒ'; tdv.appendChild(f);
         tdv.title='Laufweg wird gerechnet — im Fenster Laufwege ändern';
       }
-      tr.appendChild(tdt);
+      if(tdt) tr.appendChild(tdt);
     });
 
     tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(id); });
-    body.appendChild(tr);
-
+    const zeilen=[tr];
     if(offen){
-      teile.forEach(t=>body.appendChild(teilZeile(id,t,vis,extraFlds,L,td)));
-      body.appendChild(teilAddZeile(id,vis,extraFlds,L,td));
+      teile.forEach(t=>zeilen.push(teilZeile(id,t,vis,extraFlds,L,td)));
+      zeilen.push(teilAddZeile(id,vis,extraFlds,L,td));
     }
-  });
+    return zeilen;
+}
+function renderBody(){
+  const body=document.getElementById('tblBody');
+  body.innerHTML='';
+  const k=tabKontext(), {L,vis,extraFlds,td}=k;
+  const visibleParts=getFilteredParts();
+  const frag=document.createDocumentFragment();
+  visibleParts.forEach(part=>schrittZeilen(part,k).forEach(z=>frag.appendChild(z)));
+  body.appendChild(frag);
 
   // Summen nur über die sichtbaren (gefilterten) Schritte
-  visibleParts.forEach(part=>{
-    const id=part.id;
-    totQty+=stepQty(id);
-    totT+=calcTotal(id);
-    COLS.forEach(c=>{ totQ[c.key]+=data[id][c.key]||0; });
-  });
+  const {totQ,totT,totQty}=tabSummen(visibleParts);
 
   // summary row
   const sr=document.createElement('tr');sr.className='sum-row';
   sr.appendChild(td('nr'));
   sr.appendChild(td('level',vis.level,L.level));
   const s0=td('cn',vis.name,L.cn);s0.textContent=hasAnyFilter()?'∑ Gefiltert':'∑ Gesamt';sr.appendChild(s0);
+  if(k.zeit){ const sm=td('mess'); messSummeFuellen(sm,visibleParts); sr.appendChild(sm); }
   sr.appendChild(td('sachnr',vis.sachnr));
   sr.appendChild(td('teilname',vis.teilname));
   extraFlds.forEach(f=>sr.appendChild(td('extra x-'+f.slice(2))));
   const sQty=td('qty');sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
   sr.appendChild(td('acts'));
-  const stot=td('ct');stot.textContent=disp2(totT);sr.appendChild(stot);
-  tabCols().forEach(c=>{
-    const tdv=document.createElement('td'), tdt=document.createElement('td');
-    tdv.dataset.k=c.key; tdt.dataset.kt=c.key;
+  if(!k.zeit){ const stot=td('ct');stot.textContent=disp2(totT);sr.appendChild(stot); }
+  if(k.mess && !k.zeit){ const sm=td('mess'); messSummeFuellen(sm,visibleParts); sr.appendChild(sm); }
+  katSpalten().forEach(c=>{
+    const tdv=document.createElement('td'); tdv.dataset.k=c.key; sr.appendChild(tdv);
+    let tdt=null; if(!k.einfach){ tdt=document.createElement('td'); tdt.dataset.kt=c.key; sr.appendChild(tdt); }
     zaehlZellen(tdv,tdt,totQ[c.key],c,true);
-    sr.appendChild(tdv); sr.appendChild(tdt);
   });
   body.appendChild(sr);
   updateTeileAllBtn();
+}
+function tabSummen(liste){
+  const totQ={}; let totT=0,totQty=0;
+  COLS.forEach(c=>totQ[c.key]=0);
+  liste.forEach(part=>{
+    const id=part.id;
+    totQty+=stepQty(id); totT+=calcTotal(id);
+    COLS.forEach(c=>{ totQ[c.key]+=data[id][c.key]||0; });
+  });
+  return {totQ,totT,totQty};
+}
+/* Summenzeile ohne Neuaufbau der Tabelle nachführen */
+function summenNachfuehren(){
+  const sr=document.querySelector('#tblBody tr.sum-row'); if(!sr) return;
+  const {totQ,totT,totQty}=tabSummen(getFilteredParts());
+  const q=sr.querySelector('td.qty'); if(q) q.textContent=totQty>0?totQty:'–';
+  const t=sr.querySelector('td.ct'); if(t) t.textContent=disp2(totT);
+  const m=sr.querySelector('td.mess'); if(m) messSummeFuellen(m,getFilteredParts());
+  COLS.forEach(c=>zaehlZellen(sr.querySelector('td[data-k="'+CSS.escape(c.key)+'"]'),sr.querySelector('td[data-kt="'+CSS.escape(c.key)+'"]'),totQ[c.key],c,true));
+}
+/* Einen Schritt samt Teile-Zeilen neu zeichnen, statt die ganze Tabelle. Ein Filter, den die Änderung
+   betreffen kann, braucht den vollen Neuaufbau — dann kann die Zeile ein- oder ausgeblendet werden. */
+/* ═══════════════════════════════════════
+   STOPPUHR (Einfach-Modus)
+   Misst den aktiven Schritt. „Stop · Nächster" speichert und startet im selben Augenblick den nächsten
+   Schritt (Level 1 = Überschrift wird übersprungen) — es sei denn, während der Messung wurde eine andere
+   Zeile angetippt: dann geht es dort weiter. „Stop" hält an, ✕ verwirft. Je Schritt werden alle
+   Messungen in Sekunden gespeichert (data[id].__mess), gezeigt wird der Mittelwert.
+═══════════════════════════════════════ */
+const SEK_JE_MIND=36;   // 1 minD = 0,6 min = 36 s
+/* Untermodus „Zeitaufnahme" des Einfach-Modus: nur Prozessschritte, Info-Spalten, Stoppuhr und Ø gemessen */
+let zeitModus=false;
+function zeitAktiv(){ return zeitModus && uiMode==='beginner'; }
+function zeitModusAnwenden(){
+  document.body.classList.toggle('zeitaufnahme',zeitAktiv());
+  const z=document.getElementById('zaZaehlenBtn'), t=document.getElementById('zaZeitBtn');
+  if(z) z.className='tg-btn'+(zeitModus?'':' on-mode');
+  if(t) t.className='tg-btn'+(zeitModus?' on-mode':'');
+}
+function setZeitModus(on){
+  zeitModus=!!on; zeitModusAnwenden();
+  buildHead(); renderBody(); updateActiveBar(); saveState();
+  toast(zeitModus?'⏱ Zeitaufnahme: nur Prozessschritte und Stoppuhr':'✓ Zählen: Kacheln und Kategorien wieder sichtbar');
+}
+/* Kategoriespalten der Tabelle — in der Zeitaufnahme keine */
+function katSpalten(){ return zeitAktiv() ? [] : tabCols(); }
+let stopp=null, stoppTmr=null, stoppWach=null, tabMess=false, tabZeit=false;
+function messWerte(id){ const m=(data[id]||{}).__mess; return Array.isArray(m)?m:[]; }
+/* Ausgeschlossene Messungen (Ausreißer): bleiben gespeichert, zählen aber nicht in Mittelwert und Auswertung.
+   data[id].__messAus = Wahrheitswerte parallel zu __mess, nur vorhanden, wenn einer ausgeschlossen ist. */
+function messAus(id){ const a=(data[id]||{}).__messAus, m=messWerte(id); return m.map((_,i)=>!!(Array.isArray(a)&&a[i])); }
+function messGueltig(id){ const a=messAus(id); return messWerte(id).filter((_,i)=>!a[i]); }
+function messMittel(id){ const m=messGueltig(id); return m.length?m.reduce((a,b)=>a+b,0)/m.length:0; }
+function messSetzen(id,werte,aus){
+  const d=data[id]; if(!d) return;
+  if(werte.length) d.__mess=werte; else delete d.__mess;
+  if(werte.length && aus && aus.some(Boolean)) d.__messAus=werte.map((_,i)=>!!aus[i]); else delete d.__messAus;
+}
+function messUndoMerken(id){ undoPush({typ:'mess',part:id,prev:{m:messWerte(id).slice(),a:messAus(id)}}); }
+/* „12,3" — ausgeschlossene in Klammern: „(25,8)" */
+function messText(id,trenner){ const a=messAus(id); return messWerte(id).map((x,i)=>a[i]?'('+sekText(x)+')':sekText(x)).join(trenner); }
+function messSpalteAn(){ return parts.some(p=>messWerte(p.id).length>0); }
+const sekText=x=>(Math.round(x*10)/10).toFixed(1).replace('.',',');
+function messZelleFuellen(td,id){
+  const m=messWerte(id), g=messGueltig(id);
+  if(!m.length){ td.textContent='–'; td.title='Noch nicht gemessen'; return; }
+  td.innerHTML=g.length ? disp2(messMittel(id)/SEK_JE_MIND)+'<small>×'+g.length+'</small>' : '<small>alle aus</small>';
+  td.title=m.length+' Messung(en): '+messText(id,' / ')+' s'+(g.length<m.length?' — in Klammern: ausgeschlossen':'')+(g.length?' · Ø '+sekText(messMittel(id))+' s':'');
+}
+function messSummeFuellen(td,liste){
+  const g=liste.filter(p=>messGueltig(p.id).length);
+  td.textContent=g.length?disp2(g.reduce((x,p)=>x+messMittel(p.id),0)/SEK_JE_MIND):'–';
+  td.title='Summe der Mittelwerte – '+g.length+' von '+liste.length+' Schritten gemessen';
+}
+/* Nach einer neuen oder gelöschten Messung: Zelle und Summe nachführen; erscheint oder verschwindet
+   die Spalte dadurch, die Tabelle neu aufbauen */
+function messNachfuehren(id){
+  if((messSpalteAn()||zeitAktiv())!==!!document.querySelector('#tblHead th.mess')){ buildHead(); renderBody(); }
+  else {
+    const td=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"] td.mess'); if(td) messZelleFuellen(td,id);
+    summenNachfuehren();
+  }
+  stoppInfo();
+  if(document.getElementById('anaModal').classList.contains('open') && anaTab==='mess') renderMess();
+}
+function stoppFormat(sek){ const m=Math.floor(sek/60), r=sek-m*60; return m+':'+(r<10?'0':'')+r.toFixed(1).replace('.',','); }
+function stoppStart(id,start){
+  id=id||activePart;
+  if(!id||!data[id]){ toast('⚠ Erst einen Prozessschritt wählen'); return; }
+  stopp={id,start:start||Date.now()};
+  if(activePart!==id) selectPart(id);
+  clearInterval(stoppTmr); stoppTmr=setInterval(stoppTick,100); stoppTick();
+  document.getElementById('stoppLeiste').classList.add('laeuft');
+  stoppInfo();
+  /* Bildschirm während der Messung nicht abschalten lassen (wo das Gerät es erlaubt) */
+  try{ if(!stoppWach && navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>{ stoppWach=w; }).catch(()=>{}); }catch(e){}
+}
+function stoppTick(){ if(stopp) document.getElementById('stoppZeit').textContent=stoppFormat((Date.now()-stopp.start)/1000); }
+function stoppErfassen(ende){
+  const id=stopp.id, sek=Math.round((ende-stopp.start)/100)/10;
+  if(!data[id]){ toast('⚠ Schritt gelöscht – Messung verworfen'); return null; }
+  if(sek<0.5){ toast('Unter 0,5 s – nicht gespeichert'); return null; }
+  messUndoMerken(id);
+  messSetzen(id,messWerte(id).concat([sek]),messAus(id).concat([false]));
+  markDirty(); messNachfuehren(id);
+  return {id,sek};
+}
+function naechsterMessSchritt(id){
+  const l=getFilteredParts(), i=l.findIndex(p=>p.id===id);
+  for(let j=i+1;j<l.length;j++) if((data[l[j].id].__level||1)>1) return l[j].id;
+  return null;
+}
+function stoppWeiter(){
+  if(!stopp) return;
+  const jetzt=Date.now(), alt=stopp.id;
+  /* Während der Messung eine andere Zeile angetippt? Dann dort weiter, sonst der nächste Schritt */
+  const gewaehlt=activePart && activePart!==alt && data[activePart] ? activePart : null;
+  const r=stoppErfassen(jetzt);
+  const naechst=gewaehlt||naechsterMessSchritt(alt);
+  stoppAus(!!naechst);
+  if(naechst){
+    stoppStart(naechst,jetzt);
+    const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(naechst)+'"]'); if(tr) tr.scrollIntoView({block:'nearest'});
+  }
+  if(r) toast('✓ '+sekText(r.sek)+' s · „'+partName(r.id)+'"'+(naechst?' → misst „'+partName(naechst)+'"':' – Ende der Liste, angehalten'),3000);
+}
+function stoppStop(){
+  if(!stopp) return;
+  const r=stoppErfassen(Date.now()); stoppAus();
+  if(r) toast('✓ '+sekText(r.sek)+' s · „'+partName(r.id)+'" ('+messGueltig(r.id).length+'. Messung, Ø '+sekText(messMittel(r.id))+' s)',3000);
+}
+function stoppVerwerfen(){ if(!stopp) return; stoppAus(); toast('Messung verworfen'); }
+function stoppAus(weiter){
+  clearInterval(stoppTmr); stoppTmr=null; stopp=null;
+  document.getElementById('stoppLeiste').classList.remove('laeuft');
+  if(!weiter && stoppWach){ try{ stoppWach.release(); }catch(e){} stoppWach=null; }
+  stoppInfo();
+}
+function stoppInfo(){
+  const el=document.getElementById('stoppInfo'); if(!el) return;
+  const nr=id=>'#'+(parts.findIndex(p=>p.id===id)+1);
+  if(stopp){
+    let t='misst '+nr(stopp.id)+' '+partName(stopp.id)+' · '+(messWerte(stopp.id).length+1)+'. Messung';
+    if(activePart && activePart!==stopp.id) t+=' · danach: '+nr(activePart)+' '+partName(activePart);
+    el.textContent=t; return;
+  }
+  const m=messGueltig(activePart), aus=messWerte(activePart).length-m.length;
+  const mtmTxt=zeitAktiv() ? '' : ' · MTM '+disp2(calcTotal(activePart))+' '+ul();
+  el.textContent=!activePart ? '' : m.length
+    ? m.length+' Messung'+(m.length===1?'':'en')+(aus?' (+'+aus+' ausgeschlossen)':'')+' · Ø '+sekText(messMittel(activePart))+' s = '+disp2(messMittel(activePart)/SEK_JE_MIND)+' '+ul()+mtmTxt
+    : (aus?aus+' Messung(en), alle ausgeschlossen':'Noch nicht gemessen')+mtmTxt;
+}
+/* Einzelwerte eines Schritts — Ausreißer löschen */
+function openMessPopup(id,anchor){
+  const pop=document.getElementById('colPopup'), body=document.getElementById('colPopupBody');
+  pop.classList.remove('versch-pop');
+  document.getElementById('colPopupTitle').textContent='Messungen: '+partName(id);
+  const m=messWerte(id), aus=messAus(id);
+  body.innerHTML=m.length ? `<div class="mess-chips">${m.map((x,i)=>messChip(x,i,aus[i])).join('')}</div>
+      <div class="vp-info" style="margin-top:6px">${messGueltig(id).length?'Ø '+sekText(messMittel(id))+' s = '+disp2(messMittel(id)/SEK_JE_MIND)+' '+ul():'Alle Messungen ausgeschlossen'} · MTM ${disp2(calcTotal(id))} ${ul()}</div>
+      <div class="vp-info">Wert antippen: aus der Auswertung nehmen / wieder aufnehmen · ✕ löscht</div>
+      <div class="col-popup-actions"><button class="tbtn" id="messAlleWeg">Alle löschen</button></div>`
+    : '<div class="leer-hinweis">Noch nicht gemessen.</div>';
+  body.querySelectorAll('.mess-chip button').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); messLoeschen(id,+b.dataset.i,anchor); }));
+  body.querySelectorAll('.mess-chip .mc-wert').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); messUmschalten(id,+b.dataset.i,anchor); }));
+  const alle=document.getElementById('messAlleWeg'); if(alle) alle.addEventListener('click',e=>{ e.stopPropagation(); messLoeschen(id,-1,anchor); });
+  pop.classList.add('open');
+  positionPopup(pop,anchor);
+}
+function messChip(x,i,aus,onclickId){
+  const klick=onclickId?` onclick="messUmschalten('${onclickId}',${i})"`:'';
+  const weg=onclickId?` onclick="messLoeschen('${onclickId}',${i})"`:` data-i="${i}"`;
+  return `<span class="mess-chip${aus?' aus':''}"><span class="mc-wert" data-i="${i}"${klick} title="${aus?'Ausgeschlossen – antippen, um wieder mitzuzählen':'Antippen, um aus der Auswertung zu nehmen'}">${sekText(x)}${onclickId?'':' s'}</span><button${weg} title="Messung löschen" aria-label="Messung löschen">✕</button></span>`;
+}
+function messPopupErneuern(id,anchor){
+  const td=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"] td.mess');
+  const pop=document.getElementById('colPopup');
+  if(!pop.classList.contains('open')) return;
+  if(messWerte(id).length && anchor && anchor.isConnected) openMessPopup(id,anchor);
+  else if(messWerte(id).length && td) openMessPopup(id,td);
+  else closeColPopup();
+}
+function messLoeschen(id,i,anchor){
+  const m=messWerte(id).slice(), a=messAus(id); if(!m.length) return;
+  messUndoMerken(id);
+  if(i<0) messSetzen(id,[],[]); else { m.splice(i,1); a.splice(i,1); messSetzen(id,m,a); }
+  markDirty(); messNachfuehren(id);
+  toast(i<0?'Alle Messungen gelöscht – ↩ Undo holt sie zurück':'Messung gelöscht – ↩ Undo holt sie zurück');
+  messPopupErneuern(id,anchor);
+}
+/* Messung aus der Auswertung nehmen oder wieder aufnehmen — der Wert bleibt gespeichert */
+function messUmschalten(id,i,anchor){
+  const m=messWerte(id), a=messAus(id); if(i<0||i>=m.length) return;
+  messUndoMerken(id);
+  a[i]=!a[i]; messSetzen(id,m.slice(),a);
+  markDirty(); messNachfuehren(id);
+  toast(a[i]?sekText(m[i])+' s ausgeschlossen – zählt nicht mehr mit':sekText(m[i])+' s zählt wieder mit');
+  messPopupErneuern(id,anchor);
+}
+/* Auswertung „Zeitmessung": MTM gegen gemessen */
+function messDaten(liste){
+  return (liste||anaParts()).filter(p=>messWerte(p.id).length).map(p=>{
+    const m=messWerte(p.id), aus=messAus(p.id), n=m.length-aus.filter(Boolean).length, avg=messMittel(p.id), ist=avg/SEK_JE_MIND, mtm=calcTotal(p.id);
+    return {p,m,aus,n,avg,ist,mtm,abw:n?ist-mtm:null,lg:ist>0?mtm/ist*100:null};
+  });
+}
+function messKennzahlen(d){
+  const g=d.filter(e=>e.n), mtm=g.reduce((x,e)=>x+e.mtm,0), ist=g.reduce((x,e)=>x+e.ist,0);
+  return {mtm,ist,schritte:g.length,n:d.reduce((x,e)=>x+e.n,0),aus:d.reduce((x,e)=>x+e.m.length-e.n,0),lg:ist>0?mtm/ist*100:null};
+}
+function renderMess(){
+  const w=document.getElementById('messWrap'), liste=anaParts(), d=messDaten(liste);
+  if(!d.length){ w.innerHTML='<div class="leer-hinweis">Noch keine Zeiten gemessen – im Einfach-Modus über „Zeit messen" in der Leiste unter dem aktiven Schritt.</div>'; return; }
+  const k=messKennzahlen(d), u=ul();
+  const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
+  const pct=v=>v==null?'–':v.toFixed(0)+' %';
+  w.innerHTML=`<div class="ana-kpi-row">
+      <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessene Schritte</span><span class="ana-kpi-val">${k.schritte} von ${liste.length}</span><span class="ana-kpi-sub">${k.n} Messungen${k.aus?' · '+k.aus+' ausgeschlossen':''}</span></div>
+      <div class="ana-kpi"><span class="ana-kpi-lbl">MTM (gemessene Schritte)</span><span class="ana-kpi-val">${disp2(k.mtm)} ${u}</span></div>
+      <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessen (Ø)</span><span class="ana-kpi-val">${disp2(k.ist)} ${u}</span></div>
+      <div class="ana-kpi" title="MTM-Zeit ÷ gemessene Zeit × 100 %"><span class="ana-kpi-lbl">Leistungsgrad</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ gemessen</span></div>
+    </div>
+    <table class="takt-tbl mess-tbl">
+      <thead><tr><th>#</th><th>Prozessschritt</th><th>Messungen [s]</th><th>Ø [s]</th><th>Ø gemessen [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+      <tbody>${d.map(e=>`<tr>
+        <td>${nr.get(e.p.id)}</td>
+        <td class="tk-name">${escHtml(e.p.name)}</td>
+        <td class="tk-name"><div class="mess-chips">${e.m.map((x,i)=>messChip(x,i,e.aus[i],escAttr(e.p.id))).join('')}</div></td>
+        <td>${e.n?sekText(e.avg):'–'}</td>
+        <td>${e.n?disp2(e.ist):'–'}</td>
+        <td>${disp2(e.mtm)}</td>
+        <td class="${e.abw>1e-9?'tk-pos':(e.abw<-1e-9?'tk-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td>
+        <td>${pct(e.lg)}</td>
+      </tr>`).join('')}
+      <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
+        <td>${(k.ist-k.mtm>0?'+':'')+disp2(k.ist-k.mtm)}</td><td>${pct(k.lg)}</td></tr></tbody>
+    </table>
+    <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✕ löscht. MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 % — über 100 % war die Messung schneller als die MTM-Vorgabe. Abw. = gemessen − MTM (rot: länger als MTM).</div>`;
+}
+
+/* ═══════════════════════════════════════
+   SCHRITTE VERSCHIEBEN
+   Spalte # antippen (oder Alt+↑/↓ am Laptop). Ein Schritt mit Unterschritten (folgende Schritte mit
+   höherem Level) nimmt sie auf Wunsch mit. ▲/▼ springt über den nächsten sichtbaren Schritt.
+═══════════════════════════════════════ */
+let verschMitUnter=true;
+function schrittBlock(id,mitUnter){
+  const i=parts.findIndex(p=>p.id===id); let j=i+1;
+  if(i<0) return [i,i];
+  if(mitUnter){ const lv=data[id].__level||1; while(j<parts.length && (data[parts[j].id].__level||1)>lv) j++; }
+  return [i,j];
+}
+function unterschritte(id){ const [i,j]=schrittBlock(id,true); return Math.max(0,j-i-1); }
+/* Block [i,j) so umsetzen, dass er an Index ziel (in der Liste ohne den Block) beginnt */
+function blockUmsetzen(i,j,ziel){
+  undoPush({typ:'reihenfolge',prev:parts.map(p=>p.id)});
+  const block=parts.slice(i,j), rest=parts.filter((_,x)=>x<i||x>=j);
+  rest.splice(Math.max(0,Math.min(ziel,rest.length)),0,...block);
+  parts=rest;
+  tabelleNachReihenfolge(); markDirty();
+}
+function schrittVerschieben(id,richtung){
+  const mit=verschMitUnter && unterschritte(id)>0;
+  const [i,j]=schrittBlock(id,mit);
+  if(i<0) return;
+  const sichtbar=hasAnyFilter() ? new Set(getFilteredParts().map(p=>p.id)) : null;
+  const sicht=k=>!sichtbar||sichtbar.has(parts[k].id);
+  let ziel;
+  if(richtung<0){ let k=i-1; while(k>=0&&!sicht(k)) k--; if(k<0){ toast('Schon ganz oben'); return; } ziel=k; }
+  else { let k=j; while(k<parts.length&&!sicht(k)) k++; if(k>=parts.length){ toast('Schon ganz unten'); return; } ziel=k+1-(j-i); }
+  blockUmsetzen(i,j,ziel);
+  openVerschieben(id);
+}
+function schrittAnPosition(id,pos){
+  const mit=verschMitUnter && unterschritte(id)>0;
+  const [i,j]=schrittBlock(id,mit);
+  if(i<0||!(pos>=1)) return;
+  blockUmsetzen(i,j,Math.min(pos-1,parts.length-(j-i)));
+  openVerschieben(id);
+}
+/* Zeilen in die Reihenfolge von parts bringen — vorhandene Zeilen werden nur umgehängt, nicht neu gebaut */
+function tabelleNachReihenfolge(){
+  const sum=document.querySelector('#tblBody tr.sum-row'); if(!sum){ renderBody(); return; }
+  const zeilen=new Map();
+  document.querySelectorAll('#tblBody tr[data-id], #tblBody tr.teil').forEach(tr=>{
+    const id=tr.dataset.id||tr.dataset.step; if(!zeilen.has(id)) zeilen.set(id,[]); zeilen.get(id).push(tr);
+  });
+  const frag=document.createDocumentFragment();
+  parts.forEach(p=>(zeilen.get(p.id)||[]).forEach(tr=>frag.appendChild(tr)));
+  sum.before(frag);
+  nummernNachfuehren();
+}
+function openVerschieben(id){
+  const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]'); if(!tr) return;
+  const pop=document.getElementById('colPopup'), body=document.getElementById('colPopupBody');
+  const pos=parts.findIndex(p=>p.id===id)+1, n=unterschritte(id);
+  document.getElementById('colPopupTitle').textContent='Schritt '+pos+' verschieben';
+  pop.classList.add('versch-pop');
+  body.innerHTML=`<div class="vp-info">${escHtml(partName(id))}</div>
+    ${n?`<label class="col-opt"><input type="checkbox" id="vpMit"${verschMitUnter?' checked':''}/><span>mit ${n} Unterschritt${n===1?'':'en'}</span></label>`:''}
+    <div class="vp-row"><button class="tbtn" id="vpHoch">▲ Nach oben</button><button class="tbtn" id="vpRunter">▼ Nach unten</button></div>
+    <div class="vp-row"><span class="vp-info">An Position</span><input type="number" id="vpPos" min="1" max="${parts.length}" value="${pos}" inputmode="numeric"/>
+      <button class="tbtn" id="vpGo">Verschieben</button></div>`;
+  const mit=document.getElementById('vpMit'); if(mit) mit.addEventListener('change',()=>{ verschMitUnter=mit.checked; });
+  document.getElementById('vpHoch').addEventListener('click',e=>{ e.stopPropagation(); schrittVerschieben(id,-1); });
+  document.getElementById('vpRunter').addEventListener('click',e=>{ e.stopPropagation(); schrittVerschieben(id,1); });
+  const go=()=>{ const v=parseInt(document.getElementById('vpPos').value,10); if(v>=1) schrittAnPosition(id,v); };
+  document.getElementById('vpGo').addEventListener('click',e=>{ e.stopPropagation(); go(); });
+  document.getElementById('vpPos').addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+  pop.classList.add('open');
+  positionPopup(pop,tr.querySelector('td.nr'));
+  tr.scrollIntoView({block:'nearest'});
+}
+/* Alt+↑/↓ am Laptop: aktiven Schritt verschieben */
+document.addEventListener('keydown',e=>{
+  if(!e.altKey || e.ctrlKey || e.metaKey || (e.key!=='ArrowUp'&&e.key!=='ArrowDown')) return;
+  const tag=(document.activeElement&&document.activeElement.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  if(!activePart || document.querySelector('.modal-bg.open') || document.getElementById('startScreen').classList.contains('open')) return;
+  e.preventDefault();
+  const mit=verschMitUnter && unterschritte(activePart)>0;
+  const [i,j]=schrittBlock(activePart,mit);
+  const k=e.key==='ArrowUp' ? i-1 : j;
+  if(k<0||k>=parts.length) return;
+  blockUmsetzen(i,j,e.key==='ArrowUp'?k:k+1-(j-i));
+  const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(activePart)+'"]'); if(tr) tr.scrollIntoView({block:'nearest'});
+});
+
+/* ═══════════════════════════════════════
+   SCHNELLSUCHE
+   Springt zum Treffer, ohne zu filtern: Prozessschritt, Sachnummer, Bauteilbenennung, Zusatzspalten.
+   Ein Treffer in einem Teil klappt den Schritt auf. Durchsucht werden die sichtbaren Zeilen.
+═══════════════════════════════════════ */
+let suchTreffer=[], suchPos=-1, suchTmr=null;
+const suchNorm=x=>String(x||'').toLowerCase();
+function suchenJetzt(){
+  const q=suchNorm(document.getElementById('suchFeld').value).trim();
+  const info=document.getElementById('suchInfo');
+  suchTreffer=[]; suchPos=-1;
+  if(!q){ info.textContent=''; info.classList.remove('leer'); return; }
+  const treffer=p=>{
+    const d=data[p.id], h=[];
+    if(suchNorm(p.name).includes(q) || ZUSATZ_KEYS.some(k=>suchNorm(d['__'+k]).includes(q))) h.push({id:p.id,teil:null});
+    stepTeile(p.id).forEach(t=>{ if(suchNorm(t.sachnr).includes(q)||suchNorm(t.name).includes(q)) h.push({id:p.id,teil:t.id}); });
+    return h;
+  };
+  getFilteredParts().forEach(p=>suchTreffer.push(...treffer(p)));
+  const verborgen=hasAnyFilter() ? parts.filter(p=>!partPassesFilters(p)).reduce((n,p)=>n+treffer(p).length,0) : 0;
+  info.title=verborgen ? verborgen+' weitere Treffer durch den Filter ausgeblendet' : '';
+  if(!suchTreffer.length){ info.textContent=verborgen?'0 (+'+verborgen+')':'0'; info.classList.add('leer'); return; }
+  info.classList.remove('leer');
+  suchPos=0; suchZeigen(verborgen);
+}
+function suchSprung(r){
+  if(!suchTreffer.length){ suchenJetzt(); return; }
+  suchPos=(suchPos+r+suchTreffer.length)%suchTreffer.length;
+  suchZeigen();
+}
+function suchZeigen(verborgen){
+  const h=suchTreffer[suchPos]; if(!h) return;
+  if(!data[h.id]){ suchenJetzt(); return; }
+  if(h.teil && !teileOffen[h.id]) toggleTeile(h.id);
+  selectPart(h.id);
+  const tr=h.teil ? document.querySelector('#tblBody tr.teil[data-teil="'+CSS.escape(h.teil)+'"]')
+                  : document.querySelector('#tblBody tr[data-id="'+CSS.escape(h.id)+'"]');
+  const info=document.getElementById('suchInfo');
+  if(verborgen===undefined) verborgen=parseInt((info.title.match(/^\d+/)||['0'])[0],10)||0;
+  info.textContent=(suchPos+1)+'/'+suchTreffer.length+(verborgen?' (+'+verborgen+')':'');
+  if(!tr) return;
+  tr.scrollIntoView({block:'center'});
+  tr.classList.remove('such-hit'); void tr.offsetWidth; tr.classList.add('such-hit');
+}
+(()=>{
+  const f=document.getElementById('suchFeld');
+  f.addEventListener('input',()=>{ clearTimeout(suchTmr); suchTmr=setTimeout(suchenJetzt,200); });
+  f.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ e.preventDefault(); clearTimeout(suchTmr); if(!suchTreffer.length) suchenJetzt(); else suchSprung(e.shiftKey?-1:1); }
+    else if(e.key==='Escape'){ f.value=''; suchenJetzt(); f.blur(); }
+  });
+})();
+
+/* Laufende Nummern (Spalte #) nach Einfügen, Löschen oder Verschieben nachführen */
+function nummernNachfuehren(){
+  const pos=new Map(parts.map((p,i)=>[p.id,i+1]));
+  document.querySelectorAll('#tblBody tr[data-id]').forEach(tr=>{
+    const tn=[...tr.querySelector('td.nr').childNodes].find(n=>n.nodeType===3);
+    if(tn) tn.textContent=pos.get(tr.dataset.id);
+  });
+}
+/* Zeilen eines Schritts aus der Tabelle nehmen */
+function schrittZeilenEntfernen(id){
+  document.querySelectorAll('#tblBody tr[data-id="'+CSS.escape(id)+'"], #tblBody tr.teil[data-step="'+CSS.escape(id)+'"]').forEach(z=>z.remove());
+}
+/* Erste Tabellenzeile nach dem Block eines Schritts (seine Teile-Zeilen gehören dazu) */
+function zeileNachSchritt(id){
+  const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]'); if(!tr) return null;
+  let n=tr.nextElementSibling;
+  while(n && n.classList.contains('teil') && n.dataset.step===id) n=n.nextElementSibling;
+  return n;
+}
+/* Schritt neu in die Tabelle setzen — vor die Zeile des nächsten sichtbaren Schritts, sonst vor die Summe */
+function schrittEinsetzen(id){
+  const part=parts.find(p=>p.id===id); if(!part) return false;
+  const i=parts.indexOf(part);
+  let vor=null;
+  for(let j=i+1;j<parts.length && !vor;j++) vor=document.querySelector('#tblBody tr[data-id="'+CSS.escape(parts[j].id)+'"]');
+  vor=vor||document.querySelector('#tblBody tr.sum-row');
+  if(!vor) return false;
+  vor.before(...schrittZeilen(part,tabKontext()));
+  return true;
+}
+function schrittNeuZeichnen(id){
+  const alt=[...document.querySelectorAll('#tblBody tr[data-id="'+CSS.escape(id)+'"], #tblBody tr.teil[data-step="'+CSS.escape(id)+'"]')];
+  const part=parts.find(p=>p.id===id);
+  if(!alt.length || !part || hasAnyFilter()){ renderBody(); return; }
+  const neu=schrittZeilen(part,tabKontext());
+  alt[0].before(...neu);
+  schrittZeilenEntfernenAusser(id,neu);
+  summenNachfuehren(); updateTeileAllBtn();
 }
 
 /* ── Unterzeilen: Teile eines Schritts ──
@@ -3982,6 +4577,7 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   const tdCn=td('cn',vis.name,L.cn);
   tdCn.innerHTML='<span class="teil-mark"></span>';
   tr.appendChild(tdCn);
+  if(tabZeit) tr.appendChild(td('mess'));
   const feld=(cls,show,key,attrs)=>{
     const c=td(cls,show);
     const i=document.createElement('input');
@@ -3989,6 +4585,7 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
     i.value=t[key];
     i.addEventListener('focus',e=>{e.stopPropagation();selectPart(stepId);});
     i.addEventListener('keydown',e=>{if(e.key==='Enter')i.blur();});
+    i.addEventListener('focus',()=>teilFeldBetreten(stepId));
     i.addEventListener('input',()=>teilAendern(stepId,t.id,key,i.value));
     if(key==='menge') i.addEventListener('blur',()=>{ i.value=t.menge; });   // leeres Feld zeigt danach 0
     c.appendChild(i);
@@ -4004,8 +4601,9 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   del.addEventListener('click',e=>{e.stopPropagation();delTeil(stepId,t.id);});
   tdA.appendChild(del);
   tr.appendChild(tdA);
-  tr.appendChild(td('ct'));
-  const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest);
+  if(!tabZeit) tr.appendChild(td('ct'));
+  if(tabMess && !tabZeit) tr.appendChild(td('mess'));
+  if(kategorieSpan()){ const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest); }
   tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(stepId); });
   return tr;
 }
@@ -4016,10 +4614,12 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
   tr.appendChild(td('nr'));
   tr.appendChild(td('level',vis.level,L.level));
   const tdCn=td('cn',vis.name,L.cn), tdS=td('sachnr',vis.sachnr), tdT=td('teilname',vis.teilname);
-  tr.appendChild(tdCn); tr.appendChild(tdS); tr.appendChild(tdT);
+  tr.appendChild(tdCn); if(tabZeit) tr.appendChild(td('mess')); tr.appendChild(tdS); tr.appendChild(tdT);
   extraFlds.forEach(f=>tr.appendChild(td('extra x-'+f.slice(2))));
-  tr.appendChild(td('qty')); tr.appendChild(td('acts')); tr.appendChild(td('ct'));
-  const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest);
+  tr.appendChild(td('qty')); tr.appendChild(td('acts'));
+  if(!tabZeit) tr.appendChild(td('ct'));
+  if(tabMess && !tabZeit) tr.appendChild(td('mess'));
+  if(kategorieSpan()){ const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest); }
   /* Knopf in die erste sichtbare der linken Spalten, damit er ohne Scrollen erreichbar ist */
   const host=[[vis.name,tdCn],[vis.sachnr,tdS],[vis.teilname,tdT]].find(x=>x[0]);
   const btn=document.createElement('button');
@@ -4034,6 +4634,7 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
 ═══════════════════════════════════════ */
 function doCount(key){
   if(!activePart)return;
+  if(zeitAktiv()){ toast('⏱ Zeitaufnahme aktiv – zum Zählen oben auf „Zählen" umschalten'); return; }
   /* Gerechnete Meter werden nicht gezählt — der nächste Rechenlauf würde den Klick stillschweigend
      überschreiben. Stattdessen öffnet sich die Zeile des Schritts im Laufweg-Fenster. */
   if(key===LW_KAT && lwHat(activePart)){ lwZeigeSchritt(activePart); return; }
@@ -4061,9 +4662,74 @@ function updateLastAction(){
   if(el) el.textContent=lastActionText?'↳ '+lastActionText:'';
 }
 function undoPush(e){ undoStack.push(e); if(undoStack.length>50) undoStack.shift(); }
+/* ── Undo für alles, was kein Zähler ist ──
+   Ein „Stand" hält alles fest, was zum Projekt gehört (nicht Anzeige-Einstellungen wie Filter oder
+   Spaltenbreiten). Wird vor einer Änderung gemerkt; Undo setzt ihn als Ganzes zurück. */
+function projektStand(){
+  return JSON.stringify({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,
+    taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject,activePart});
+}
+/* quelle: gleichartige Änderungen kurz hintereinander (Tippen in einem Feld) ergeben einen Undo-Schritt */
+function undoStand(text,quelle,vorher){
+  const top=undoStack[undoStack.length-1];
+  if(quelle && top && top.typ==='stand' && top.quelle===quelle && Date.now()-top.zeit<1500){ top.zeit=Date.now(); return; }
+  undoPush({typ:'stand',text,quelle:quelle||null,zeit:Date.now(),stand:vorher||projektStand()});
+}
+/* Fenster, die viele kleine Änderungen machen (Bausteine, Laufwege): Stand beim Öffnen merken und
+   nach jeder Änderung den vorigen auf den Stapel legen */
+let fensterVorher={};
+function fensterStandMerken(f){ fensterVorher[f]=projektStand(); }
+function fensterGeaendert(f,text){
+  const vorher=fensterVorher[f];
+  if(vorher) undoStand(text,'fenster-'+f,vorher);
+  fensterVorher[f]=projektStand();
+}
+function standZuruecksetzen(json){
+  const st=JSON.parse(json);
+  ({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject}=st);
+  activePart=parts.some(p=>p.id===st.activePart) ? st.activePart : (parts[0]?parts[0].id:null);
+  Object.keys(teileOffen).forEach(id=>{ if(!data[id]) delete teileOffen[id]; });
+  if(rowClipboard && !data[rowClipboard.sourceId]) rowClipboard=null;
+  if(notePopupTarget) closeNotePopup();
+  ensureKeys(); lwNeuRechnen();
+  buildLegend(); buildGrid(); buildHead(); renderBody(); updGrid(); updateActiveBar(); updateProjLabel();
+  ['cfgModal','mtmModal'].forEach(id=>document.getElementById(id).classList.remove('open'));
+  if(lwOffen()) closeLw();
+  if(document.getElementById('anaModal').classList.contains('open')) openAnalysis();
+  fensterVorher={};
+}
 function undoLast(){
   const last=undoStack.pop();
   if(!last){toast('Nichts rückgängig zu machen');return;}
+  if(last.typ==='stand'){
+    standZuruecksetzen(last.stand);
+    markDirty();
+    lastActionText='↩ Rückgängig: '+last.text; toast(lastActionText); updateLastAction();
+    return;
+  }
+  if(last.typ==='mess'){
+    if(!data[last.part]){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
+    messSetzen(last.part,last.prev.m,last.prev.a);
+    messNachfuehren(last.part); markDirty();
+    lastActionText='↩ Rückgängig: Messung · '+partName(last.part); toast(lastActionText); updateLastAction();
+    return;
+  }
+  if(last.typ==='reihenfolge'){
+    const pos=new Map(last.prev.map((id,i)=>[id,i]));
+    parts=parts.slice().sort((a,b)=>(pos.has(a.id)?pos.get(a.id):1e9)-(pos.has(b.id)?pos.get(b.id):1e9));
+    tabelleNachReihenfolge(); closeColPopup(); markDirty();
+    lastActionText='↩ Rückgängig: Reihenfolge'; toast(lastActionText); updateLastAction();
+    return;
+  }
+  if(last.typ==='name'){
+    const p=parts.find(x=>x.id===last.part);
+    if(!p){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
+    p.name=last.prev;
+    if(rowClipboard && rowClipboard.sourceId===p.id) rowClipboard.sourceName=p.name;
+    updGrid(); schrittNeuZeichnen(p.id); updateActiveBar(); markDirty();
+    lastActionText='↩ Rückgängig: Name „'+p.name+'"'; toast(lastActionText); updateLastAction();
+    return;
+  }
   if(last.typ==='geloescht'){
     const p=last.schritt;
     parts.splice(Math.min(last.idx,parts.length),0,p);
@@ -4071,7 +4737,9 @@ function undoLast(){
     if(last.offen) teileOffen[p.id]=true;
     if(!activePart) activePart=p.id;
     ensureKeys(); lwNeuRechnen();
-    updGrid(); renderBody(); updateActiveBar(); markDirty();
+    if(hasAnyFilter() || !schrittEinsetzen(p.id)) renderBody();
+    else { nummernNachfuehren(); summenNachfuehren(); updateTeileAllBtn(); }
+    updGrid(); updateActiveBar(); markDirty();
     lastActionText='↩ Rückgängig: „'+p.name+'" wiederhergestellt'; toast(lastActionText); updateLastAction();
     return;
   }
@@ -4079,7 +4747,7 @@ function undoLast(){
     if(!data[last.part]){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
     data[last.part]=last.prev;
     ensureKeys(); lwNeuRechnen();
-    updGrid(); renderBody(); markDirty();
+    updGrid(); schrittNeuZeichnen(last.part); updateActiveBar(); markDirty();
     lastActionText='↩ Rückgängig: Einfügen in „'+partName(last.part)+'"'; toast(lastActionText); updateLastAction();
     return;
   }
@@ -4090,7 +4758,10 @@ function undoLast(){
     last.ids.forEach(id=>{ delete data[id]; delete teileOffen[id]; });
     if(!parts.some(p=>p.id===activePart)) activePart=parts[0]?parts[0].id:null;
     if(rowClipboard && weg.has(rowClipboard.sourceId)) rowClipboard=null;
-    updGrid(); renderBody(); updateActiveBar(); markDirty();
+    last.ids.forEach(schrittZeilenEntfernen);
+    nummernNachfuehren(); summenNachfuehren(); updateTeileAllBtn();
+    if(activePart) selectPart(activePart);
+    updGrid(); updateActiveBar(); markDirty();
     lastActionText='↩ Rückgängig: '+last.ids.length+' eingefügte Prozessschritte entfernt';
     toast(lastActionText); updateLastAction();
     return;
@@ -4103,7 +4774,8 @@ function undoLast(){
   }
   data[last.part][last.key]=last.prev;
   updGrid();
-  if(COLS.some(c=>c.key===last.key)) zaehlerZeigen(last.part,last.key); else renderBody();
+  if(last.key==='__mess') messNachfuehren(last.part);
+  else if(COLS.some(c=>c.key===last.key)) zaehlerZeigen(last.part,last.key); else { schrittNeuZeichnen(last.part); updateActiveBar(); }
   markDirty();
   const nm=partName(last.part)||'(gelöschter Prozessschritt)';
   toast('↩ Rückgängig: '+nm);
@@ -4127,7 +4799,18 @@ function saveSoon(){ clearTimeout(saveTmr); saveTmr=setTimeout(saveState,800); }
 function toggleTeile(id){
   if(teileOffen[id]) delete teileOffen[id]; else teileOffen[id]=true;
   selectPart(id);
-  renderBody(); saveSoon();
+  /* Aufklappen ändert nichts an der Filterzugehörigkeit — nur diesen Schritt neu zeichnen */
+  const alt=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]');
+  const part=parts.find(p=>p.id===id);
+  if(alt && part){
+    const neu=schrittZeilen(part,tabKontext());
+    alt.before(...neu); schrittZeilenEntfernenAusser(id,neu); updateTeileAllBtn();
+  } else renderBody();
+  saveSoon();
+}
+function schrittZeilenEntfernenAusser(id,neu){
+  const bleibt=new Set(neu);
+  document.querySelectorAll('#tblBody tr[data-id="'+CSS.escape(id)+'"], #tblBody tr.teil[data-step="'+CSS.escape(id)+'"]').forEach(z=>{ if(!bleibt.has(z)) z.remove(); });
 }
 function toggleAlleTeile(){
   const vis=getFilteredParts();
@@ -4154,10 +4837,11 @@ function teilTrifftFilter(t){
 function addTeil(stepId){
   const d=data[stepId]; if(!d) return;
   const t={id:newTeilId(),sachnr:'',name:'',menge:1};
+  undoPush({part:stepId,key:'__teile',prev:JSON.parse(JSON.stringify(d.__teile))});
   d.__teile.push(t);
   teileOffen[stepId]=true;
   selectPart(stepId);
-  renderBody(); markDirty(); updateActiveBar();
+  schrittNeuZeichnen(stepId); markDirty(); updateActiveBar();
   /* Fokus ins erste sichtbare Feld des neuen Teils */
   const tr=document.querySelector('#tblBody tr.teil[data-teil="'+t.id+'"]');
   if(tr){
@@ -4171,15 +4855,18 @@ function delTeil(stepId,teilId){
   const i=d.__teile.findIndex(t=>t.id===teilId); if(i<0) return;
   undoPush({part:stepId,key:'__teile',prev:JSON.parse(JSON.stringify(d.__teile))});
   const t=d.__teile.splice(i,1)[0];
-  renderBody(); markDirty();
+  schrittNeuZeichnen(stepId); markDirty(); updateActiveBar();
   const bez=t.name||t.sachnr||'ohne Bezeichnung';
   lastActionText='Teil „'+bez+'" entfernt · '+partName(stepId); updateLastAction();
   toast('✕ Teil „'+bez+'" entfernt – ↩ Undo holt es zurück');
 }
 /* Eingabe in einer Unterzeile: Daten sofort nachführen, Hauptzeile und Summe gezielt aktualisieren —
    ein Neuaufbau der Tabelle würde dem Feld unter dem Finger den Fokus nehmen. */
+let teilUndoOffen=null;   // Teile-Liste beim Betreten eines Feldes — erst die erste Eingabe legt sie auf den Stapel
+function teilFeldBetreten(stepId){ teilUndoOffen={step:stepId,prev:JSON.parse(JSON.stringify(stepTeile(stepId)))}; }
 function teilAendern(stepId,teilId,key,val){
   const t=stepTeile(stepId).find(x=>x.id===teilId); if(!t) return;
+  if(teilUndoOffen && teilUndoOffen.step===stepId){ undoPush({part:stepId,key:'__teile',prev:teilUndoOffen.prev}); teilUndoOffen=null; }
   if(key==='menge') t.menge=Math.max(0,parseInt(val)||0);
   else if(key==='sachnr') t.sachnr=String(val).trim();
   else t.name=val;
@@ -4205,9 +4892,12 @@ function renamePart(id,newName,inp){
   if(!newName){ inp.value=p.name; return; }
   if(newName===p.name) return;
   const dup=parts.some(x=>x.id!==id && x.name===newName);
+  undoPush({typ:'name',part:id,prev:p.name});
   p.name=newName;
   if(rowClipboard && rowClipboard.sourceId===id) rowClipboard.sourceName=newName;
-  updGrid();renderBody(); markDirty();
+  updGrid(); updateActiveBar();
+  if(colFilters.name) renderBody();
+  markDirty();
   if(dup) toast('ℹ „'+newName+'" gibt es schon – beide Prozessschritte bleiben unabhängig');
 }
 function copyRow(id){
@@ -4227,7 +4917,7 @@ function pasteRow(id){
   data[id].__teile=normTeile(data[id].__teile).map(t=>Object.assign(t,{id:newTeilId()}));
   ensureKeys();
   lwNeuRechnen();   // Auslöser kommen mit; Meter aus denselben Meterwerten
-  updGrid();renderBody();markDirty();
+  updGrid();schrittNeuZeichnen(id);updateActiveBar();markDirty();
   toast('✓ Eingefügt in „'+targetName+'"');
 }
 
@@ -4251,8 +4941,14 @@ function addPart(){
     parts.push(newPart);
   }
   initPart(id);
+  undoPush({typ:'einfuegen',ids:[id]});
   if(!activePart) activePart=id;
-  renderBody();markDirty();
+  const nach=activeIdx>=0 ? zeileNachSchritt(parts[activeIdx].id) : null;
+  if(activeIdx>=0 && nach && !hasAnyFilter()){
+    nach.before(...schrittZeilen(newPart,tabKontext()));
+    nummernNachfuehren(); updateTeileAllBtn();
+  } else renderBody();
+  markDirty();
   toast('✓ "'+name+'" hinzugefügt'+(existingNames.includes(name)?' – Name gibt es bereits':''));
 }
 function delPart(id){
@@ -4271,11 +4967,15 @@ function delPart(id){
   delete teileOffen[id];
   if(activePart===id) activePart=parts[0]?parts[0].id:null;
   if(rowClipboard && rowClipboard.sourceId===id) rowClipboard=null;
-  updGrid();renderBody();updateActiveBar();markDirty();
+  schrittZeilenEntfernen(id); nummernNachfuehren(); summenNachfuehren(); updateTeileAllBtn();
+  if(activePart) selectPart(activePart);
+  updGrid();updateActiveBar();markDirty();
   toast('✓ „'+name+'" gelöscht – ↩ Undo holt ihn zurück');
 }
 function resetAll(){
-  if(!confirm('Alle Zähler zurücksetzen?'))return;
+  if(!confirm('Alle Zähler zurücksetzen?\n\n↩ Undo holt die Werte zurück.'))return;
+  sicherungAnlegen('vor „Alle Zähler zurücksetzen"',true);
+  undoStand('Alle Zähler zurückgesetzt');
   parts.forEach(p=>{COLS.forEach(c=>data[p.id][c.key]=0);});   // Teile und Mengen bleiben
   lwNeuRechnen();   // Auslöser sind keine Zähler: gerechnete Meter stehen gleich wieder da
   updGrid();renderBody();markDirty();toast('Alle Zähler zurückgesetzt');
@@ -4298,11 +4998,26 @@ function openCfg(){
       +`<input class="pval" type="number" step="0.001" value="${c.param}" placeholder="0.000"/>`
       +`<span class="punit">minD</span>`
       +`<select class="pgrp">${groupOptions(c.group)}</select>`
-      +`<button class="pdel" onclick="this.closest('.prow').remove()" title="Kategorie entfernen">${ic('x')}</button>`
+      +`<button class="pdel" onclick="cfgZeileEntfernen(this)" title="Baustein entfernen">${ic('x')}</button>`
       +`<input class="pnote" type="text" value="${escAttr(c.note||'')}" placeholder="Notiz zur Kategorie (optional)"/>`;
     b.appendChild(row);
   });
   document.getElementById('cfgModal').classList.add('open');
+}
+/* Baustein in „Zeiten" entfernen: sind darauf Zählungen erfasst, erst nachfragen — beim Speichern
+   fielen sie aus allen Summen und beim nächsten Export ganz weg (Undo holt sie zurück). */
+function cfgZeileEntfernen(btn){
+  const row=btn.closest('.prow'), key=row.dataset.key;
+  const c=COLS.find(x=>x.key===key);
+  if(c){
+    const benutzt=parts.filter(pt=>(data[pt.id][key]||0)>0);
+    const summe=benutzt.reduce((x,pt)=>x+(data[pt.id][key]||0),0);
+    let txt='';
+    if(benutzt.length) txt='„'+c.label+'" ist '+summe+'× gezählt, in '+benutzt.length+' Prozessschritt(en).\n\nBeim Speichern fallen diese Zählungen aus allen Summen und beim nächsten Export ganz weg. ↩ Undo holt sie zurück.';
+    if(key===LW_KAT) txt=(txt?txt+'\n\n':'')+'„'+c.label+'" ist der Baustein der Laufwege — gerechnete Meter hätten danach kein Ziel mehr.';
+    if(txt && !confirm(txt+'\n\nTrotzdem entfernen?')) return;
+  }
+  row.remove();
 }
 function closeCfg(){document.getElementById('cfgModal').classList.remove('open');}
 function addCfgRow(){
@@ -4330,6 +5045,7 @@ function saveCfg(){
     newCols.push({key,label:lbl,param:val,group:grp,note});
   });
   if(!newCols.length){toast('Mindestens eine Kategorie nötig');return;}
+  undoStand('Zeiten geändert');
   COLS=newCols;ensureKeys();closeCfg();
   buildLegend();buildGrid();buildHead();renderBody();markDirty();toast('Gespeichert');
 }
@@ -4410,7 +5126,7 @@ function mtmCustomGePruefen(o){
   return r;
 }
 
-function openMtm(){ setMtmTab(mtmTab); document.getElementById('mtmModal').classList.add('open'); }
+function openMtm(){ fensterStandMerken('mtm'); setMtmTab(mtmTab); document.getElementById('mtmModal').classList.add('open'); }
 function closeMtm(){ document.getElementById('mtmModal').classList.remove('open'); }
 function setMtmTab(t){
   mtmTab=t;
@@ -4430,6 +5146,7 @@ function setMtmTab(t){
 function mtmToggleBs(i){ const k=mtmEntries()[i].key; mtmOpenBs=mtmOpenBs===k?null:k; mtmOpenGe=null; renderMtmHerkunft(); }
 function mtmToggleGe(nr){ mtmOpenGe=mtmOpenGe===nr?null:nr; renderMtmHerkunft(); }
 function mtmApplyCols(){
+  fensterGeaendert('mtm','Änderung in Bausteine');
   ensureKeys();buildLegend();buildGrid();buildHead();renderBody();markDirty();
 }
 
@@ -4583,6 +5300,7 @@ function mtmDeleteGe(nr){
   delete mtmCustomGE[nr];
   mtmNew.elems=mtmNew.elems.filter(e=>e.nr!==nr);   // auch aus einem angefangenen Baustein nehmen
   if(mtmOpenGrund===nr) mtmOpenGrund=null;
+  fensterGeaendert('mtm','Grundelement gelöscht');
   markDirty();renderMtmGeList();
   toast('✓ Grundelement „'+g.name+'" gelöscht');
 }
@@ -4817,6 +5535,7 @@ function mtmCreateGe(){
   if(mtmAllGe().some(g=>(g.name||'').trim().toLowerCase()===name.toLowerCase())){ toast('⚠ „'+name+'" gibt es schon'); return; }
   const nr=Math.max(MTM_GE_BASE,...Object.keys(mtmCustomGE).map(Number))+1;
   mtmCustomGE[nr]={nr,name,divisor:mtmNewGe.divisor,codes:mtmNewGe.codes.map(c=>({code:c.code,anz:c.anz,hfg:c.hfg}))};
+  fensterGeaendert('mtm','Grundelement angelegt');
   markDirty();
   mtmNewGe={name:'',divisor:1,codes:[]};
   toast('✓ Grundelement „'+name+'" angelegt (#'+nr+')');
@@ -4875,7 +5594,7 @@ const LW_BEREIT_WOERTER=['transportwagen','bereitstellen','bereitstellung','abr�
   'sonderladungsträger','sonderladungstraeger','abrüsten','abruesten'];
 
 function lwOffen(){ return document.getElementById('lwModal').classList.contains('open'); }
-function openLw(tab){ setLwTab(tab||lwTab); document.getElementById('lwModal').classList.add('open'); }
+function openLw(tab){ fensterStandMerken('lw'); setLwTab(tab||lwTab); document.getElementById('lwModal').classList.add('open'); }
 function closeLw(){ if(lwTabelleTmr) lwTabelleNachziehen(); document.getElementById('lwModal').classList.remove('open'); }
 function setLwTab(t){
   lwTab=t;
@@ -4892,7 +5611,7 @@ function lwKatParam(){ const c=COLS.find(c=>c.key===LW_KAT); return c?c.param:0;
    die vom Fenster verdeckte Haupttabelle nach der letzten Eingabe einmal neu zu zeichnen. */
 let lwTabelleTmr=null;
 function lwNachAenderung(){
-  lwNeuRechnen(); markDirty();
+  lwNeuRechnen(); fensterGeaendert('lw','Änderung in Laufwege'); markDirty();
   clearTimeout(lwTabelleTmr);
   lwTabelleTmr=setTimeout(lwTabelleNachziehen,150);
 }
@@ -5202,6 +5921,7 @@ document.addEventListener('keydown',e=>{
   else if(offen('notePopup')) closeNotePopup();
   else if(offen('colPopup')) closeColPopup();
   else if(offen('pasteModal')) closePaste();
+  else if(offen('sichModal')) closeSicherungen();
   else if(offen('expModal')) closeExpModal();
   else if(lwOffen()) closeLw();
   else if(offen('mtmModal')) closeMtm();
@@ -5227,15 +5947,170 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
-                  ungesichert: hasUnsavedChanges,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
+                  ungesichert: hasUnsavedChanges, projektId,
                   saved: new Date().toISOString() };
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    if(!speicherSchreiben(LS_KEY,state)) throw new Error('voll');
     if(dot()){ dot().className='save-dot saved'; }
-  } catch(e){ toast('⚠ Speichern fehlgeschlagen (Storage voll?)'); }
+    listeEintragen();
+    return true;
+  } catch(e){ toast('⚠ Speichern fehlgeschlagen (Speicher voll?) – bitte exportieren'); return false; }
 }
 
+/* ═══════════════════════════════════════
+   PROJEKTE UND SICHERUNGSSTÄNDE (auf diesem Gerät)
+   Das geöffnete Projekt liegt wie bisher unter LS_KEY. Alle anderen liegen als CSV-Text (Format 4,
+   ~30 KB bei 300 Schritten) unter LS_PROJ+id, die Liste unter LS_LISTE. Je Projekt bis zu SICH_MAX
+   Sicherungsstände unter LS_SICH+id, neueste zuerst. Ist der Speicher voll, fallen die ältesten
+   Sicherungsstände weg. Ob der Speicher eines Aufrufs dauerhaft ist, kann die App nicht prüfen —
+   „gespeichert seit" auf der Startseite zeigt es: steht dort nach dem Neustart wieder heute, war er es nicht.
+═══════════════════════════════════════ */
+const LS_LISTE='zeitaufnahme_projekte', LS_PROJ='zeitaufnahme_p_', LS_SICH='zeitaufnahme_s_', LS_SEIT='zeitaufnahme_seit';
+const SICH_MAX=10, SICH_MIN=10;   // Anzahl je Projekt · automatisch alle SICH_MIN Minuten mit Änderungen
+let projektId=null;
+let sicherungOffen=false;   // Änderungen seit dem letzten Sicherungsstand
+function neueProjektId(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function lsLesen(k,std){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):std; }catch(e){ return std; } }
+function lsSchreiben(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
+function speicherGeht(){ try{ localStorage.setItem('zeitaufnahme_test','1'); localStorage.removeItem('zeitaufnahme_test'); return true; }catch(e){ return false; } }
+function speicherBelegtKB(){
+  let n=0; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith('zeitaufnahme')) n+=(localStorage.getItem(k)||'').length; } }catch(e){}
+  return Math.round(n*2/1024);   // UTF-16
+}
+/* Schreiben; ist der Speicher voll, die ältesten Sicherungsstände (aller Projekte) opfern */
+function speicherSchreiben(k,v){
+  for(let runde=0;runde<40;runde++){
+    if(lsSchreiben(k,v)) return true;
+    let aeltest=null;
+    projektListe().forEach(m=>{ const l=lsLesen(LS_SICH+m.id,[]); if(l.length){ const t=l[l.length-1].t; if(!aeltest||t<aeltest.t) aeltest={id:m.id,t}; } });
+    if(!aeltest) return false;
+    const l=lsLesen(LS_SICH+aeltest.id,[]); l.pop();
+    if(!lsSchreiben(LS_SICH+aeltest.id,l)) try{ localStorage.removeItem(LS_SICH+aeltest.id); }catch(e){}
+  }
+  return false;
+}
+function projektListe(){ const l=lsLesen(LS_LISTE,[]); return Array.isArray(l)?l.filter(x=>x&&x.id):[]; }
+function projektSumme(){ return parts.reduce((x,p)=>x+calcTotal(p.id),0); }
+function projektMeta(){ return {id:projektId,name:currentProject||'',saved:new Date().toISOString(),n:parts.length,minD:+projektSumme().toFixed(3)}; }
+function listeEintragen(){
+  if(!projektId||!currentProject) return;
+  const l=projektListe().filter(x=>x.id!==projektId); l.unshift(projektMeta());
+  lsSchreiben(LS_LISTE,l);
+  if(!lsLesen(LS_SEIT,null)) lsSchreiben(LS_SEIT,new Date().toISOString());
+}
+/* Geöffnetes Projekt ablegen, bevor ein anderes geladen wird */
+function projektAblegen(){
+  if(!currentProject||!projektId||!parts.length) return true;
+  const ok=speicherSchreiben(LS_PROJ+projektId,{csv:csvProjektV4(),ui:{colVis,teileOffen,anaTopNach,lastExportTime,ungesichert:hasUnsavedChanges}});
+  if(ok) listeEintragen();
+  return ok;
+}
+function projektOeffnen(id){
+  const e=lsLesen(LS_PROJ+id,null);
+  if(!e||!e.csv){ toast('⚠ Projekt auf diesem Gerät nicht gefunden'); renderStartProjekte(); return; }
+  let parsed;
+  try{ parsed=parseImportedCSV(e.csv); }catch(err){ parsed=null; }
+  if(!parsed||!parsed.parts.length){ toast('⚠ Gespeichertes Projekt ist beschädigt'); return; }
+  const meta=projektListe().find(x=>x.id===id);
+  projektId=id;
+  importUebernehmen(parsed,true,(meta&&meta.name)||'Projekt');
+  const ui=e.ui||{};
+  if(ui.colVis) OPT_COLS.forEach(o=>{ if(typeof ui.colVis[o.key]==='boolean') colVis[o.key]=ui.colVis[o.key]; });
+  if(typeof ui.anaTopNach==='string') anaTopNach=ui.anaTopNach;
+  lastExportTime=ui.lastExportTime||null;
+  hasUnsavedChanges=ui.ungesichert===true;
+  buildHead(); renderBody(); updateExportIndicator();
+  if(saveState()) try{ localStorage.removeItem(LS_PROJ+id); }catch(err){}   // geöffnet liegt es unter LS_KEY
+  toast('✓ „'+currentProject+'" geöffnet');
+}
+function projektLoeschen(id){
+  const m=projektListe().find(x=>x.id===id); if(!m) return;
+  if(!confirm('Projekt „'+m.name+'" von diesem Gerät löschen?\n\nAuch seine Sicherungsstände gehen verloren. Exportierte Dateien bleiben unberührt.')) return;
+  try{ localStorage.removeItem(LS_PROJ+id); localStorage.removeItem(LS_SICH+id); }catch(e){}
+  lsSchreiben(LS_LISTE,projektListe().filter(x=>x.id!==id));
+  renderStartProjekte();
+  toast('✓ „'+m.name+'" gelöscht');
+}
+const datumKurz=iso=>{ const d=new Date(iso); if(isNaN(d)) return '–';
+  const heute=new Date().toDateString()===d.toDateString();
+  return (heute?'heute':d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'}))+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}); };
+function speicherHinweisText(){
+  if(!speicherGeht()) return {warn:true,txt:'⚠ Dieser Aufruf kann auf dem Gerät nichts speichern. Projekte regelmäßig über „Export" als Datei sichern!'};
+  const seit=lsLesen(LS_SEIT,null);
+  const d=seit?new Date(seit):null;
+  return {warn:false,txt:'Speicher auf diesem Gerät: '+(d&&!isNaN(d)?'in Gebrauch seit '+d.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'noch leer')
+    +' · belegt ca. '+speicherBelegtKB()+' KB. Fehlen nach einem Neustart der App Projekte oder ist dieses Datum neuer geworden, hat das Gerät den Speicher geleert – dann zusätzlich als Datei exportieren.'};
+}
+function renderStartProjekte(){
+  const el=document.getElementById('startProjekte'); if(!el) return;
+  const l=projektListe().filter(x=>x.id!==projektId||!currentProject);
+  el.className=l.length?'start-projekte':'';
+  el.innerHTML=l.length ? '<label class="start-lbl">Projekte auf diesem Gerät</label>'+l.map(m=>`<div class="start-proj">
+      <div class="start-proj-info"><div class="start-proj-name" title="${escAttr(m.name)}">${escHtml(m.name)}</div>
+        <div class="start-proj-meta">${m.n} Schritte · ${(+m.minD||0).toFixed(2)} minD · ${datumKurz(m.saved)}</div></div>
+      <button class="tbtn" onclick="projektOeffnen('${escAttr(m.id)}')">${ic('projekt')}Öffnen</button>
+      <button class="row-icon-btn danger" onclick="projektLoeschen('${escAttr(m.id)}')" title="Von diesem Gerät löschen" aria-label="Löschen">${ic('loeschen')}</button>
+    </div>`).join('') : '';
+  const h=speicherHinweisText(), sp=document.getElementById('startSpeicher');
+  sp.textContent=h.txt; sp.classList.toggle('warn',h.warn);
+}
+/* ── Sicherungsstände ── */
+function sicherungen(id){ const l=lsLesen(LS_SICH+(id||projektId),[]); return Array.isArray(l)?l:[]; }
+function sicherungAnlegen(grund,still){
+  if(!currentProject||!projektId||!parts.length) return false;
+  const csv=csvProjektV4(), l=sicherungen();
+  sicherungOffen=false;
+  if(l.length && l[0].csv===csv) return true;   // nichts geändert seit dem letzten Stand
+  l.unshift({t:new Date().toISOString(),grund,n:parts.length,minD:+projektSumme().toFixed(3),csv});
+  if(l.length>SICH_MAX) l.length=SICH_MAX;
+  const ok=speicherSchreiben(LS_SICH+projektId,l);
+  if(!ok && !still) toast('⚠ Sicherungsstand konnte nicht gespeichert werden (Speicher voll?) – bitte exportieren',5000);
+  if(document.getElementById('sichModal').classList.contains('open')) renderSicherungen();
+  return ok;
+}
+function openSicherungen(){ renderSicherungen(); document.getElementById('sichModal').classList.add('open'); }
+function closeSicherungen(){ document.getElementById('sichModal').classList.remove('open'); }
+function renderSicherungen(){
+  const h=speicherHinweisText(), l=sicherungen();
+  document.getElementById('sichBody').innerHTML=`<div class="sich-status${h.warn?' warn':''}">${escHtml(h.txt)}<br>
+      Gesichert wird automatisch alle ${SICH_MIN} Minuten mit Änderungen, beim Wechsel in eine andere App und vor Import,
+      „Alle Zähler zurücksetzen", Szenario-Übernahme und Wiederherstellen. Die letzten ${SICH_MAX} bleiben.</div>
+    <div class="takt-szen-btns"><button class="tbtn" onclick="sicherungAnlegen('von Hand')">${ic('haken')}Jetzt sichern</button></div>
+    ${l.length?l.map((x,i)=>`<div class="sich-row">
+      <div class="sich-info"><div class="sich-zeit">${datumKurz(x.t)} <span class="takt-hint">· ${escHtml(x.grund||'')}</span></div>
+        <div class="sich-meta">${x.n} Schritte · ${(+x.minD||0).toFixed(2)} minD</div></div>
+      <button class="tbtn" onclick="sicherungLaden(${i})">${ic('undo')}Wiederherstellen</button>
+      <button class="tbtn" onclick="sicherungDatei(${i})">${ic('export')}Als Datei</button>
+    </div>`).join(''):'<div class="leer-hinweis">Noch keine Sicherungsstände für dieses Projekt.</div>'}`;
+}
+function sicherungLaden(i){
+  const x=sicherungen()[i]; if(!x) return;
+  if(!confirm('Stand von '+datumKurz(x.t)+' wiederherstellen?\n\nDer jetzige Stand wird vorher als Sicherungsstand abgelegt.')) return;
+  sicherungAnlegen('vor Wiederherstellen',true);
+  let parsed; try{ parsed=parseImportedCSV(x.csv); }catch(e){ parsed=null; }
+  if(!parsed||!parsed.parts.length){ toast('⚠ Sicherungsstand ist beschädigt'); return; }
+  const name=currentProject, le=lastExportTime;
+  importUebernehmen(parsed,true,name);
+  currentProject=name; lastExportTime=le; updateProjLabel(); updateExportIndicator(); saveState();
+  closeSicherungen();
+  toast('✓ Stand von '+datumKurz(x.t)+' wiederhergestellt');
+}
+function sicherungDatei(i){
+  const x=sicherungen()[i]; if(!x) return;
+  const d=new Date(x.t), z=n=>String(n).padStart(2,'0');
+  dateiAnbieten(dateiBasis(currentProject)+'_Sicherung_'+d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'_'+z(d.getHours())+z(d.getMinutes())+'.csv',
+    new Blob(['\uFEFF'+x.csv],{type:'text/csv;charset=utf-8;'}));
+}
+setInterval(()=>{ if(sicherungOffen) sicherungAnlegen('automatisch',true); }, SICH_MIN*60*1000);
+/* App geht in den Hintergrund (iPad: anderes Programm, Bildschirm aus): sofort speichern und sichern */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='hidden' || !currentProject) return;
+  if(saveTmr){ clearTimeout(saveTmr); saveTmr=null; saveState(); }
+  if(sicherungOffen) sicherungAnlegen('automatisch',true);
+});
+
 function markDirty(){
+  sicherungOffen=true;
   hasUnsavedChanges=true;
   if(dot()) dot().className='save-dot dirty';
   clearTimeout(saveTmr);
@@ -5261,6 +6136,7 @@ function loadState(){
     lastExportTime = s.lastExportTime || null;
     verteilzeitFactor = s.verteilzeitFactor || 0;
     uiMode = s.uiMode === 'beginner' ? 'beginner' : 'advanced';
+    zeitModus = s.zeitModus===true;
     hourlyRate = s.hourlyRate || 0;
     if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
     if(s.taktGroupKey && OPT_COLS.some(o=>!o.own&&o.key===s.taktGroupKey)) taktGroupKey=s.taktGroupKey;
@@ -5276,6 +6152,7 @@ function loadState(){
     }
     lwParams=lwParamsPruefen(s.lwParams);
     hasUnsavedChanges=s.ungesichert===true;
+    projektId=typeof s.projektId==='string' ? s.projektId : (s.currentProject ? neueProjektId() : null);
     ensureKeys();   // wandelt Daten der Vorversion in Prozessschritte mit Teilen um
     lwNeuRechnen();   // gespeicherte Meterzahlen könnten zu anderen Meterwerten gehören
     if(ausAlt) saveState();   // ab jetzt unter dem neuen Schlüssel; der alte bleibt als Rückfallebene
@@ -5693,6 +6570,31 @@ function xlsxSheetTeileJeStation(){
 <sheetData>${rows}</sheetData>
 </worksheet>`;
 }
+/* Blatt 7 (nur wenn gemessen wurde): Zeitmessung — Einzelwerte, Mittelwert, MTM, Leistungsgrad */
+function xlsxSheetZeitmessung(){
+  const u=ul(), fU=u==='minD'?1:MIND_FACTOR, d=messDaten(parts), k=messKennzahlen(d);
+  let rows='',rn=1;
+  rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Zeitmessung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Stoppuhr-Messungen gegen MTM (ohne Verteilzeit) · Leistungsgrad = MTM ÷ gemessen × 100 % · Werte in Klammern ausgeschlossen · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
+  rn++;
+  const kopf=['Nr.','Prozessschritt',colLabel('extra1'),'Messungen','Einzelwerte [s]','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]'];
+  rows+=`<row r="${rn}" ht="26" customHeight="1">${kopf.map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+  const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
+  d.forEach(e=>{
+    rows+=`<row r="${rn}">${xc(1,rn,nr.get(e.p.id),33,true)}${xc(2,rn,e.p.name,33)}${xc(3,rn,data[e.p.id].__extra1||'',33)}${xc(4,rn,e.n,33,true)}`
+      +`${xc(5,rn,messText(e.p.id,' / '),33)}${xc(6,rn,e.n?xn(e.avg):'',32,!!e.n)}${xc(7,rn,e.n?xn(e.ist*fU):'',32,!!e.n)}${xc(8,rn,xn(e.mtm*fU),32,true)}`
+      +`${xc(9,rn,e.abw==null?'':xn(e.abw*fU),32,e.abw!=null)}${xc(10,rn,e.lg==null?'':e.lg.toFixed(1),39,e.lg!=null)}</row>`;rn++;
+  });
+  rows+=`<row r="${rn}">${xc(1,rn,'',35)}${xc(2,rn,'∑ Gemessene Schritte',35)}${xc(3,rn,'',35)}${xc(4,rn,k.n,36,true)}${xc(5,rn,'',35)}${xc(6,rn,'',35)}`
+    +`${xc(7,rn,xn(k.ist*fU),36,true)}${xc(8,rn,xn(k.mtm*fU),36,true)}${xc(9,rn,xn((k.ist-k.mtm)*fU),36,true)}${xc(10,rn,k.lg==null?'':k.lg.toFixed(1),36,k.lg!=null)}</row>`;rn++;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:J${rn}"/>
+<sheetFormatPr defaultRowHeight="12"/>
+<cols><col min="1" max="1" width="7" customWidth="1"/><col min="2" max="2" width="40" customWidth="1"/><col min="3" max="4" width="11" customWidth="1"/><col min="5" max="5" width="30" customWidth="1"/><col min="6" max="10" width="13" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+</worksheet>`;
+}
 /* Blattname: höchstens 31 Zeichen, ohne die in Excel verbotenen Zeichen */
 function xlsxBlattName(n){ return n.replace(/[\\\/?*\[\]:]/g,' ').replace(/^'+|'+$/g,'').slice(0,31).trim()||'Blatt'; }
 /* Blatt 4: Kategorie-Zeitwerte */
@@ -5774,19 +6676,20 @@ function doExportXlsx(){
   closeExpModal();
   try{
     const blatt1=xlsxSheetArbeitsablauf(), blatt2=xlsxSheetTeileliste();
+    const mitMess=messSpalteAn();
     /* Excel schreibt zu jedem Autofilter den versteckten Namen _xlnm._FilterDatabase;
        LibreOffice übernimmt den Filter nur mit ihm (ohne ging er beim Öffnen verloren). */
     const abs=r=>r.replace(/([A-Z]+)(\d+)/g,'$$$1$$$2');
     const filterNamen=`<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'Arbeitsablauf'!${abs(blatt1.filter)}</definedName><definedName name="_xlnm._FilterDatabase" localSheetId="1" hidden="1">'Teileliste'!${abs(blatt2.filter)}</definedName></definedNames>`;
     const files=[
       {name:'[Content_Types].xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet5.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet6.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet5.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet6.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>${mitMess?'<Override PartName="/xl/worksheets/sheet7.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>':''}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
       {name:'_rels/.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
       {name:'xl/workbook.xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/><sheet name="Laufwege" sheetId="5" r:id="rId5"/><sheet name="${xmlEsc(xlsxBlattName('Teile je '+taktGroupLabel()))}" sheetId="6" r:id="rId7"/></sheets>${filterNamen}<calcPr fullCalcOnLoad="1"/></workbook>`},
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/><sheet name="Laufwege" sheetId="5" r:id="rId5"/><sheet name="${xmlEsc(xlsxBlattName('Teile je '+taktGroupLabel()))}" sheetId="6" r:id="rId7"/>${mitMess?'<sheet name="Zeitmessung" sheetId="7" r:id="rId8"/>':''}</sheets>${filterNamen}<calcPr fullCalcOnLoad="1"/></workbook>`},
       {name:'xl/_rels/workbook.xml.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet5.xml"/><Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet6.xml"/></Relationships>`},
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet5.xml"/><Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet6.xml"/>${mitMess?'<Relationship Id="rId8" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet7.xml"/>':''}</Relationships>`},
       {name:'xl/styles.xml',content:xlsxStyles()},
       {name:'xl/worksheets/sheet1.xml',content:blatt1.xml},
       {name:'xl/worksheets/sheet2.xml',content:blatt2.xml},
@@ -5795,6 +6698,7 @@ function doExportXlsx(){
       {name:'xl/worksheets/sheet5.xml',content:xlsxSheetLaufwege()},
       {name:'xl/worksheets/sheet6.xml',content:xlsxSheetTeileJeStation()}
     ];
+    if(mitMess) files.push({name:'xl/worksheets/sheet7.xml',content:xlsxSheetZeitmessung()});
     const bytes=zipStore(files);
     dateiAnbieten(filename,new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
     lastExportTime=new Date().toISOString();
@@ -5808,18 +6712,18 @@ function doExportXlsx(){
 
 /* ── Format 4 schreiben ──
    Kopfzeile: Level, Prozessschritt, Sachnummer, Benennung, Menge, die sechs umbenennbaren Spalten,
-   Notiz, dann je Kategorie eine Spalte mit der Anzahl (Zeiten rechnet die App, sie stehen im Excel-Report).
+   Notiz, Messungen [s] (Stoppuhr, mit | getrennt, ausgeschlossene in Klammern), dann je Kategorie eine Spalte mit der Anzahl (Zeiten rechnet die App, sie stehen im Excel-Report).
    Weitere Teile eines Schritts folgen in eigenen Zeilen mit leerem Prozessschritt.
    Texte gehen durch csvText — Excel ließe sonst Sachnummern, Daten und Formeln nicht in Ruhe. */
 function csvKopfV4(){
-  return ['Level','Prozessschritt','Sachnummer','Benennung','Menge',...CSV_V4_EXTRAS.map(colLabel),'Notiz',...COLS.map(c=>c.label)].map(csvText);
+  return ['Level','Prozessschritt','Sachnummer','Benennung','Menge',...CSV_V4_EXTRAS.map(colLabel),'Notiz','Messungen [s]',...COLS.map(c=>c.label)].map(csvText);
 }
 function csvDatenV4(){
   const zeilen=[];
   parts.forEach(p=>{
     const d=data[p.id], teile=stepTeile(p.id), t0=teile[0];
     zeilen.push([d.__level||1, csvText(p.name), t0?csvText(t0.sachnr):'', t0?csvText(t0.name):'', t0?t0.menge:'',
-      ...CSV_V4_EXTRAS.map(k=>csvText(d['__'+k]||'')), csvText(d.__note||''),
+      ...CSV_V4_EXTRAS.map(k=>csvText(d['__'+k]||'')), csvText(d.__note||''), csvText(messText(p.id,'|')),
       ...COLS.map(c=>d[c.key]||'')]);   // 0 bleibt leer — so ist die Matrix in Excel lesbar
     teile.slice(1).forEach(t=>zeilen.push(['','',csvText(t.sachnr),csvText(t.name),t.menge]));
   });
@@ -5871,7 +6775,22 @@ function csvProjektV4(){
 }
 /* Datei zum Speichern anbieten. Die Objekt-URL bleibt bestehen: am iPad kann die Abfrage
    „Laden?" beliebig lange offen stehen, eine freigegebene URL ließe den Download dann scheitern. */
+/* iPad: über das Teilen-Menü (Dateien, OneDrive, Mail …) — so liegt die Datei sicher außerhalb der App.
+   Wo das nicht geht (Laptop, ältere Geräte), wie bisher als Download. */
 function dateiAnbieten(name,blob){
+  try{
+    const touch=/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+    if(touch && navigator.canShare && navigator.share){
+      const f=new File([blob],name,{type:blob.type||'application/octet-stream'});
+      if(navigator.canShare({files:[f]})){
+        navigator.share({files:[f]}).catch(e=>{ if(!e || e.name!=='AbortError') herunterladen(name,blob); });
+        return;
+      }
+    }
+  }catch(e){}
+  herunterladen(name,blob);
+}
+function herunterladen(name,blob){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download=name;
   document.body.appendChild(a); a.click(); a.remove();
@@ -5885,8 +6804,8 @@ function doExportVorlage(){
   const ext=(stufe,st)=>{ const e=leer(nx); e[0]=stufe; if(iSt>=0) e[iSt]=st; return e; };
   const kat=leer(COLS.length); if(kat.length) kat[0]=1;
   const zeilen=[csvKopfV4(),
-    [1,'Beispiel: Vormontage Welle','','','',...ext('VM','S1'),'Level 1 = Überschrift',...leer(COLS.length)],
-    [2,'Beispiel: Deckel verschrauben',csvText('30506360'),'Deckel',1,...ext('VM','S1'),'Weitere Teile darunter, Prozessschritt leer lassen',...kat],
+    [1,'Beispiel: Vormontage Welle','','','',...ext('VM','S1'),'Level 1 = Überschrift','',...leer(COLS.length)],
+    [2,'Beispiel: Deckel verschrauben',csvText('30506360'),'Deckel',1,...ext('VM','S1'),'Weitere Teile darunter, Prozessschritt leer lassen','',...kat],
     ['','',csvText('00929520'),'Zylinderschraube M10x30',8],
     ['','',csvText('0056382'),'Dichtring',1]];
   const name='Vorlage_'+dateiBasis(currentProject)+'.csv';
@@ -6027,7 +6946,8 @@ function handleImport(evt){
     try{
       const parsed=parseImportedCSV(text);
       if(!parsed||parsed.parts.length===0){ toast('⚠ CSV leer, ungültig oder keine Prozessschritte gefunden'); return; }
-      if(!confirm(`CSV importieren?\n„${file.name}"\n\nAchtung: Aktuelle Daten werden überschrieben.`)) return;
+      if(!confirm(`CSV importieren?\n„${file.name}"\n\nDie aktuellen Daten werden ersetzt – der jetzige Stand liegt danach unter „Sicherungsstände".`)) return;
+      sicherungAnlegen('vor Import',true);
       importUebernehmen(parsed,false,file.name);
       importHinweis(parsed,'✓ Importiert: '+file.name);
     } catch(err){
@@ -6141,6 +7061,7 @@ const hadSaved = loadState();
 document.getElementById('modeBeginnerBtn').className='tg-btn'+(uiMode==='beginner'?' on-mode':'');
 document.getElementById('modeAdvancedBtn').className='tg-btn'+(uiMode==='advanced'?' on-mode':'');
 document.body.classList.toggle('beginner-mode', uiMode==='beginner');
+zeitModusAnwenden();
 buildLegend();
 buildGrid();
 buildHead();
@@ -6156,8 +7077,11 @@ if(hadSaved && currentProject){
   if(dot()) dot().className='save-dot saved';
   toast('✓ Letzter Stand wiederhergestellt: '+(currentProject||''));
 } else {
+  currentProject=null; projektId=null;   // Startseite: das zuletzt geöffnete liegt in der Liste
   setTimeout(()=>{ const i=document.getElementById('startProjectName'); if(i) i.focus(); },300);
 }
+renderStartProjekte();
+try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch(e){}
 startAutosaveReminder();
 setInterval(updateExportIndicator, 30000);
 updateFilterClearBtn();
@@ -6167,7 +7091,9 @@ const projDescBtn=document.getElementById('projDescBtn');
 function projektBearbeiten(e){
   e.stopPropagation();
   if(!currentProject) return;
+  const vorher=projektStand();
   openNotePopup(projDescBtn,'Projekt', projectDescription||'', (val,name)=>{
+    if((projectDescription||'')!==val || (name && name!==currentProject)) undoStand('Projektname/Beschreibung',null,vorher);
     let geaendert=false;
     if((projectDescription||'')!==val){ projectDescription=val; geaendert=true; }
     if(name && name!==currentProject){ currentProject=name; geaendert=true; }

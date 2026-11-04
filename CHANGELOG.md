@@ -71,6 +71,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   der Auswertung) nimmt ihn aus Mittelwert und Auswertung, er bleibt aber gespeichert und wird
   grau durchgestrichen angezeigt. Erneutes Antippen nimmt ihn wieder auf; ✕ löscht endgültig.
   In CSV, Excel und Druck stehen ausgeschlossene Werte in Klammern, z. B. „12,3|(31,0)“.
+- **Untermodus „Zeitaufnahme“ (Einfach):** Neuer Schalter „Zählen | Zeitaufnahme“ neben
+  Einfach/Erweitert. In der Zeitaufnahme sind Kacheln, Legende, Add/Sub, ∑ minD und alle
+  Kategoriespalten ausgeblendet – es bleiben die Prozessschritte mit ihren Info-Spalten, die
+  Stoppuhr und „⏱ Ø gem.“ direkt hinter dem Prozessschritt. Zählen per Tastenkürzel ist dort
+  gesperrt. Die Wahl wird gespeichert; im Erweitert-Modus gilt sie nicht.
 - **Auswertung „Zeitmessung“:** neuer Reiter mit MTM gegen gemessen je Schritt (Einzelwerte, Ø,
   Abweichung, Leistungsgrad = MTM ÷ gemessen) und Summen. Auch in Drucken/PDF und als Blatt
   „Zeitmessung“ in der Excel-Datei.

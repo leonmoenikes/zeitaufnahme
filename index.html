@@ -131,6 +131,7 @@ body:not(.beginner-mode) .simple-only{display:none!important;}
    Moduswahl nur als Symbol (mit Tooltip — dort gibt es Hover). Im Einfach-Modus bleiben alle Beschriftungen. */
 @media (max-width:1799px){ body:not(.beginner-mode) .tb-titel{display:none;} }
 @media (max-width:1679px){ body:not(.beginner-mode) :is(.mode-toggle .tg-label,.tb-lbl){display:none;} }
+@media (max-width:1000px){ body.beginner-mode .mode-toggle .tg-label{display:none;} }
 @media (max-width:1279px){ body.beginner-mode .tb-titel{display:none;} }
 .spacer{flex:1;}
 
@@ -358,6 +359,10 @@ body.beginner-mode .such-box .tb-ic{width:44px;height:44px;}
 .versch-pop input[type=number]{width:72px;height:32px;font-size:var(--fs-m);text-align:center;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);}
 body.beginner-mode .versch-pop input[type=number]{height:44px;}
 .versch-pop .vp-info{font-size:var(--fs-xs);color:var(--text2);}
+
+/* ── UNTERMODUS ZEITAUFNAHME (nur Einfach): ohne Kacheln, Zählen und Kategoriespalten ── */
+body.zeitaufnahme :is(.grid-wrap,.tb-addsub,.sub-leiste,.act-time){display:none!important;}
+.za-toggle .tg-btn.on-mode{background:var(--green-dim);color:var(--green);}
 
 /* ── STOPPUHR ── */
 .stopp-leiste{flex-shrink:0;display:flex;align-items:center;gap:10px;min-height:56px;padding:6px var(--sp3);
@@ -1101,6 +1106,10 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
   <div class="toggle-group mode-toggle" title="Bedienmodus">
     <button class="tg-btn on-mode" id="modeBeginnerBtn" onclick="setUIMode('beginner')" title="Einfach"><svg class="ic"><use href="#i-tablet"/></svg><span class="tg-label">Einfach</span></button>
     <button class="tg-btn" id="modeAdvancedBtn" onclick="setUIMode('advanced')" title="Erweitert"><svg class="ic"><use href="#i-laptop"/></svg><span class="tg-label">Erweitert</span></button>
+  </div>
+  <div class="toggle-group za-toggle simple-only" title="Zählen oder nur Zeitaufnahme mit der Stoppuhr">
+    <button class="tg-btn" id="zaZaehlenBtn" onclick="setZeitModus(false)"><svg class="ic"><use href="#i-bausteine"/></svg><span class="tg-label">Zählen</span></button>
+    <button class="tg-btn" id="zaZeitBtn" onclick="setZeitModus(true)"><svg class="ic"><use href="#i-uhr"/></svg><span class="tg-label">Zeitaufnahme</span></button>
   </div>
   <div class="sep"></div>
   <div class="tb-gruppe" aria-label="Erfassung">
@@ -3799,7 +3808,7 @@ function stickyLeft(){
 }
 /* Kategoriebereich einer Unterzeile als eine einzige Zelle — statt 22 bzw. 44 leerer Zellen
    je Teil. Jeder Tipp auf eine Kachel baut die Tabelle neu, da zählt jede Zelle. */
-function kategorieSpan(){ return COLS.length*(uiMode==='beginner'?1:2); }
+function kategorieSpan(){ return zeitAktiv() ? 0 : COLS.length*(uiMode==='beginner'?1:2); }
 /* Reihenfolge der Kategoriespalten in der Tabelle: „Meter in total" vorne, weil fast jeder Schritt
    einen Laufweg hat. Nur Anzeige — Kacheln, Tastenkürzel und Exporte behalten die COLS-Reihenfolge. */
 function tabCols(){
@@ -3814,6 +3823,9 @@ function buildHead(){
   h+=`<th class="level" style="left:${L.level}px;${hide('level')}">Lvl${fltIco('level','Level','set')}</th>`;
   const griff=k=>`<span class="col-griff" data-bk="${k}" title="Breite ziehen · Doppelklick: zurücksetzen"></span>`;
   h+=`<th class="cn" style="left:${L.cn}px;${hide('name')}">Prozessschritt${fltIco('name','Prozessschritt','set')}${griff('cn')}</th>`;
+  /* Zeitaufnahme: „Ø gemessen" gleich hinter dem Prozessschritt, damit sie am iPad ohne Blättern sichtbar ist */
+  const messTh=`<th class="mess" title="Mittelwert der Stoppuhr-Messungen (×Anzahl) — antippen zeigt die Einzelwerte">⏱ Ø gem.<br>[${ul()}]</th>`;
+  if(zeitAktiv()) h+=messTh;
   h+=`<th class="sachnr" style="${hide('sachnr')}">Sachnr.${fltIco('sachnr','Sachnummer','set')}${griff('sachnr')}</th>`;
   h+=`<th class="teilname" style="${hide('teilname')}">Bauteilbenennung${fltIco('teilname','Bauteilbenennung','set')}${griff('teilname')}</th>`;
   OPT_COLS.filter(o=>!o.own).forEach(o=>{
@@ -3821,9 +3833,9 @@ function buildHead(){
   });
   h+=`<th class="th-qty">Anzahl${fltIco('qty','Anzahl','range')}</th>`;
   h+='<th class="acts"></th>';
-  h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
-  if(messSpalteAn()) h+=`<th class="mess" title="Mittelwert der Stoppuhr-Messungen (×Anzahl) — antippen zeigt die Einzelwerte">⏱ Ø gem.<br>[${ul()}]</th>`;
-  tabCols().forEach(c=>{
+  if(!zeitAktiv()) h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
+  if(messSpalteAn() && !zeitAktiv()) h+=messTh;
+  katSpalten().forEach(c=>{
     const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
     h+=`<th class="th-q" title="${escAttr(c.label)}" style="background:linear-gradient(${gCol}e6,${gCol}e6),var(--surface);border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).map(escHtml).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
     if(uiMode!=='beginner') h+=`<th class="th-t adv-only" style="background:linear-gradient(${gCol}b3,${gCol}b3),var(--surface);">[${ul()}]</th>`;
@@ -3884,6 +3896,7 @@ function setUIMode(m){
   document.getElementById('modeBeginnerBtn').className='tg-btn'+(m==='beginner'?' on-mode':'');
   document.getElementById('modeAdvancedBtn').className='tg-btn'+(m==='advanced'?' on-mode':'');
   document.body.classList.toggle('beginner-mode', m==='beginner');
+  zeitModusAnwenden();
   buildGrid();
   buildHead();
   renderBody();
@@ -3904,6 +3917,7 @@ function zaehlZellen(tdv,tdt,v,c,summe){
    Nur ein Filter auf diese Kategorie oder auf die Gesamtzeit kann die Zeile ein- oder ausblenden:
    dann doch neu aufbauen. */
 function zaehlerZeigen(id,key){
+  if(zeitAktiv()) return;   // keine Kategoriespalten
   const c=COLS.find(x=>x.key===key);
   const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]');
   const sr=document.querySelector('#tblBody tr.sum-row');
@@ -3937,8 +3951,9 @@ function tabKontext(){
   const posNr=new Map(parts.map((p,i)=>[p.id,i+1]));   // statt findIndex je Zeile
   /* Einfach-Modus: die ausgeblendeten [minD]-Zellen und Laptop-Knöpfe gar nicht erst anlegen —
      das halbiert die Zellen der Tabelle, und ihr Layout ist bei ~300 Schritten der größte Posten */
-  tabMess=messSpalteAn();
-  return {L,vis,extraFlds,td,posNr,einfach:uiMode==='beginner',mess:tabMess};
+  tabZeit=zeitAktiv();
+  tabMess=messSpalteAn()||tabZeit;
+  return {L,vis,extraFlds,td,posNr,einfach:uiMode==='beginner',mess:tabMess,zeit:tabZeit};
 }
 /* Hauptzeile eines Schritts und — aufgeklappt — seine Teile-Zeilen */
 function schrittZeilen(part,k){
@@ -3994,6 +4009,12 @@ function schrittZeilen(part,k){
     wrap.appendChild(inp);
     td0.appendChild(wrap);
     tr.appendChild(td0);
+    const messTd=()=>{
+      const tdm=td('mess'); messZelleFuellen(tdm,id);
+      tdm.addEventListener('click',e=>{ e.stopPropagation(); selectPart(id); openMessPopup(id,tdm); });
+      return tdm;
+    };
+    if(k.zeit) tr.appendChild(messTd());
 
     // Sachnummer / Bauteilbenennung: zugeklappt erster Eintrag + „+n", nur Anzeige
     /* Antippen klappt die Teile auf und zu — größere Fläche als das kleine ▸ */
@@ -4068,15 +4089,10 @@ function schrittZeilen(part,k){
 
     // Summe
     const tot=calcTotal(id);
-    const tdtot=td('ct');
-    tdtot.textContent=tot>0?disp2(tot):'–';tr.appendChild(tdtot);
-    if(k.mess){
-      const tdm=td('mess'); messZelleFuellen(tdm,id);
-      tdm.addEventListener('click',e=>{ e.stopPropagation(); selectPart(id); openMessPopup(id,tdm); });
-      tr.appendChild(tdm);
-    }
+    if(!k.zeit){ const tdtot=td('ct'); tdtot.textContent=tot>0?disp2(tot):'–'; tr.appendChild(tdtot); }
+    if(k.mess && !k.zeit) tr.appendChild(messTd());
 
-    tabCols().forEach(c=>{
+    katSpalten().forEach(c=>{
       const v=data[id][c.key]||0;
       const tdv=document.createElement('td'); tdv.dataset.k=c.key;
       let tdt=null; if(!einfach){ tdt=document.createElement('td'); tdt.dataset.kt=c.key; }
@@ -4114,14 +4130,15 @@ function renderBody(){
   sr.appendChild(td('nr'));
   sr.appendChild(td('level',vis.level,L.level));
   const s0=td('cn',vis.name,L.cn);s0.textContent=hasAnyFilter()?'∑ Gefiltert':'∑ Gesamt';sr.appendChild(s0);
+  if(k.zeit){ const sm=td('mess'); messSummeFuellen(sm,visibleParts); sr.appendChild(sm); }
   sr.appendChild(td('sachnr',vis.sachnr));
   sr.appendChild(td('teilname',vis.teilname));
   extraFlds.forEach(f=>sr.appendChild(td('extra x-'+f.slice(2))));
   const sQty=td('qty');sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
   sr.appendChild(td('acts'));
-  const stot=td('ct');stot.textContent=disp2(totT);sr.appendChild(stot);
-  if(k.mess){ const sm=td('mess'); messSummeFuellen(sm,visibleParts); sr.appendChild(sm); }
-  tabCols().forEach(c=>{
+  if(!k.zeit){ const stot=td('ct');stot.textContent=disp2(totT);sr.appendChild(stot); }
+  if(k.mess && !k.zeit){ const sm=td('mess'); messSummeFuellen(sm,visibleParts); sr.appendChild(sm); }
+  katSpalten().forEach(c=>{
     const tdv=document.createElement('td'); tdv.dataset.k=c.key; sr.appendChild(tdv);
     let tdt=null; if(!k.einfach){ tdt=document.createElement('td'); tdt.dataset.kt=c.key; sr.appendChild(tdt); }
     zaehlZellen(tdv,tdt,totQ[c.key],c,true);
@@ -4158,7 +4175,23 @@ function summenNachfuehren(){
    Messungen in Sekunden gespeichert (data[id].__mess), gezeigt wird der Mittelwert.
 ═══════════════════════════════════════ */
 const SEK_JE_MIND=36;   // 1 minD = 0,6 min = 36 s
-let stopp=null, stoppTmr=null, stoppWach=null, tabMess=false;
+/* Untermodus „Zeitaufnahme" des Einfach-Modus: nur Prozessschritte, Info-Spalten, Stoppuhr und Ø gemessen */
+let zeitModus=false;
+function zeitAktiv(){ return zeitModus && uiMode==='beginner'; }
+function zeitModusAnwenden(){
+  document.body.classList.toggle('zeitaufnahme',zeitAktiv());
+  const z=document.getElementById('zaZaehlenBtn'), t=document.getElementById('zaZeitBtn');
+  if(z) z.className='tg-btn'+(zeitModus?'':' on-mode');
+  if(t) t.className='tg-btn'+(zeitModus?' on-mode':'');
+}
+function setZeitModus(on){
+  zeitModus=!!on; zeitModusAnwenden();
+  buildHead(); renderBody(); updateActiveBar(); saveState();
+  toast(zeitModus?'⏱ Zeitaufnahme: nur Prozessschritte und Stoppuhr':'✓ Zählen: Kacheln und Kategorien wieder sichtbar');
+}
+/* Kategoriespalten der Tabelle — in der Zeitaufnahme keine */
+function katSpalten(){ return zeitAktiv() ? [] : tabCols(); }
+let stopp=null, stoppTmr=null, stoppWach=null, tabMess=false, tabZeit=false;
 function messWerte(id){ const m=(data[id]||{}).__mess; return Array.isArray(m)?m:[]; }
 /* Ausgeschlossene Messungen (Ausreißer): bleiben gespeichert, zählen aber nicht in Mittelwert und Auswertung.
    data[id].__messAus = Wahrheitswerte parallel zu __mess, nur vorhanden, wenn einer ausgeschlossen ist. */
@@ -4189,7 +4222,7 @@ function messSummeFuellen(td,liste){
 /* Nach einer neuen oder gelöschten Messung: Zelle und Summe nachführen; erscheint oder verschwindet
    die Spalte dadurch, die Tabelle neu aufbauen */
 function messNachfuehren(id){
-  if(messSpalteAn()!==!!document.querySelector('#tblHead th.mess')){ buildHead(); renderBody(); }
+  if((messSpalteAn()||zeitAktiv())!==!!document.querySelector('#tblHead th.mess')){ buildHead(); renderBody(); }
   else {
     const td=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"] td.mess'); if(td) messZelleFuellen(td,id);
     summenNachfuehren();
@@ -4259,9 +4292,10 @@ function stoppInfo(){
     el.textContent=t; return;
   }
   const m=messGueltig(activePart), aus=messWerte(activePart).length-m.length;
+  const mtmTxt=zeitAktiv() ? '' : ' · MTM '+disp2(calcTotal(activePart))+' '+ul();
   el.textContent=!activePart ? '' : m.length
-    ? m.length+' Messung'+(m.length===1?'':'en')+(aus?' (+'+aus+' ausgeschlossen)':'')+' · Ø '+sekText(messMittel(activePart))+' s = '+disp2(messMittel(activePart)/SEK_JE_MIND)+' '+ul()+' · MTM '+disp2(calcTotal(activePart))+' '+ul()
-    : (aus?aus+' Messung(en), alle ausgeschlossen':'Noch nicht gemessen')+' · MTM '+disp2(calcTotal(activePart))+' '+ul();
+    ? m.length+' Messung'+(m.length===1?'':'en')+(aus?' (+'+aus+' ausgeschlossen)':'')+' · Ø '+sekText(messMittel(activePart))+' s = '+disp2(messMittel(activePart)/SEK_JE_MIND)+' '+ul()+mtmTxt
+    : (aus?aus+' Messung(en), alle ausgeschlossen':'Noch nicht gemessen')+mtmTxt;
 }
 /* Einzelwerte eines Schritts — Ausreißer löschen */
 function openMessPopup(id,anchor){
@@ -4543,6 +4577,7 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   const tdCn=td('cn',vis.name,L.cn);
   tdCn.innerHTML='<span class="teil-mark"></span>';
   tr.appendChild(tdCn);
+  if(tabZeit) tr.appendChild(td('mess'));
   const feld=(cls,show,key,attrs)=>{
     const c=td(cls,show);
     const i=document.createElement('input');
@@ -4566,9 +4601,9 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   del.addEventListener('click',e=>{e.stopPropagation();delTeil(stepId,t.id);});
   tdA.appendChild(del);
   tr.appendChild(tdA);
-  tr.appendChild(td('ct'));
-  if(tabMess) tr.appendChild(td('mess'));
-  const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest);
+  if(!tabZeit) tr.appendChild(td('ct'));
+  if(tabMess && !tabZeit) tr.appendChild(td('mess'));
+  if(kategorieSpan()){ const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest); }
   tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(stepId); });
   return tr;
 }
@@ -4579,11 +4614,12 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
   tr.appendChild(td('nr'));
   tr.appendChild(td('level',vis.level,L.level));
   const tdCn=td('cn',vis.name,L.cn), tdS=td('sachnr',vis.sachnr), tdT=td('teilname',vis.teilname);
-  tr.appendChild(tdCn); tr.appendChild(tdS); tr.appendChild(tdT);
+  tr.appendChild(tdCn); if(tabZeit) tr.appendChild(td('mess')); tr.appendChild(tdS); tr.appendChild(tdT);
   extraFlds.forEach(f=>tr.appendChild(td('extra x-'+f.slice(2))));
-  tr.appendChild(td('qty')); tr.appendChild(td('acts')); tr.appendChild(td('ct'));
-  if(tabMess) tr.appendChild(td('mess'));
-  const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest);
+  tr.appendChild(td('qty')); tr.appendChild(td('acts'));
+  if(!tabZeit) tr.appendChild(td('ct'));
+  if(tabMess && !tabZeit) tr.appendChild(td('mess'));
+  if(kategorieSpan()){ const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest); }
   /* Knopf in die erste sichtbare der linken Spalten, damit er ohne Scrollen erreichbar ist */
   const host=[[vis.name,tdCn],[vis.sachnr,tdS],[vis.teilname,tdT]].find(x=>x[0]);
   const btn=document.createElement('button');
@@ -4598,6 +4634,7 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
 ═══════════════════════════════════════ */
 function doCount(key){
   if(!activePart)return;
+  if(zeitAktiv()){ toast('⏱ Zeitaufnahme aktiv – zum Zählen oben auf „Zählen" umschalten'); return; }
   /* Gerechnete Meter werden nicht gezählt — der nächste Rechenlauf würde den Klick stillschweigend
      überschreiben. Stattdessen öffnet sich die Zeile des Schritts im Laufweg-Fenster. */
   if(key===LW_KAT && lwHat(activePart)){ lwZeigeSchritt(activePart); return; }
@@ -5910,7 +5947,7 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
                   ungesichert: hasUnsavedChanges, projektId,
                   saved: new Date().toISOString() };
     if(!speicherSchreiben(LS_KEY,state)) throw new Error('voll');
@@ -6099,6 +6136,7 @@ function loadState(){
     lastExportTime = s.lastExportTime || null;
     verteilzeitFactor = s.verteilzeitFactor || 0;
     uiMode = s.uiMode === 'beginner' ? 'beginner' : 'advanced';
+    zeitModus = s.zeitModus===true;
     hourlyRate = s.hourlyRate || 0;
     if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
     if(s.taktGroupKey && OPT_COLS.some(o=>!o.own&&o.key===s.taktGroupKey)) taktGroupKey=s.taktGroupKey;
@@ -7023,6 +7061,7 @@ const hadSaved = loadState();
 document.getElementById('modeBeginnerBtn').className='tg-btn'+(uiMode==='beginner'?' on-mode':'');
 document.getElementById('modeAdvancedBtn').className='tg-btn'+(uiMode==='advanced'?' on-mode':'');
 document.body.classList.toggle('beginner-mode', uiMode==='beginner');
+zeitModusAnwenden();
 buildLegend();
 buildGrid();
 buildHead();

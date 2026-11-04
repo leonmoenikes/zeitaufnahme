@@ -361,22 +361,65 @@ body.beginner-mode .versch-pop input[type=number]{height:44px;}
 .versch-pop .vp-info{font-size:var(--fs-xs);color:var(--text2);}
 
 /* ── UNTERMODUS ZEITAUFNAHME (nur Einfach): ohne Kacheln, Zählen und Kategoriespalten ── */
-body.zeitaufnahme :is(.grid-wrap,.tb-addsub,.sub-leiste,.act-time){display:none!important;}
+body.zeitaufnahme :is(.grid-wrap,.tb-addsub,.sub-leiste,.active-bar,.filter-bar,.tbl-outer){display:none!important;}
+/* ── MESS-ANSICHT ── */
+.mess-ansicht{display:none;}
+body.zeitaufnahme .mess-ansicht{display:flex;flex-direction:column;flex:1;min-height:0;background:var(--bg);}
+.ma-kopf{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px var(--sp3);background:var(--surface);border-bottom:1px solid var(--border);}
+.ma-kopf .tg-btn{min-height:44px;padding:0 18px;font-size:var(--fs-m);}
+.ma-status{font-size:var(--fs-s);color:var(--text2);margin-left:auto;font-family:var(--mono);}
+.ma-karte{margin:12px var(--sp3) 0;padding:14px 18px;border-radius:var(--radius);background:var(--surface);border:2px solid var(--border2);text-align:center;}
+.ma-karte.laeuft{border-color:var(--green);background:var(--green-dim);}
+.ma-karte.pause{border-color:var(--yellow);background:var(--active);}
+.ma-nr{font-family:var(--mono);font-size:var(--fs-s);color:var(--text2);}
+.ma-name{font-size:22px;font-weight:700;color:var(--text);margin:2px 0 4px;line-height:1.25;}
+.ma-uhr{font-family:var(--mono);font-size:64px;font-weight:700;color:var(--text);line-height:1.1;letter-spacing:-.02em;}
+.ma-karte:not(.laeuft):not(.pause) .ma-uhr{color:var(--text3);}
+.ma-bisher{font-size:var(--fs-s);color:var(--text2);margin-top:2px;}
+.ma-pause{margin:10px var(--sp3) 0;padding:10px 14px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--yellow);}
+.ma-pause-kopf{display:flex;align-items:baseline;gap:10px;font-size:var(--fs-m);color:var(--text);}
+.ma-pause-kopf b{font-family:var(--mono);font-size:24px;}
+.ma-pause-kopf a{margin-left:auto;font-size:var(--fs-xs);color:var(--accent-bright);cursor:pointer;}
+.ma-gruende{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;}
+.ma-gruende button{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:var(--fs-m);cursor:pointer;}
+.ma-gruende button.on{background:var(--yellow);border-color:var(--yellow);color:#1a1e2e;font-weight:600;}
+.ma-pause input{width:100%;height:44px;font-size:var(--fs-m);padding:0 10px;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);}
+.ma-ende{margin:10px var(--sp3) 0;padding:10px 14px;border-radius:var(--radius);background:var(--green-dim);border:1px solid var(--green);display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:var(--fs-m);}
+.ma-ende b{color:var(--green);}
+.ma-ende .tbtn{min-height:44px;}
+.ma-ende .tbtn:first-of-type{margin-left:auto;}
+.ma-liste{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;margin:10px var(--sp3) 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+.ma-zeile{display:flex;align-items:center;gap:10px;min-height:48px;padding:4px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:var(--fs-m);}
+.ma-zeile:last-child{border-bottom:none;}
+.ma-zeile .mz-nr{font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);width:32px;flex-shrink:0;}
+.ma-zeile .mz-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
+.ma-zeile .mz-st{font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);}
+.ma-zeile .mz-wert{font-family:var(--mono);font-size:var(--fs-s);color:var(--text2);white-space:nowrap;text-align:right;}
+.ma-zeile.kopf{background:var(--surface2);min-height:36px;font-weight:700;font-size:var(--fs-s);}
+.ma-zeile.kopf .mz-name{color:var(--text2);}
+.ma-zeile.aktuell{background:var(--active);box-shadow:inset 4px 0 0 var(--yellow);}
+.ma-zeile.aktuell .mz-name{font-weight:700;}
+.ma-zeile.erledigt .mz-wert{color:var(--green);}
+.ma-zeile.skip .mz-wert{color:var(--text3);}
+.ma-zeile .mz-danach{font-size:var(--fs-xs);background:var(--accent);color:var(--on-accent);border-radius:999px;padding:2px 8px;}
+.ma-knoepfe{display:flex;gap:8px;align-items:stretch;padding:10px var(--sp3) calc(10px + var(--safe-bot));background:var(--surface);border-top:1px solid var(--border2);margin-top:10px;}
+.ma-knoepfe button{min-height:60px;padding:0 14px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:var(--fs-m);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.ma-knoepfe .gross{flex:1;font-size:20px;}
+.ma-knoepfe .ic{width:20px;height:20px;}
+.ma-knoepfe .gross .ic{width:24px;height:24px;}
+.ma-pause-kopf .ic{width:18px;height:18px;align-self:center;}
+/* Hinweise über der Knopfleiste, nicht auf ihr */
+body.zeitaufnahme .toast{bottom:calc(96px + var(--safe-bot));}
+.ma-knoepfe .gruen{background:var(--green);border-color:var(--green);color:#fff;}
+.ma-knoepfe .blau{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+.ma-knoepfe .gelb{background:var(--yellow);border-color:var(--yellow);color:#1a1e2e;}
+.ma-knoepfe .rot{color:var(--red);}
+.ma-knoepfe button:disabled{opacity:.4;}
+.grund-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.grund-row input{flex:1;height:40px;font-size:var(--fs-m);padding:0 10px;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);}
+body.beginner-mode .grund-row input{height:44px;}
 .za-toggle .tg-btn.on-mode{background:var(--green-dim);color:var(--green);}
 
-/* ── STOPPUHR ── */
-.stopp-leiste{flex-shrink:0;display:flex;align-items:center;gap:10px;min-height:56px;padding:6px var(--sp3);
-  background:var(--surface);border-bottom:1px solid var(--border2);box-shadow:inset 4px 0 0 var(--yellow);}
-.stopp-leiste button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:var(--radius);
-  font-size:var(--fs-m);font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text);}
-.stopp-leiste .stopp-start{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
-.stopp-leiste .stopp-weiter{background:var(--green);border-color:var(--green);color:#fff;font-size:var(--fs-l);min-width:200px;justify-content:center;}
-.stopp-leiste .stopp-weg{padding:0 12px;color:var(--red);}
-.stopp-zeit{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);min-width:110px;}
-.stopp-info{flex:1;min-width:0;font-size:var(--fs-xs);color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.stopp-leiste:not(.laeuft) :is(.stopp-zeit,.stopp-weiter,.stopp-stop,.stopp-weg){display:none;}
-.stopp-leiste.laeuft .stopp-start{display:none;}
-.stopp-leiste.laeuft{background:var(--green-dim,#e5f5ec);box-shadow:inset 4px 0 0 var(--green);}
 /* Spalte „Ø gemessen" */
 .data-tbl th.mess,.data-tbl td.mess{width:1px;white-space:nowrap;text-align:center;font-family:var(--mono);}
 .data-tbl th.mess{color:var(--green);background:var(--surface2);}
@@ -1075,7 +1118,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
 </head>
 <body>
 <!-- Icons: ein Satz Inline-SVGs im gleichen Strichstil statt Emojis, die je Gerät anders aussehen -->
-<svg class="icon-sprite" aria-hidden="true"><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol><symbol id="i-import" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol><symbol id="i-export" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol><symbol id="i-projekt" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7"/></symbol><symbol id="i-zeiten" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM12 7v5l3 2"/></symbol><symbol id="i-bausteine" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></symbol><symbol id="i-laufwege" viewBox="0 0 24 24"><path d="M6 17a2 2 0 1 0 0 4a2 2 0 0 0 0-4zM18 3a2 2 0 1 0 0 4a2 2 0 0 0 0-4zM8 19h8.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H16"/></symbol><symbol id="i-auswertung" viewBox="0 0 24 24"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/></symbol><symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5M4 4v4.5h4.5"/></symbol><symbol id="i-notiz" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17zM14 7l3 3"/></symbol><symbol id="i-loeschen" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol><symbol id="i-kopieren" viewBox="0 0 24 24"><path d="M9 9h11v11H9zM5 15H4V4h11v1"/></symbol><symbol id="i-einfuegen" viewBox="0 0 24 24"><path d="M9 3h6v3H9zM9 5H6v16h12V5h-3"/></symbol><symbol id="i-rechts" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol><symbol id="i-unten" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol><symbol id="i-links" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol><symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></symbol><symbol id="i-spalten" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM9.5 4v16M14.5 4v16"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><symbol id="i-suche" viewBox="0 0 24 24"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 0 0 0-14zM20 20l-4-4"/></symbol><symbol id="i-drucken" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/></symbol><symbol id="i-szenario" viewBox="0 0 24 24"><path d="M16 4h4v4M4 20 20 4M20 16v4h-4M14 14l6 6M4 4l5 5"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM12 11v6M12 7.5v.5"/></symbol><symbol id="i-uhr" viewBox="0 0 24 24"><path d="M12 5a8 8 0 1 0 0 16a8 8 0 0 0 0-16zM12 9v4l2.5 2M9 2h6M12 2v3"/></symbol><symbol id="i-tablet" viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 18h2"/></symbol><symbol id="i-laptop" viewBox="0 0 24 24"><path d="M5 5h14v10H5zM3 19h18"/></symbol><symbol id="i-haken" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol><symbol id="i-blitz" viewBox="0 0 24 24"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></symbol><symbol id="i-tabelle" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16"/></symbol><symbol id="i-mehr" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></g></symbol></svg>
+<svg class="icon-sprite" aria-hidden="true"><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol><symbol id="i-import" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol><symbol id="i-export" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol><symbol id="i-projekt" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7"/></symbol><symbol id="i-zeiten" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM12 7v5l3 2"/></symbol><symbol id="i-bausteine" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></symbol><symbol id="i-laufwege" viewBox="0 0 24 24"><path d="M6 17a2 2 0 1 0 0 4a2 2 0 0 0 0-4zM18 3a2 2 0 1 0 0 4a2 2 0 0 0 0-4zM8 19h8.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H16"/></symbol><symbol id="i-auswertung" viewBox="0 0 24 24"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/></symbol><symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5M4 4v4.5h4.5"/></symbol><symbol id="i-notiz" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17zM14 7l3 3"/></symbol><symbol id="i-loeschen" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol><symbol id="i-kopieren" viewBox="0 0 24 24"><path d="M9 9h11v11H9zM5 15H4V4h11v1"/></symbol><symbol id="i-einfuegen" viewBox="0 0 24 24"><path d="M9 3h6v3H9zM9 5H6v16h12V5h-3"/></symbol><symbol id="i-rechts" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol><symbol id="i-unten" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol><symbol id="i-links" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol><symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></symbol><symbol id="i-spalten" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM9.5 4v16M14.5 4v16"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><symbol id="i-suche" viewBox="0 0 24 24"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 0 0 0-14zM20 20l-4-4"/></symbol><symbol id="i-drucken" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/></symbol><symbol id="i-szenario" viewBox="0 0 24 24"><path d="M16 4h4v4M4 20 20 4M20 16v4h-4M14 14l6 6M4 4l5 5"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM12 11v6M12 7.5v.5"/></symbol><symbol id="i-uhr" viewBox="0 0 24 24"><path d="M12 5a8 8 0 1 0 0 16a8 8 0 0 0 0-16zM12 9v4l2.5 2M9 2h6M12 2v3"/></symbol><symbol id="i-tablet" viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 18h2"/></symbol><symbol id="i-laptop" viewBox="0 0 24 24"><path d="M5 5h14v10H5zM3 19h18"/></symbol><symbol id="i-haken" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol><symbol id="i-blitz" viewBox="0 0 24 24"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></symbol><symbol id="i-tabelle" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M4 15h16M10 4v16"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></symbol><symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 6l9 6-9 6zM18 6v12"/></symbol><symbol id="i-stopp" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></symbol><symbol id="i-mehr" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></g></symbol></svg>
 
 <!-- START SCREEN (Projekt-Auswahl) -->
 <div class="start-screen open" id="startScreen">
@@ -1143,6 +1186,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
       <button class="simple-only" onclick="openImport()"><svg class="ic"><use href="#i-import"/></svg>CSV importieren</button>
       <button onclick="openPaste()"><svg class="ic"><use href="#i-tabelle"/></svg>Aus Excel einfügen</button>
       <button onclick="openSicherungen()"><svg class="ic"><use href="#i-uhr"/></svg>Sicherungsstände</button>
+      <button onclick="openGruende()"><svg class="ic"><use href="#i-notiz"/></svg>Pausegründe</button>
       <div class="mehr-trenner adv-only"></div>
       <button class="adv-only" onclick="openCfg()"><svg class="ic"><use href="#i-zeiten"/></svg>Zeiten</button>
       <button class="adv-only" onclick="openMtm()"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine</button>
@@ -1171,15 +1215,8 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
   <span class="act-time"><span>∑ </span><span id="actTime">0.000</span> <span id="actUnit">minD</span></span>
 </div>
 
-<!-- STOPPUHR (Einfach-Modus): misst den aktiven Schritt; „Stop · Nächster" startet ohne Lücke den nächsten -->
-<div class="stopp-leiste simple-only" id="stoppLeiste">
-  <button class="stopp-start" onclick="stoppStart()"><svg class="ic"><use href="#i-uhr"/></svg>Zeit messen</button>
-  <span class="stopp-zeit" id="stoppZeit">0:00,0</span>
-  <span class="stopp-info" id="stoppInfo"></span>
-  <button class="stopp-weiter" onclick="stoppWeiter()" title="Messung speichern und sofort den nächsten Schritt messen"><svg class="ic"><use href="#i-rechts"/></svg>Stop · Nächster</button>
-  <button class="stopp-stop" onclick="stoppStop()" title="Messung speichern und anhalten">■ Stop</button>
-  <button class="stopp-weg" onclick="stoppVerwerfen()" title="Laufende Messung verwerfen" aria-label="Messung verwerfen"><svg class="ic"><use href="#i-x"/></svg></button>
-</div>
+<!-- MESS-ANSICHT (Untermodus Zeitaufnahme): ersetzt Aktiv-Leiste und Tabelle -->
+<div class="mess-ansicht" id="messAnsicht"></div>
 
 <!-- WERKZEUGE -->
 <div class="filter-bar">
@@ -1424,6 +1461,21 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
       <button class="mclose" aria-label="Schließen" onclick="closeSicherungen()"><svg class="ic"><use href="#i-x"/></svg></button>
     </div>
     <div class="mbody" id="sichBody"></div>
+  </div>
+</div>
+
+<!-- PAUSEGRÜNDE (Einstellung auf diesem Gerät) -->
+<div class="modal-bg" id="grundModal">
+  <div class="modal sich-modal">
+    <div class="mh">
+      <span class="mh-title"><svg class="ic"><use href="#i-uhr"/></svg>Pausegründe</span>
+      <button class="mclose" aria-label="Schließen" onclick="closeGruende()"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="mbody" id="grundBody"></div>
+    <div class="mfooter">
+      <button class="btn-add-row" onclick="grundZeile('')"><svg class="ic"><use href="#i-plus"/></svg>Neuer Grund</button>
+      <button class="btn-save" onclick="saveGruende()">Speichern</button>
+    </div>
   </div>
 </div>
 
@@ -3081,6 +3133,7 @@ function startNewProject(){
   verteilzeitFactor=0;
   hourlyRate=0;
   taktSoll=0; taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
+  messLauf=null; messZyklusEnde=null; unterbrechungen=[]; messUhrAn();
   lwParams={...LW_DEF};
   lastExportTime=null;
   lastActionText='';
@@ -3124,6 +3177,7 @@ function handleStartImport(evt){
 }
 
 function switchProject(){
+  if(messLauf){ toast('⚠ Erst die laufende Messung beenden (Stopp oder ✕)'); return; }
   if(saveTmr){ clearTimeout(saveTmr); saveTmr=null; saveState(); }
   if(!projektAblegen() && !confirm('Das Projekt ließ sich auf dem Gerät nicht ablegen (Speicher voll?).\n\nTrotzdem wechseln? Nicht exportierte Änderungen gingen verloren.')) return;
   if(currentProject) toast('✓ „'+currentProject+'" auf diesem Gerät abgelegt');
@@ -3793,7 +3847,7 @@ function updateActiveBar(){
   document.getElementById('actName').textContent=activePart?partName(activePart):'—';
   document.getElementById('actTime').textContent=disp2(calcTotal(activePart));
   document.getElementById('actUnit').textContent=ul();
-  stoppInfo();
+  messAnsichtZeichnen();
 }
 
 /* ═══════════════════════════════════════
@@ -3825,7 +3879,6 @@ function buildHead(){
   h+=`<th class="cn" style="left:${L.cn}px;${hide('name')}">Prozessschritt${fltIco('name','Prozessschritt','set')}${griff('cn')}</th>`;
   /* Zeitaufnahme: „Ø gemessen" gleich hinter dem Prozessschritt, damit sie am iPad ohne Blättern sichtbar ist */
   const messTh=`<th class="mess" title="Mittelwert der Stoppuhr-Messungen (×Anzahl) — antippen zeigt die Einzelwerte">⏱ Ø gem.<br>[${ul()}]</th>`;
-  if(zeitAktiv()) h+=messTh;
   h+=`<th class="sachnr" style="${hide('sachnr')}">Sachnr.${fltIco('sachnr','Sachnummer','set')}${griff('sachnr')}</th>`;
   h+=`<th class="teilname" style="${hide('teilname')}">Bauteilbenennung${fltIco('teilname','Bauteilbenennung','set')}${griff('teilname')}</th>`;
   OPT_COLS.filter(o=>!o.own).forEach(o=>{
@@ -3834,12 +3887,13 @@ function buildHead(){
   h+=`<th class="th-qty">Anzahl${fltIco('qty','Anzahl','range')}</th>`;
   h+='<th class="acts"></th>';
   if(!zeitAktiv()) h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
-  if(messSpalteAn() && !zeitAktiv()) h+=messTh;
   katSpalten().forEach(c=>{
     const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
     h+=`<th class="th-q" title="${escAttr(c.label)}" style="background:linear-gradient(${gCol}e6,${gCol}e6),var(--surface);border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).map(escHtml).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
     if(uiMode!=='beginner') h+=`<th class="th-t adv-only" style="background:linear-gradient(${gCol}b3,${gCol}b3),var(--surface);">[${ul()}]</th>`;
   });
+  /* Messwerte der Stoppuhr ganz am Ende — nur im Erweitert-Modus; die Zeitaufnahme hat ihre eigene Ansicht */
+  if(messSpalteSichtbar()) h+=messTh;
   tr.innerHTML=h;
   // aktive Filter im Kopf markieren
   [...tr.children].forEach(th=>{
@@ -3892,6 +3946,7 @@ breitenAnwenden();
    Reine Anzeigeeinstellung — verändert oder verbirgt keine Daten
 ═══════════════════════════════════════ */
 function setUIMode(m){
+  if(m!=='beginner' && messLauf){ toast('⚠ Erst die laufende Messung beenden (Stopp oder ✕)'); return; }
   uiMode=m;
   document.getElementById('modeBeginnerBtn').className='tg-btn'+(m==='beginner'?' on-mode':'');
   document.getElementById('modeAdvancedBtn').className='tg-btn'+(m==='advanced'?' on-mode':'');
@@ -3952,7 +4007,7 @@ function tabKontext(){
   /* Einfach-Modus: die ausgeblendeten [minD]-Zellen und Laptop-Knöpfe gar nicht erst anlegen —
      das halbiert die Zellen der Tabelle, und ihr Layout ist bei ~300 Schritten der größte Posten */
   tabZeit=zeitAktiv();
-  tabMess=messSpalteAn()||tabZeit;
+  tabMess=messSpalteSichtbar();
   return {L,vis,extraFlds,td,posNr,einfach:uiMode==='beginner',mess:tabMess,zeit:tabZeit};
 }
 /* Hauptzeile eines Schritts und — aufgeklappt — seine Teile-Zeilen */
@@ -4014,7 +4069,6 @@ function schrittZeilen(part,k){
       tdm.addEventListener('click',e=>{ e.stopPropagation(); selectPart(id); openMessPopup(id,tdm); });
       return tdm;
     };
-    if(k.zeit) tr.appendChild(messTd());
 
     // Sachnummer / Bauteilbenennung: zugeklappt erster Eintrag + „+n", nur Anzeige
     /* Antippen klappt die Teile auf und zu — größere Fläche als das kleine ▸ */
@@ -4090,7 +4144,6 @@ function schrittZeilen(part,k){
     // Summe
     const tot=calcTotal(id);
     if(!k.zeit){ const tdtot=td('ct'); tdtot.textContent=tot>0?disp2(tot):'–'; tr.appendChild(tdtot); }
-    if(k.mess && !k.zeit) tr.appendChild(messTd());
 
     katSpalten().forEach(c=>{
       const v=data[id][c.key]||0;
@@ -4104,6 +4157,7 @@ function schrittZeilen(part,k){
       }
       if(tdt) tr.appendChild(tdt);
     });
+    if(k.mess) tr.appendChild(messTd());
 
     tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(id); });
     const zeilen=[tr];
@@ -4130,19 +4184,18 @@ function renderBody(){
   sr.appendChild(td('nr'));
   sr.appendChild(td('level',vis.level,L.level));
   const s0=td('cn',vis.name,L.cn);s0.textContent=hasAnyFilter()?'∑ Gefiltert':'∑ Gesamt';sr.appendChild(s0);
-  if(k.zeit){ const sm=td('mess'); messSummeFuellen(sm,visibleParts); sr.appendChild(sm); }
   sr.appendChild(td('sachnr',vis.sachnr));
   sr.appendChild(td('teilname',vis.teilname));
   extraFlds.forEach(f=>sr.appendChild(td('extra x-'+f.slice(2))));
   const sQty=td('qty');sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
   sr.appendChild(td('acts'));
   if(!k.zeit){ const stot=td('ct');stot.textContent=disp2(totT);sr.appendChild(stot); }
-  if(k.mess && !k.zeit){ const sm=td('mess'); messSummeFuellen(sm,visibleParts); sr.appendChild(sm); }
   katSpalten().forEach(c=>{
     const tdv=document.createElement('td'); tdv.dataset.k=c.key; sr.appendChild(tdv);
     let tdt=null; if(!k.einfach){ tdt=document.createElement('td'); tdt.dataset.kt=c.key; sr.appendChild(tdt); }
     zaehlZellen(tdv,tdt,totQ[c.key],c,true);
   });
+  if(k.mess){ const sm=td('mess'); messSummeFuellen(sm,visibleParts); sr.appendChild(sm); }
   body.appendChild(sr);
   updateTeileAllBtn();
 }
@@ -4180,33 +4233,39 @@ let zeitModus=false;
 function zeitAktiv(){ return zeitModus && uiMode==='beginner'; }
 function zeitModusAnwenden(){
   document.body.classList.toggle('zeitaufnahme',zeitAktiv());
+  messAnsichtZeichnen();
   const z=document.getElementById('zaZaehlenBtn'), t=document.getElementById('zaZeitBtn');
   if(z) z.className='tg-btn'+(zeitModus?'':' on-mode');
   if(t) t.className='tg-btn'+(zeitModus?' on-mode':'');
 }
 function setZeitModus(on){
+  if(!on && messLauf){ toast('⚠ Erst die laufende Messung beenden (Stopp oder ✕)'); return; }
   zeitModus=!!on; zeitModusAnwenden();
   buildHead(); renderBody(); updateActiveBar(); saveState();
-  toast(zeitModus?'⏱ Zeitaufnahme: nur Prozessschritte und Stoppuhr':'✓ Zählen: Kacheln und Kategorien wieder sichtbar');
+  toast(zeitModus?'⏱ Zeitaufnahme: Mess-Ansicht':'✓ Zählen: Kacheln und Tabelle wieder sichtbar');
 }
 /* Kategoriespalten der Tabelle — in der Zeitaufnahme keine */
 function katSpalten(){ return zeitAktiv() ? [] : tabCols(); }
-let stopp=null, stoppTmr=null, stoppWach=null, tabMess=false, tabZeit=false;
+let tabMess=false, tabZeit=false;
 function messWerte(id){ const m=(data[id]||{}).__mess; return Array.isArray(m)?m:[]; }
 /* Ausgeschlossene Messungen (Ausreißer): bleiben gespeichert, zählen aber nicht in Mittelwert und Auswertung.
    data[id].__messAus = Wahrheitswerte parallel zu __mess, nur vorhanden, wenn einer ausgeschlossen ist. */
 function messAus(id){ const a=(data[id]||{}).__messAus, m=messWerte(id); return m.map((_,i)=>!!(Array.isArray(a)&&a[i])); }
 function messGueltig(id){ const a=messAus(id); return messWerte(id).filter((_,i)=>!a[i]); }
 function messMittel(id){ const m=messGueltig(id); return m.length?m.reduce((a,b)=>a+b,0)/m.length:0; }
-function messSetzen(id,werte,aus){
+/* Zyklus je Messung (Ablauf-Messung): data[id].__messZ parallel zu __mess, 0 = Einzelmessung */
+function messZyk(id){ const z=(data[id]||{}).__messZ, m=messWerte(id); return m.map((_,i)=>Array.isArray(z)&&z[i]>0?Math.floor(z[i]):0); }
+function messSetzen(id,werte,aus,zyk){
   const d=data[id]; if(!d) return;
   if(werte.length) d.__mess=werte; else delete d.__mess;
   if(werte.length && aus && aus.some(Boolean)) d.__messAus=werte.map((_,i)=>!!aus[i]); else delete d.__messAus;
+  if(werte.length && zyk && zyk.some(x=>x>0)) d.__messZ=werte.map((_,i)=>zyk[i]||0); else delete d.__messZ;
 }
-function messUndoMerken(id){ undoPush({typ:'mess',part:id,prev:{m:messWerte(id).slice(),a:messAus(id)}}); }
+function messUndoMerken(id){ undoPush({typ:'mess',part:id,prev:{m:messWerte(id).slice(),a:messAus(id),z:messZyk(id)}}); }
 /* „12,3" — ausgeschlossene in Klammern: „(25,8)" */
 function messText(id,trenner){ const a=messAus(id); return messWerte(id).map((x,i)=>a[i]?'('+sekText(x)+')':sekText(x)).join(trenner); }
 function messSpalteAn(){ return parts.some(p=>messWerte(p.id).length>0); }
+function messSpalteSichtbar(){ return uiMode==='advanced' && messSpalteAn(); }
 const sekText=x=>(Math.round(x*10)/10).toFixed(1).replace('.',',');
 function messZelleFuellen(td,id){
   const m=messWerte(id), g=messGueltig(id);
@@ -4222,81 +4281,264 @@ function messSummeFuellen(td,liste){
 /* Nach einer neuen oder gelöschten Messung: Zelle und Summe nachführen; erscheint oder verschwindet
    die Spalte dadurch, die Tabelle neu aufbauen */
 function messNachfuehren(id){
-  if((messSpalteAn()||zeitAktiv())!==!!document.querySelector('#tblHead th.mess')){ buildHead(); renderBody(); }
+  if(messSpalteSichtbar()!==!!document.querySelector('#tblHead th.mess')){ buildHead(); renderBody(); }
   else {
     const td=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"] td.mess'); if(td) messZelleFuellen(td,id);
     summenNachfuehren();
   }
-  stoppInfo();
+  messAnsichtZeichnen();
   if(document.getElementById('anaModal').classList.contains('open') && anaTab==='mess') renderMess();
 }
 function stoppFormat(sek){ const m=Math.floor(sek/60), r=sek-m*60; return m+':'+(r<10?'0':'')+r.toFixed(1).replace('.',','); }
-function stoppStart(id,start){
-  id=id||activePart;
-  if(!id||!data[id]){ toast('⚠ Erst einen Prozessschritt wählen'); return; }
-  stopp={id,start:start||Date.now()};
-  if(activePart!==id) selectPart(id);
-  clearInterval(stoppTmr); stoppTmr=setInterval(stoppTick,100); stoppTick();
-  document.getElementById('stoppLeiste').classList.add('laeuft');
-  stoppInfo();
-  /* Bildschirm während der Messung nicht abschalten lassen (wo das Gerät es erlaubt) */
-  try{ if(!stoppWach && navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>{ stoppWach=w; }).catch(()=>{}); }catch(e){}
-}
-function stoppTick(){ if(stopp) document.getElementById('stoppZeit').textContent=stoppFormat((Date.now()-stopp.start)/1000); }
-function stoppErfassen(ende){
-  const id=stopp.id, sek=Math.round((ende-stopp.start)/100)/10;
-  if(!data[id]){ toast('⚠ Schritt gelöscht – Messung verworfen'); return null; }
-  if(sek<0.5){ toast('Unter 0,5 s – nicht gespeichert'); return null; }
-  messUndoMerken(id);
-  messSetzen(id,messWerte(id).concat([sek]),messAus(id).concat([false]));
-  markDirty(); messNachfuehren(id);
-  return {id,sek};
-}
-function naechsterMessSchritt(id){
+/* ═══════════════════════════════════════
+   MESS-ANSICHT (Untermodus Zeitaufnahme)
+   Zwei Arten:
+   · Ablauf (Fortschrittszeit) — ab dem gewählten Schritt durch den Zyklus; „Fertig" speichert und startet
+     ohne Lücke den nächsten (Überschriften = Level 1 werden übersprungen). Am Ende: neuer Zyklus.
+   · Einzeln (Einzelzeit) — ein Schritt wird wiederholt gemessen; „Fertig" speichert und hält an.
+   Pause hält die Schrittzeit an; die Unterbrechung wird mit Grund und Dauer gespeichert (unterbrechungen).
+   Der laufende Stand (messLauf) wird mitgespeichert und übersteht Neuladen und App-Wechsel.
+═══════════════════════════════════════ */
+let messModus='ablauf';        // 'ablauf' | 'einzeln'
+let messLauf=null;             // {id,start,pauseMs,pauseStart,grund,notiz,zyklus,startId,verlauf:[{id,sek,skip}],danach}
+let messZyklusEnde=null;       // Hinweis nach einem Zyklus: {nr,n,sek,abgebrochen,startId}
+let unterbrechungen=[];        // {id,sek,grund,notiz,zyklus,t}
+let messTmr=null, messWach=null;
+const LS_GRUENDE='zeitaufnahme_pausegruende';
+const GRUENDE_STD=['Störung','Material fehlt','Warten','Gespräch','Sonstiges'];
+function pauseGruende(){ const g=lsLesen(LS_GRUENDE,null); return Array.isArray(g)&&g.some(x=>typeof x==='string'&&x.trim()) ? g.filter(x=>typeof x==='string'&&x.trim()) : GRUENDE_STD.slice(); }
+function stoppFormat(sek){ const m=Math.floor(sek/60), r=sek-m*60; return m+':'+(r<10?'0':'')+r.toFixed(1).replace('.',','); }
+const lvlVon=id=>(data[id]&&data[id].__level)||1;
+function messSchritte(){ return getFilteredParts().filter(p=>lvlVon(p.id)>1); }
+function messNaechster(id){
   const l=getFilteredParts(), i=l.findIndex(p=>p.id===id);
-  for(let j=i+1;j<l.length;j++) if((data[l[j].id].__level||1)>1) return l[j].id;
+  for(let j=i+1;j<l.length;j++) if(lvlVon(l[j].id)>1) return l[j].id;
   return null;
 }
-function stoppWeiter(){
-  if(!stopp) return;
-  const jetzt=Date.now(), alt=stopp.id;
-  /* Während der Messung eine andere Zeile angetippt? Dann dort weiter, sonst der nächste Schritt */
-  const gewaehlt=activePart && activePart!==alt && data[activePart] ? activePart : null;
-  const r=stoppErfassen(jetzt);
-  const naechst=gewaehlt||naechsterMessSchritt(alt);
-  stoppAus(!!naechst);
+function messErsterAb(id){ return id && data[id] && lvlVon(id)>1 ? id : messNaechster(id); }
+function naechsteZyklusNr(){ let m=0; parts.forEach(p=>messZyk(p.id).forEach(z=>{ if(z>m) m=z; })); return m+1; }
+function messSek(){
+  if(!messLauf) return 0;
+  const jetzt=Date.now(), pause=messLauf.pauseMs+(messLauf.pauseStart?jetzt-messLauf.pauseStart:0);
+  return Math.max(0,(jetzt-messLauf.start-pause)/1000);
+}
+function messTick(){
+  const u=document.getElementById('maUhr'); if(u) u.textContent=stoppFormat(messSek());
+  const p=document.getElementById('maPauseUhr'); if(p&&messLauf&&messLauf.pauseStart) p.textContent=stoppFormat((Date.now()-messLauf.pauseStart)/1000);
+}
+function messUhrAn(){
+  clearInterval(messTmr); messTmr=null;
+  if(messLauf){ messTmr=setInterval(messTick,100); messWachHalten(); }
+  else if(messWach){ try{ messWach.release(); }catch(e){} messWach=null; }
+}
+/* Bildschirm während der Messung nicht abschalten lassen (wo das Gerät es erlaubt) */
+function messWachHalten(){ try{ if(!messWach && navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>{ messWach=w; w.addEventListener('release',()=>{ messWach=null; }); }).catch(()=>{}); }catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && messLauf) messWachHalten(); });
+/* Jede Zustandsänderung sofort sichern — die Messung soll ein Neuladen überstehen */
+function messGeaendert(){ messUhrAn(); messAnsichtZeichnen(); clearTimeout(saveTmr); saveTmr=null; saveState(); }
+function messErfassen(id,sek,zyklus){
+  if(!data[id]) return false;
+  if(sek<0.5){ toast('Unter 0,5 s – nicht gespeichert'); return false; }
+  messUndoMerken(id);
+  messSetzen(id,messWerte(id).concat([sek]),messAus(id).concat([false]),messZyk(id).concat([zyklus||0]));
+  markDirty(); messNachfuehren(id);
+  return true;
+}
+function pauseErfassen(){
+  if(!messLauf||!messLauf.pauseStart) return;
+  const jetzt=Date.now(), sek=Math.round((jetzt-messLauf.pauseStart)/100)/10;
+  if(sek>=1) unterbrechungen.push({id:messLauf.id,sek,grund:messLauf.grund||'',notiz:(messLauf.notiz||'').trim(),zyklus:messLauf.zyklus||0,t:new Date(messLauf.pauseStart).toISOString()});
+  messLauf.pauseMs+=jetzt-messLauf.pauseStart; messLauf.pauseStart=null; messLauf.grund=''; messLauf.notiz='';
+  markDirty();
+}
+function setMessModus(m){
+  if(messLauf){ toast('⚠ Erst die laufende Messung beenden'); return; }
+  messModus=m==='einzeln'?'einzeln':'ablauf'; messZyklusEnde=null; messGeaendert();
+}
+function messStart(){
+  const jetzt=Date.now();
+  let id=activePart;
+  if(messModus==='ablauf'){ id=messErsterAb(id); if(!id){ toast('⚠ Ab hier gibt es keinen Schritt zum Messen'); return; } }
+  if(!id||!data[id]){ toast('⚠ Erst einen Prozessschritt wählen'); return; }
+  messLauf={id,start:jetzt,pauseMs:0,pauseStart:null,grund:'',notiz:'',zyklus:messModus==='ablauf'?naechsteZyklusNr():0,startId:id,verlauf:[],danach:null};
+  messZyklusEnde=null;
+  if(activePart!==id) selectPart(id);
+  messGeaendert();
+}
+function messWeiterZu(naechst,jetzt){
   if(naechst){
-    stoppStart(naechst,jetzt);
-    const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(naechst)+'"]'); if(tr) tr.scrollIntoView({block:'nearest'});
+    Object.assign(messLauf,{id:naechst,start:jetzt,pauseMs:0,pauseStart:null,danach:null});
+    selectPart(naechst);
+  } else zyklusBeenden(false);
+}
+function messFertig(){
+  if(!messLauf||messLauf.pauseStart) return;
+  const jetzt=Date.now(), sek=Math.round(messSek()*10)/10, id=messLauf.id;
+  const ok=messErfassen(id,sek,messLauf.zyklus);
+  if(messModus==='einzeln'){
+    messLauf=null; messGeaendert();
+    if(ok) toast('✓ '+sekText(sek)+' s · „'+partName(id)+'" ('+messGueltig(id).length+'. Messung, Ø '+sekText(messMittel(id))+' s)',3000);
+    return;
   }
-  if(r) toast('✓ '+sekText(r.sek)+' s · „'+partName(r.id)+'"'+(naechst?' → misst „'+partName(naechst)+'"':' – Ende der Liste, angehalten'),3000);
+  messLauf.verlauf.push({id,sek:ok?sek:null,skip:!ok});
+  messWeiterZu(messLauf.danach&&data[messLauf.danach]?messLauf.danach:messNaechster(id),jetzt);
+  messGeaendert();
 }
-function stoppStop(){
-  if(!stopp) return;
-  const r=stoppErfassen(Date.now()); stoppAus();
-  if(r) toast('✓ '+sekText(r.sek)+' s · „'+partName(r.id)+'" ('+messGueltig(r.id).length+'. Messung, Ø '+sekText(messMittel(r.id))+' s)',3000);
+function messUeberspringen(){
+  if(!messLauf||messModus!=='ablauf') return;
+  if(messLauf.pauseStart) pauseErfassen();
+  const jetzt=Date.now(), id=messLauf.id;
+  messLauf.verlauf.push({id,sek:null,skip:true});
+  messWeiterZu(messLauf.danach&&data[messLauf.danach]?messLauf.danach:messNaechster(id),jetzt);
+  messGeaendert();
+  toast('„'+partName(id)+'" übersprungen');
 }
-function stoppVerwerfen(){ if(!stopp) return; stoppAus(); toast('Messung verworfen'); }
-function stoppAus(weiter){
-  clearInterval(stoppTmr); stoppTmr=null; stopp=null;
-  document.getElementById('stoppLeiste').classList.remove('laeuft');
-  if(!weiter && stoppWach){ try{ stoppWach.release(); }catch(e){} stoppWach=null; }
-  stoppInfo();
+function messPause(){ if(!messLauf||messLauf.pauseStart) return; messLauf.pauseStart=Date.now(); messLauf.grund=''; messLauf.notiz=''; messGeaendert(); }
+function messWeiter(){ if(!messLauf||!messLauf.pauseStart) return; pauseErfassen(); messGeaendert(); }
+function messStopp(){
+  if(!messLauf) return;
+  if(messLauf.pauseStart) pauseErfassen();
+  const sek=Math.round(messSek()*10)/10, id=messLauf.id;
+  const ok=messErfassen(id,sek,messLauf.zyklus);
+  if(messModus==='ablauf'){ messLauf.verlauf.push({id,sek:ok?sek:null,skip:!ok}); zyklusBeenden(true); }
+  else messLauf=null;
+  messGeaendert();
+  if(ok) toast('✓ '+sekText(sek)+' s · „'+partName(id)+'" – angehalten',3000);
 }
-function stoppInfo(){
-  const el=document.getElementById('stoppInfo'); if(!el) return;
-  const nr=id=>'#'+(parts.findIndex(p=>p.id===id)+1);
-  if(stopp){
-    let t='misst '+nr(stopp.id)+' '+partName(stopp.id)+' · '+(messWerte(stopp.id).length+1)+'. Messung';
-    if(activePart && activePart!==stopp.id) t+=' · danach: '+nr(activePart)+' '+partName(activePart);
-    el.textContent=t; return;
+function messVerwerfen(){
+  if(!messLauf) return;
+  const sek=messSek();
+  if(sek>5 && !confirm('Laufende Messung ('+sekText(sek)+' s) verwerfen?')) return;
+  if(messLauf.pauseStart) pauseErfassen();
+  if(messModus==='ablauf' && messLauf.verlauf.length) zyklusBeenden(true); else messLauf=null;
+  messGeaendert();
+  toast('Messung verworfen');
+}
+function zyklusBeenden(abgebrochen){
+  const v=messLauf.verlauf.filter(x=>!x.skip&&x.sek!=null), start=messLauf.startId;
+  messZyklusEnde={nr:messLauf.zyklus,n:v.length,sek:v.reduce((a,x)=>a+x.sek,0),abgebrochen,startId:start};
+  messLauf=null;
+  /* Durchgelaufen: wieder beim Startschritt stehen — angehalten: dort bleiben, wo aufgehört wurde */
+  if(!abgebrochen && data[start]) selectPart(start);
+}
+function messNeuerZyklus(){ const s=messZyklusEnde&&messZyklusEnde.startId; messZyklusEnde=null; if(s&&data[s]) selectPart(s); messStart(); }
+function messEndeSchliessen(){ messZyklusEnde=null; messGeaendert(); }
+function messGrund(g){ if(!messLauf||!messLauf.pauseStart) return; messLauf.grund=messLauf.grund===g?'':g; messGeaendert(); }
+function messNotiz(v){ if(messLauf&&messLauf.pauseStart){ messLauf.notiz=v; saveSoon(); } }
+/* Antippen in der Liste: ohne Messung wählt es den Schritt; während einer Ablauf-Messung legt es fest,
+   womit es nach „Fertig" weitergeht (nochmal antippen hebt das auf) */
+function messZeileTipp(id){
+  if(!data[id]) return;
+  if(!messLauf){ messZyklusEnde=null; selectPart(id); return; }
+  if(messModus!=='ablauf'){ toast('Erst „Fertig" oder „Stopp" – dann den nächsten Schritt wählen'); return; }
+  const ziel=lvlVon(id)>1?id:messNaechster(id);   // Überschrift: deren erster Schritt
+  if(!ziel||ziel===messLauf.id) return;
+  messLauf.danach=messLauf.danach===ziel?null:ziel; messGeaendert();
+}
+function messAnsichtZeichnen(){
+  const el=document.getElementById('messAnsicht');
+  if(!el || !zeitAktiv()){ if(el) el.innerHTML=''; return; }
+  const lauf=messLauf, id=lauf?lauf.id:activePart;
+  const posNr=new Map(parts.map((p,i)=>[p.id,i+1]));
+  const st=id&&data[id]?String(data[id].__extra1||'').trim():'';
+  const zustand=!lauf?'bereit':(lauf.pauseStart?'pause':'laeuft');
+  const m=id?messGueltig(id):[];
+  const bisher=m.length ? 'bisher '+m.slice(-4).map(sekText).join(' · ')+' s'+(m.length>4?' …':'')+' · Ø '+sekText(messMittel(id))+' s ('+m.length+'×)' : 'noch nicht gemessen';
+  let status;
+  if(messModus==='ablauf'){
+    const l=messSchritte(), s=lauf?lauf.startId:messErsterAb(id), i0=Math.max(0,l.findIndex(p=>p.id===s));
+    const ab=l.slice(i0), k=ab.findIndex(p=>p.id===id);
+    status=lauf ? 'Zyklus '+lauf.zyklus+' · Schritt '+(k+1)+' von '+ab.length : 'Ablauf ab #'+(posNr.get(s)||'–')+' · '+ab.length+' Schritt'+(ab.length===1?'':'e');
+  } else status=lauf ? 'Einzelmessung · '+(messWerte(id).length+1)+'. Messung' : 'Einzelmessung';
+  const nichtMessbar=messModus==='ablauf' && !lauf && id && lvlVon(id)<=1;
+  let h=`<div class="ma-kopf">
+      <div class="toggle-group"><button class="tg-btn${messModus==='ablauf'?' on-mode':''}" onclick="setMessModus('ablauf')"${lauf?' disabled':''}>Ablauf</button><button class="tg-btn${messModus==='einzeln'?' on-mode':''}" onclick="setMessModus('einzeln')"${lauf?' disabled':''}>Einzeln</button></div>
+      <span class="ma-status">${escHtml(status)}</span>
+    </div>
+    <div class="ma-karte ${zustand==='bereit'?'':zustand}">
+      <div class="ma-nr">${id?'#'+posNr.get(id)+(st?' · '+escHtml(st):''):''}</div>
+      <div class="ma-name">${id?escHtml(partName(id)):'Schritt in der Liste wählen'}</div>
+      <div class="ma-uhr" id="maUhr">${stoppFormat(messSek())}</div>
+      <div class="ma-bisher">${nichtMessbar?'Überschrift – der Ablauf beginnt beim nächsten Schritt':escHtml(bisher)}</div>
+    </div>`;
+  if(zustand==='pause'){
+    h+=`<div class="ma-pause">
+      <div class="ma-pause-kopf">${ic('pause')}Unterbrechung <b id="maPauseUhr">${stoppFormat((Date.now()-lauf.pauseStart)/1000)}</b><a onclick="openGruende()">Gründe bearbeiten</a></div>
+      <div class="ma-gruende">${pauseGruende().map(g=>`<button class="${lauf.grund===g?'on':''}" onclick="messGrund(this.dataset.g)" data-g="${escAttr(g)}">${escHtml(g)}</button>`).join('')}</div>
+      <input type="text" placeholder="Notiz zur Unterbrechung (optional)" value="${escAttr(lauf.notiz||'')}" oninput="messNotiz(this.value)"/>
+    </div>`;
   }
-  const m=messGueltig(activePart), aus=messWerte(activePart).length-m.length;
-  const mtmTxt=zeitAktiv() ? '' : ' · MTM '+disp2(calcTotal(activePart))+' '+ul();
-  el.textContent=!activePart ? '' : m.length
-    ? m.length+' Messung'+(m.length===1?'':'en')+(aus?' (+'+aus+' ausgeschlossen)':'')+' · Ø '+sekText(messMittel(activePart))+' s = '+disp2(messMittel(activePart)/SEK_JE_MIND)+' '+ul()+mtmTxt
-    : (aus?aus+' Messung(en), alle ausgeschlossen':'Noch nicht gemessen')+mtmTxt;
+  if(messZyklusEnde && !lauf){
+    const z=messZyklusEnde, start=z.startId&&data[z.startId];
+    h+=`<div class="ma-ende"><span><b>✓ Zyklus ${z.nr} ${z.abgebrochen?'angehalten':'beendet'}</b> · ${z.n} Schritt${z.n===1?'':'e'} · ${stoppFormat(z.sek)} min</span>
+      ${start?`<button class="tbtn" onclick="messNeuerZyklus()">${ic('uhr')}Neuer Zyklus ab #${posNr.get(z.startId)}</button>`:''}
+      <button class="tbtn" onclick="messEndeSchliessen()">Schließen</button></div>`;
+  }
+  /* Liste: alle sichtbaren Schritte, Überschriften als Zwischenzeilen */
+  const imZyklus=new Map(); if(lauf) lauf.verlauf.forEach(v=>imZyklus.set(v.id,v));
+  h+='<div class="ma-liste" id="maListe">'+getFilteredParts().map(p=>{
+    const lv=lvlVon(p.id), v=imZyklus.get(p.id), g=messGueltig(p.id);
+    const kl=['ma-zeile']; if(lv<=1) kl.push('kopf'); if(p.id===id) kl.push('aktuell'); if(v) kl.push(v.skip?'skip':'erledigt');
+    let wert;
+    if(p.id===id && lauf) wert=zustand==='pause'?'Pause':'läuft …';
+    else if(v) wert=v.skip?'übersprungen':'✓ '+sekText(v.sek)+' s';
+    else wert=g.length?'Ø '+sekText(messMittel(p.id))+' s ×'+g.length:(lv<=1?'':'–');
+    const stn=String(data[p.id].__extra1||'').trim();
+    return `<div class="${kl.join(' ')}" data-id="${escAttr(p.id)}">
+      <span class="mz-nr">#${posNr.get(p.id)}</span><span class="mz-name">${escHtml(p.name)}</span>
+      ${lauf&&lauf.danach===p.id?'<span class="mz-danach">danach</span>':''}
+      ${stn&&lv>1?`<span class="mz-st">${escHtml(stn)}</span>`:''}<span class="mz-wert">${wert}</span></div>`;
+  }).join('')+'</div>';
+  /* Knöpfe je Zustand — die wichtigste Aktion groß und rechts (Daumen) */
+  const naechst=lauf&&messModus==='ablauf' ? (lauf.danach||messNaechster(lauf.id)) : null;
+  if(zustand==='bereit'){
+    h+=`<div class="ma-knoepfe"><button class="gross blau" onclick="messStart()"${!id||nichtMessbar&&!messErsterAb(id)?' disabled':''}>${ic('play')}${messModus==='ablauf'?'Zyklus starten':'Messung starten'}</button></div>`;
+  } else if(zustand==='laeuft'){
+    h+=`<div class="ma-knoepfe">
+      <button class="gelb" onclick="messPause()">${ic('pause')}Pause</button>
+      ${messModus==='ablauf'?`<button onclick="messUeberspringen()" title="Schritt entfällt – ohne Messung weiter" aria-label="Überspringen">${ic('skip')}</button>`:''}
+      <button onclick="messStopp()" title="Speichern und anhalten">${ic('stopp')}Stopp</button>
+      <button class="rot" onclick="messVerwerfen()" title="Laufende Messung verwerfen" aria-label="Verwerfen">✕</button>
+      <button class="gross gruen" onclick="messFertig()">✓ Fertig${messModus==='ablauf'?(naechst?' → #'+posNr.get(naechst):' · Ende'):''}</button>
+    </div>`;
+  } else {
+    h+=`<div class="ma-knoepfe">
+      <button onclick="messStopp()" title="Bis zur Pause gemessene Zeit speichern und anhalten">${ic('stopp')}Stopp</button>
+      <button class="rot" onclick="messVerwerfen()" aria-label="Verwerfen">✕</button>
+      <button class="gross blau" onclick="messWeiter()">${ic('play')}Weiter</button>
+    </div>`;
+  }
+  const scrollAlt=(document.getElementById('maListe')||{}).scrollTop||0;
+  el.innerHTML=h;
+  const liste=document.getElementById('maListe');
+  liste.addEventListener('click',e=>{ const z=e.target.closest('.ma-zeile'); if(z) messZeileTipp(z.dataset.id); });
+  liste.scrollTop=scrollAlt;
+  const akt=liste.querySelector('.ma-zeile.aktuell');
+  if(akt){ const lr=liste.getBoundingClientRect(), ar=akt.getBoundingClientRect(); if(ar.top<lr.top||ar.bottom>lr.bottom) akt.scrollIntoView({block:'center'}); }
 }
+/* ── Pausegründe (Einstellung auf diesem Gerät, für alle Projekte) ── */
+function openGruende(){
+  const b=document.getElementById('grundBody');
+  b.innerHTML='<div class="vp-info" style="margin-bottom:10px">Diese Gründe stehen beim Pausieren zur Auswahl. Sie gelten auf diesem Gerät für alle Projekte; bereits erfasste Unterbrechungen behalten ihren Text.</div><div id="grundListe"></div>'
+    +'<button class="tbtn" onclick="grundStandard()">Standard wiederherstellen</button>';
+  pauseGruende().forEach(g=>grundZeile(g));
+  document.getElementById('grundModal').classList.add('open');
+}
+function grundZeile(g){
+  const r=document.createElement('div'); r.className='grund-row';
+  r.innerHTML=`<input type="text" maxlength="40" value="${escAttr(g)}" placeholder="Grund"/><button class="pdel" title="Entfernen" aria-label="Entfernen">${ic('x')}</button>`;
+  r.querySelector('button').addEventListener('click',()=>r.remove());
+  document.getElementById('grundListe').appendChild(r);
+  if(!g) r.querySelector('input').focus();
+}
+function grundStandard(){ document.getElementById('grundListe').innerHTML=''; GRUENDE_STD.forEach(g=>grundZeile(g)); }
+function saveGruende(){
+  const l=[...new Set([...document.querySelectorAll('#grundListe input')].map(i=>i.value.trim()).filter(Boolean))];
+  if(!l.length){ toast('⚠ Mindestens ein Grund'); return; }
+  lsSchreiben(LS_GRUENDE,l); closeGruende(); messAnsichtZeichnen(); toast('✓ Pausegründe gespeichert');
+}
+function closeGruende(){ document.getElementById('grundModal').classList.remove('open'); }
+
 /* Einzelwerte eines Schritts — Ausreißer löschen */
 function openMessPopup(id,anchor){
   const pop=document.getElementById('colPopup'), body=document.getElementById('colPopupBody');
@@ -4328,9 +4570,9 @@ function messPopupErneuern(id,anchor){
   else closeColPopup();
 }
 function messLoeschen(id,i,anchor){
-  const m=messWerte(id).slice(), a=messAus(id); if(!m.length) return;
+  const m=messWerte(id).slice(), a=messAus(id), z=messZyk(id); if(!m.length) return;
   messUndoMerken(id);
-  if(i<0) messSetzen(id,[],[]); else { m.splice(i,1); a.splice(i,1); messSetzen(id,m,a); }
+  if(i<0) messSetzen(id,[],[],[]); else { m.splice(i,1); a.splice(i,1); z.splice(i,1); messSetzen(id,m,a,z); }
   markDirty(); messNachfuehren(id);
   toast(i<0?'Alle Messungen gelöscht – ↩ Undo holt sie zurück':'Messung gelöscht – ↩ Undo holt sie zurück');
   messPopupErneuern(id,anchor);
@@ -4339,7 +4581,7 @@ function messLoeschen(id,i,anchor){
 function messUmschalten(id,i,anchor){
   const m=messWerte(id), a=messAus(id); if(i<0||i>=m.length) return;
   messUndoMerken(id);
-  a[i]=!a[i]; messSetzen(id,m.slice(),a);
+  a[i]=!a[i]; messSetzen(id,m.slice(),a,messZyk(id));
   markDirty(); messNachfuehren(id);
   toast(a[i]?sekText(m[i])+' s ausgeschlossen – zählt nicht mehr mit':sekText(m[i])+' s zählt wieder mit');
   messPopupErneuern(id,anchor);
@@ -4602,8 +4844,8 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   tdA.appendChild(del);
   tr.appendChild(tdA);
   if(!tabZeit) tr.appendChild(td('ct'));
-  if(tabMess && !tabZeit) tr.appendChild(td('mess'));
   if(kategorieSpan()){ const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest); }
+  if(tabMess) tr.appendChild(td('mess'));
   tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(stepId); });
   return tr;
 }
@@ -4614,12 +4856,12 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
   tr.appendChild(td('nr'));
   tr.appendChild(td('level',vis.level,L.level));
   const tdCn=td('cn',vis.name,L.cn), tdS=td('sachnr',vis.sachnr), tdT=td('teilname',vis.teilname);
-  tr.appendChild(tdCn); if(tabZeit) tr.appendChild(td('mess')); tr.appendChild(tdS); tr.appendChild(tdT);
+  tr.appendChild(tdCn); tr.appendChild(tdS); tr.appendChild(tdT);
   extraFlds.forEach(f=>tr.appendChild(td('extra x-'+f.slice(2))));
   tr.appendChild(td('qty')); tr.appendChild(td('acts'));
   if(!tabZeit) tr.appendChild(td('ct'));
-  if(tabMess && !tabZeit) tr.appendChild(td('mess'));
   if(kategorieSpan()){ const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest); }
+  if(tabMess) tr.appendChild(td('mess'));
   /* Knopf in die erste sichtbare der linken Spalten, damit er ohne Scrollen erreichbar ist */
   const host=[[vis.name,tdCn],[vis.sachnr,tdS],[vis.teilname,tdT]].find(x=>x[0]);
   const btn=document.createElement('button');
@@ -4667,7 +4909,7 @@ function undoPush(e){ undoStack.push(e); if(undoStack.length>50) undoStack.shift
    Spaltenbreiten). Wird vor einer Änderung gemerkt; Undo setzt ihn als Ganzes zurück. */
 function projektStand(){
   return JSON.stringify({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,
-    taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject,activePart});
+    taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject,activePart,unterbrechungen});
 }
 /* quelle: gleichartige Änderungen kurz hintereinander (Tippen in einem Feld) ergeben einen Undo-Schritt */
 function undoStand(text,quelle,vorher){
@@ -4687,6 +4929,7 @@ function fensterGeaendert(f,text){
 function standZuruecksetzen(json){
   const st=JSON.parse(json);
   ({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject}=st);
+  unterbrechungen=Array.isArray(st.unterbrechungen)?st.unterbrechungen:[];
   activePart=parts.some(p=>p.id===st.activePart) ? st.activePart : (parts[0]?parts[0].id:null);
   Object.keys(teileOffen).forEach(id=>{ if(!data[id]) delete teileOffen[id]; });
   if(rowClipboard && !data[rowClipboard.sourceId]) rowClipboard=null;
@@ -4709,7 +4952,7 @@ function undoLast(){
   }
   if(last.typ==='mess'){
     if(!data[last.part]){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
-    messSetzen(last.part,last.prev.m,last.prev.a);
+    messSetzen(last.part,last.prev.m,last.prev.a,last.prev.z||[]);
     messNachfuehren(last.part); markDirty();
     lastActionText='↩ Rückgängig: Messung · '+partName(last.part); toast(lastActionText); updateLastAction();
     return;
@@ -5922,6 +6165,7 @@ document.addEventListener('keydown',e=>{
   else if(offen('colPopup')) closeColPopup();
   else if(offen('pasteModal')) closePaste();
   else if(offen('sichModal')) closeSicherungen();
+  else if(offen('grundModal')) closeGruende();
   else if(offen('expModal')) closeExpModal();
   else if(lwOffen()) closeLw();
   else if(offen('mtmModal')) closeMtm();
@@ -5947,7 +6191,7 @@ const dot = ()=>document.getElementById('saveDot');
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, messModus, messLauf, unterbrechungen, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
                   ungesichert: hasUnsavedChanges, projektId,
                   saved: new Date().toISOString() };
     if(!speicherSchreiben(LS_KEY,state)) throw new Error('voll');
@@ -6137,6 +6381,9 @@ function loadState(){
     verteilzeitFactor = s.verteilzeitFactor || 0;
     uiMode = s.uiMode === 'beginner' ? 'beginner' : 'advanced';
     zeitModus = s.zeitModus===true;
+    messModus = s.messModus==='einzeln'?'einzeln':'ablauf';
+    unterbrechungen = Array.isArray(s.unterbrechungen) ? s.unterbrechungen.filter(u=>u&&typeof u.id==='string'&&u.sek>0) : [];
+    messLauf = s.messLauf && typeof s.messLauf.id==='string' && s.data && s.data[s.messLauf.id] ? s.messLauf : null;
     hourlyRate = s.hourlyRate || 0;
     if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
     if(s.taktGroupKey && OPT_COLS.some(o=>!o.own&&o.key===s.taktGroupKey)) taktGroupKey=s.taktGroupKey;
@@ -6994,6 +7241,8 @@ function importUebernehmen(parsed,start,dateiname){
     if(parsed.takt && OPT_COLS.some(o=>!o.own&&o.key===parsed.takt.groupKey)) taktGroupKey=parsed.takt.groupKey;
   }
   taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
+  messLauf=null; messZyklusEnde=null; messUhrAn();
+  if(start || parsed.pausen!==undefined) unterbrechungen=parsed.pausen||[];
   teileOffen={}; colFilters={};   // Filter gehören zum vorigen Stand — sie blendeten sonst Zeilen aus
   if(start || parsed.lwParams!==undefined) lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
   if(parsed.lwTrigger) Object.keys(parsed.lwTrigger).forEach(id=>{ if(data[id]) data[id].__lw=parsed.lwTrigger[id]; });
@@ -7081,6 +7330,8 @@ if(hadSaved && currentProject){
   setTimeout(()=>{ const i=document.getElementById('startProjectName'); if(i) i.focus(); },300);
 }
 renderStartProjekte();
+if(messLauf) messUhrAn();
+messAnsichtZeichnen();
 try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch(e){}
 startAutosaveReminder();
 setInterval(updateExportIndicator, 30000);

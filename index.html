@@ -339,6 +339,26 @@ body.beginner-mode .col-griff::after{width:2px;}
   flex-wrap:wrap;
 }
 
+.such-box{margin-left:auto;display:flex;align-items:center;gap:4px;color:var(--text3);}
+.such-box input{width:230px;height:30px;font-size:var(--fs-s);padding:0 8px;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);font-family:var(--sans);}
+.such-box input:focus{outline:none;border-color:var(--accent);}
+.such-info{font-size:var(--fs-xs);font-family:var(--mono);min-width:44px;text-align:center;color:var(--text2);white-space:nowrap;}
+.such-info.leer{color:var(--red);}
+.such-box .tb-ic{width:30px;height:30px;padding:0;justify-content:center;}
+body.beginner-mode .such-box input{height:44px;font-size:var(--fs-m);width:260px;}
+body.beginner-mode .such-box .tb-ic{width:44px;height:44px;}
+@media (max-width:900px){ .such-box{margin-left:0;flex:1 1 100%;} .such-box input{flex:1;width:auto;} }
+.data-tbl tbody tr.such-hit td{animation:suchBlink 1.6s ease-out;}
+@keyframes suchBlink{0%,35%{box-shadow:inset 0 0 0 999px rgba(255,196,0,.45);}100%{box-shadow:inset 0 0 0 999px rgba(255,196,0,0);}}
+/* Spalte #: antippen öffnet „Verschieben"; die aktive Zeile zeigt den Hinweis ⇅ */
+.data-tbl tbody tr[data-id] td.nr{cursor:pointer;}
+.data-tbl tbody tr.ar td.nr::after{content:"⇅";display:block;font-size:9px;line-height:1;color:var(--accent-bright);}
+.versch-pop .vp-row{display:flex;gap:6px;align-items:center;margin-top:6px;}
+.versch-pop .vp-row .tbtn{flex:1;justify-content:center;}
+.versch-pop input[type=number]{width:72px;height:32px;font-size:var(--fs-m);text-align:center;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);}
+body.beginner-mode .versch-pop input[type=number]{height:44px;}
+.versch-pop .vp-info{font-size:var(--fs-xs);color:var(--text2);}
+
 /* ── ACTIVE BAR ──
    Gleiches Gelb wie die aktive Tabellenzeile: auf einen Blick klar, worauf die Kacheln zählen */
 .active-bar{
@@ -1119,6 +1139,13 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
   <button class="tbtn" id="teileAllBtn" onclick="toggleAlleTeile()"><svg class="ic"><use href="#i-unten"/></svg>Alle aufklappen</button>
   <button class="tbtn" onclick="openColMenu(this)" id="colMenuBtn"><svg class="ic"><use href="#i-spalten"/></svg>Spalten</button>
   <button class="tbtn" id="filterClearBtn" onclick="clearAllFilters()" style="display:none;"><svg class="ic"><use href="#i-x"/></svg>Filter zurücksetzen</button>
+  <div class="such-box">
+    <svg class="ic"><use href="#i-suche"/></svg>
+    <input type="search" id="suchFeld" placeholder="Suchen: Schritt, Sachnr., Benennung …" autocomplete="off" aria-label="In der Tabelle suchen"/>
+    <span class="such-info" id="suchInfo"></span>
+    <button class="tbtn tb-ic" onclick="suchSprung(-1)" title="Vorheriger Treffer (Umschalt+Enter)" aria-label="Vorheriger Treffer"><svg class="ic"><use href="#i-links"/></svg></button>
+    <button class="tbtn tb-ic" onclick="suchSprung(1)" title="Nächster Treffer (Enter)" aria-label="Nächster Treffer"><svg class="ic"><use href="#i-rechts"/></svg></button>
+  </div>
 </div>
 
 <!-- TABLE -->
@@ -1801,7 +1828,7 @@ function positionPopup(pop,anchorEl){
 }
 function closeColPopup(){
   const p=document.getElementById('colPopup');
-  if(p) p.classList.remove('open');
+  if(p) p.classList.remove('open','versch-pop');
 }
 document.addEventListener('click',e=>{
   const p=document.getElementById('colPopup');
@@ -1813,7 +1840,7 @@ document.addEventListener('click',e=>{
 
 /* ── Spalten-Menü ── */
 function openColMenu(anchorEl){
-  const pop=document.getElementById('colPopup');
+  const pop=document.getElementById('colPopup'); pop.classList.remove('versch-pop');
   const body=document.getElementById('colPopupBody');
   document.getElementById('colPopupTitle').textContent='Spalten anzeigen';
   body.innerHTML='';
@@ -1860,7 +1887,7 @@ function openColMenu(anchorEl){
 
 /* ── Spaltenfilter-Popup ── */
 function openColFilter(anchorEl,fk,label,kind){
-  const pop=document.getElementById('colPopup');
+  const pop=document.getElementById('colPopup'); pop.classList.remove('versch-pop');
   const body=document.getElementById('colPopupBody');
   document.getElementById('colPopupTitle').textContent='Filter: '+label;
   body.innerHTML='';
@@ -3722,8 +3749,8 @@ function buildHead(){
   h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
   tabCols().forEach(c=>{
     const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
-    h+=`<th class="th-q" title="${escAttr(c.label)}" style="background:${gCol}e6;border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).map(escHtml).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
-    h+=`<th class="th-t adv-only" style="background:${gCol}b3;">[${ul()}]</th>`;
+    h+=`<th class="th-q" title="${escAttr(c.label)}" style="background:linear-gradient(${gCol}e6,${gCol}e6),var(--surface);border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).map(escHtml).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
+    if(uiMode!=='beginner') h+=`<th class="th-t adv-only" style="background:linear-gradient(${gCol}b3,${gCol}b3),var(--surface);">[${ul()}]</th>`;
   });
   tr.innerHTML=h;
   // aktive Filter im Kopf markieren
@@ -3790,7 +3817,8 @@ function setUIMode(m){
 /* Anzahl- und Zeitzelle einer Kategorie füllen — beim Aufbau der Tabelle und nach einer Zählung */
 function zaehlZellen(tdv,tdt,v,c,summe){
   const t=v*c.param;
-  tdv.className=v>0?'vnz':''; tdv.textContent=v>0?v:'–';
+  if(tdv){ tdv.className=v>0?'vnz':''; tdv.textContent=v>0?v:'–'; }
+  if(!tdt) return;   // Einfach-Modus: keine Zeitzellen
   tdt.className=(t>0?'tnz':'')+' adv-only'; tdt.textContent=t>0?disp2(t):'–';
   if(t>0) tdt.style.background=((GROUPS[c.group]||{}).color||'#dde1ed')+(summe?'8c':'59');
   else tdt.removeAttribute('style');
@@ -3805,7 +3833,7 @@ function zaehlerZeigen(id,key){
   const sr=document.querySelector('#tblBody tr.sum-row');
   const zellen=x=>x?[x.querySelector('td[data-k="'+CSS.escape(key)+'"]'),x.querySelector('td[data-kt="'+CSS.escape(key)+'"]')]:[];
   const [tv,tt]=zellen(tr), [sv,st]=zellen(sr);
-  if(colFilters['cat:'+key] || colFilters.total || !c || !tv || !tt || !sv || !st){ renderBody(); return; }
+  if(colFilters['cat:'+key] || colFilters.total || !c || !tv || !sv || (uiMode!=='beginner' && (!tt || !st))){ renderBody(); return; }
   zaehlZellen(tv,tt,data[id][key]||0,c,false);
   const tot=calcTotal(id);
   tr.querySelector('td.ct').textContent=tot>0?disp2(tot):'–';
@@ -3817,13 +3845,10 @@ function einfuegeKnopf(b){
   b.classList.toggle('active',!!rowClipboard);
   b.title=rowClipboard?('Inhalte von "'+rowClipboard.sourceName+'" einfügen'):'Erst eine Zeile kopieren';
 }
-function renderBody(){
-  const body=document.getElementById('tblBody');
-  body.innerHTML='';
-  let totQ={},totT=0,totQty=0;
-  COLS.forEach(c=>totQ[c.key]=0);
-
-  const visibleParts=getFilteredParts();
+const LEVEL_SEL_VORLAGE=(()=>{ const s=document.createElement('select'); s.className='level-select';
+  for(let n=1;n<=7;n++){ const o=document.createElement('option'); o.value=n; o.textContent=n; s.appendChild(o); } return s; })();
+/* Alles, was zum Aufbau einer Tabellenzeile gebraucht wird — einmal je Neuaufbau ermittelt */
+function tabKontext(){
   const L=stickyLeft();
   const vis={level:isColVisible('level'),name:isColVisible('name'),sachnr:isColVisible('sachnr'),teilname:isColVisible('teilname')};
   const extraFlds=OPT_COLS.filter(o=>!o.own&&isColVisible(o.key)).map(o=>'__'+o.key);
@@ -3833,9 +3858,14 @@ function renderBody(){
     if(left!==undefined) c.style.left=left+'px';
     return c;
   };
-
   const posNr=new Map(parts.map((p,i)=>[p.id,i+1]));   // statt findIndex je Zeile
-  visibleParts.forEach(part=>{
+  /* Einfach-Modus: die ausgeblendeten [minD]-Zellen und Laptop-Knöpfe gar nicht erst anlegen —
+     das halbiert die Zellen der Tabelle, und ihr Layout ist bei ~300 Schritten der größte Posten */
+  return {L,vis,extraFlds,td,posNr,einfach:uiMode==='beginner'};
+}
+/* Hauptzeile eines Schritts und — aufgeklappt — seine Teile-Zeilen */
+function schrittZeilen(part,k){
+  const {L,vis,extraFlds,td,posNr,einfach}=k;
     const id=part.id, name=part.name;
     const offen=!!teileOffen[id];
     const teile=stepTeile(id);
@@ -3855,18 +3885,14 @@ function renderBody(){
     const tdNr=td('nr');
     if(!vis.name) tdNr.appendChild(caret);
     tdNr.appendChild(document.createTextNode(posNr.get(id)));
+    tdNr.title='Verschieben';
+    tdNr.addEventListener('click',e=>{ e.stopPropagation(); selectPart(id); openVerschieben(id); });
     tr.appendChild(tdNr);
 
     // Level (Gliederung der Prozessschritte, 1-7)
     const tdLevel=td('level',vis.level,L.level);
-    const lvSel=document.createElement('select');
-    lvSel.className='level-select';
-    for(let n=1;n<=7;n++){
-      const opt=document.createElement('option');
-      opt.value=n;opt.textContent=n;
-      if(lvl===n) opt.selected=true;
-      lvSel.appendChild(opt);
-    }
+    const lvSel=LEVEL_SEL_VORLAGE.cloneNode(true);
+    lvSel.value=String(lvl);
     lvSel.addEventListener('focus',e=>{e.stopPropagation();selectPart(id);});
     lvSel.addEventListener('click',e=>e.stopPropagation());
     lvSel.addEventListener('change',()=>{
@@ -3929,16 +3955,18 @@ function renderBody(){
 
     // Zeilen-Aktionen (wirken auf den Schritt samt Teilen)
     const tdActs=td('acts');
-    const copyBtn=document.createElement('button');
-    copyBtn.type='button';copyBtn.className='row-icon-btn adv-only';copyBtn.title='Zeile kopieren (inkl. Teile)';copyBtn.innerHTML=ic('kopieren');
-    copyBtn.addEventListener('click',e=>{e.stopPropagation();copyRow(id);});
-    tdActs.appendChild(copyBtn);
-    const pasteBtn=document.createElement('button');
-    pasteBtn.type='button';pasteBtn.className='row-icon-btn adv-only paste-btn';
-    einfuegeKnopf(pasteBtn);
-    pasteBtn.innerHTML=ic('einfuegen');
-    pasteBtn.addEventListener('click',e=>{e.stopPropagation();pasteRow(id);});
-    tdActs.appendChild(pasteBtn);
+    if(!einfach){
+      const copyBtn=document.createElement('button');
+      copyBtn.type='button';copyBtn.className='row-icon-btn adv-only';copyBtn.title='Zeile kopieren (inkl. Teile)';copyBtn.innerHTML=ic('kopieren');
+      copyBtn.addEventListener('click',e=>{e.stopPropagation();copyRow(id);});
+      tdActs.appendChild(copyBtn);
+      const pasteBtn=document.createElement('button');
+      pasteBtn.type='button';pasteBtn.className='row-icon-btn adv-only paste-btn';
+      einfuegeKnopf(pasteBtn);
+      pasteBtn.innerHTML=ic('einfuegen');
+      pasteBtn.addEventListener('click',e=>{e.stopPropagation();pasteRow(id);});
+      tdActs.appendChild(pasteBtn);
+    }
     const noteBtn=document.createElement('button');
     noteBtn.type='button';noteBtn.className='row-icon-btn'+(data[id].__note?' active':'');
     noteBtn.title='Notiz zum Prozessschritt';
@@ -3968,33 +3996,36 @@ function renderBody(){
 
     tabCols().forEach(c=>{
       const v=data[id][c.key]||0;
-      const tdv=document.createElement('td'), tdt=document.createElement('td');
-      tdv.dataset.k=c.key; tdt.dataset.kt=c.key;
+      const tdv=document.createElement('td'); tdv.dataset.k=c.key;
+      let tdt=null; if(!einfach){ tdt=document.createElement('td'); tdt.dataset.kt=c.key; }
       zaehlZellen(tdv,tdt,v,c,false);
       tr.appendChild(tdv);
       if(c.key===LW_KAT && lwHat(id)){
         const f=document.createElement('span'); f.className='lw-f'; f.textContent='ƒ'; tdv.appendChild(f);
         tdv.title='Laufweg wird gerechnet — im Fenster Laufwege ändern';
       }
-      tr.appendChild(tdt);
+      if(tdt) tr.appendChild(tdt);
     });
 
     tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(id); });
-    body.appendChild(tr);
-
+    const zeilen=[tr];
     if(offen){
-      teile.forEach(t=>body.appendChild(teilZeile(id,t,vis,extraFlds,L,td)));
-      body.appendChild(teilAddZeile(id,vis,extraFlds,L,td));
+      teile.forEach(t=>zeilen.push(teilZeile(id,t,vis,extraFlds,L,td)));
+      zeilen.push(teilAddZeile(id,vis,extraFlds,L,td));
     }
-  });
+    return zeilen;
+}
+function renderBody(){
+  const body=document.getElementById('tblBody');
+  body.innerHTML='';
+  const k=tabKontext(), {L,vis,extraFlds,td}=k;
+  const visibleParts=getFilteredParts();
+  const frag=document.createDocumentFragment();
+  visibleParts.forEach(part=>schrittZeilen(part,k).forEach(z=>frag.appendChild(z)));
+  body.appendChild(frag);
 
   // Summen nur über die sichtbaren (gefilterten) Schritte
-  visibleParts.forEach(part=>{
-    const id=part.id;
-    totQty+=stepQty(id);
-    totT+=calcTotal(id);
-    COLS.forEach(c=>{ totQ[c.key]+=data[id][c.key]||0; });
-  });
+  const {totQ,totT,totQty}=tabSummen(visibleParts);
 
   // summary row
   const sr=document.createElement('tr');sr.className='sum-row';
@@ -4008,13 +4039,212 @@ function renderBody(){
   sr.appendChild(td('acts'));
   const stot=td('ct');stot.textContent=disp2(totT);sr.appendChild(stot);
   tabCols().forEach(c=>{
-    const tdv=document.createElement('td'), tdt=document.createElement('td');
-    tdv.dataset.k=c.key; tdt.dataset.kt=c.key;
+    const tdv=document.createElement('td'); tdv.dataset.k=c.key; sr.appendChild(tdv);
+    let tdt=null; if(!k.einfach){ tdt=document.createElement('td'); tdt.dataset.kt=c.key; sr.appendChild(tdt); }
     zaehlZellen(tdv,tdt,totQ[c.key],c,true);
-    sr.appendChild(tdv); sr.appendChild(tdt);
   });
   body.appendChild(sr);
   updateTeileAllBtn();
+}
+function tabSummen(liste){
+  const totQ={}; let totT=0,totQty=0;
+  COLS.forEach(c=>totQ[c.key]=0);
+  liste.forEach(part=>{
+    const id=part.id;
+    totQty+=stepQty(id); totT+=calcTotal(id);
+    COLS.forEach(c=>{ totQ[c.key]+=data[id][c.key]||0; });
+  });
+  return {totQ,totT,totQty};
+}
+/* Summenzeile ohne Neuaufbau der Tabelle nachführen */
+function summenNachfuehren(){
+  const sr=document.querySelector('#tblBody tr.sum-row'); if(!sr) return;
+  const {totQ,totT,totQty}=tabSummen(getFilteredParts());
+  const q=sr.querySelector('td.qty'); if(q) q.textContent=totQty>0?totQty:'–';
+  const t=sr.querySelector('td.ct'); if(t) t.textContent=disp2(totT);
+  COLS.forEach(c=>zaehlZellen(sr.querySelector('td[data-k="'+CSS.escape(c.key)+'"]'),sr.querySelector('td[data-kt="'+CSS.escape(c.key)+'"]'),totQ[c.key],c,true));
+}
+/* Einen Schritt samt Teile-Zeilen neu zeichnen, statt die ganze Tabelle. Ein Filter, den die Änderung
+   betreffen kann, braucht den vollen Neuaufbau — dann kann die Zeile ein- oder ausgeblendet werden. */
+/* ═══════════════════════════════════════
+   SCHRITTE VERSCHIEBEN
+   Spalte # antippen (oder Alt+↑/↓ am Laptop). Ein Schritt mit Unterschritten (folgende Schritte mit
+   höherem Level) nimmt sie auf Wunsch mit. ▲/▼ springt über den nächsten sichtbaren Schritt.
+═══════════════════════════════════════ */
+let verschMitUnter=true;
+function schrittBlock(id,mitUnter){
+  const i=parts.findIndex(p=>p.id===id); let j=i+1;
+  if(i<0) return [i,i];
+  if(mitUnter){ const lv=data[id].__level||1; while(j<parts.length && (data[parts[j].id].__level||1)>lv) j++; }
+  return [i,j];
+}
+function unterschritte(id){ const [i,j]=schrittBlock(id,true); return Math.max(0,j-i-1); }
+/* Block [i,j) so umsetzen, dass er an Index ziel (in der Liste ohne den Block) beginnt */
+function blockUmsetzen(i,j,ziel){
+  undoPush({typ:'reihenfolge',prev:parts.map(p=>p.id)});
+  const block=parts.slice(i,j), rest=parts.filter((_,x)=>x<i||x>=j);
+  rest.splice(Math.max(0,Math.min(ziel,rest.length)),0,...block);
+  parts=rest;
+  tabelleNachReihenfolge(); markDirty();
+}
+function schrittVerschieben(id,richtung){
+  const mit=verschMitUnter && unterschritte(id)>0;
+  const [i,j]=schrittBlock(id,mit);
+  if(i<0) return;
+  const sichtbar=hasAnyFilter() ? new Set(getFilteredParts().map(p=>p.id)) : null;
+  const sicht=k=>!sichtbar||sichtbar.has(parts[k].id);
+  let ziel;
+  if(richtung<0){ let k=i-1; while(k>=0&&!sicht(k)) k--; if(k<0){ toast('Schon ganz oben'); return; } ziel=k; }
+  else { let k=j; while(k<parts.length&&!sicht(k)) k++; if(k>=parts.length){ toast('Schon ganz unten'); return; } ziel=k+1-(j-i); }
+  blockUmsetzen(i,j,ziel);
+  openVerschieben(id);
+}
+function schrittAnPosition(id,pos){
+  const mit=verschMitUnter && unterschritte(id)>0;
+  const [i,j]=schrittBlock(id,mit);
+  if(i<0||!(pos>=1)) return;
+  blockUmsetzen(i,j,Math.min(pos-1,parts.length-(j-i)));
+  openVerschieben(id);
+}
+/* Zeilen in die Reihenfolge von parts bringen — vorhandene Zeilen werden nur umgehängt, nicht neu gebaut */
+function tabelleNachReihenfolge(){
+  const sum=document.querySelector('#tblBody tr.sum-row'); if(!sum){ renderBody(); return; }
+  const zeilen=new Map();
+  document.querySelectorAll('#tblBody tr[data-id], #tblBody tr.teil').forEach(tr=>{
+    const id=tr.dataset.id||tr.dataset.step; if(!zeilen.has(id)) zeilen.set(id,[]); zeilen.get(id).push(tr);
+  });
+  const frag=document.createDocumentFragment();
+  parts.forEach(p=>(zeilen.get(p.id)||[]).forEach(tr=>frag.appendChild(tr)));
+  sum.before(frag);
+  nummernNachfuehren();
+}
+function openVerschieben(id){
+  const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]'); if(!tr) return;
+  const pop=document.getElementById('colPopup'), body=document.getElementById('colPopupBody');
+  const pos=parts.findIndex(p=>p.id===id)+1, n=unterschritte(id);
+  document.getElementById('colPopupTitle').textContent='Schritt '+pos+' verschieben';
+  pop.classList.add('versch-pop');
+  body.innerHTML=`<div class="vp-info">${escHtml(partName(id))}</div>
+    ${n?`<label class="col-opt"><input type="checkbox" id="vpMit"${verschMitUnter?' checked':''}/><span>mit ${n} Unterschritt${n===1?'':'en'}</span></label>`:''}
+    <div class="vp-row"><button class="tbtn" id="vpHoch">▲ Nach oben</button><button class="tbtn" id="vpRunter">▼ Nach unten</button></div>
+    <div class="vp-row"><span class="vp-info">An Position</span><input type="number" id="vpPos" min="1" max="${parts.length}" value="${pos}" inputmode="numeric"/>
+      <button class="tbtn" id="vpGo">Verschieben</button></div>`;
+  const mit=document.getElementById('vpMit'); if(mit) mit.addEventListener('change',()=>{ verschMitUnter=mit.checked; });
+  document.getElementById('vpHoch').addEventListener('click',e=>{ e.stopPropagation(); schrittVerschieben(id,-1); });
+  document.getElementById('vpRunter').addEventListener('click',e=>{ e.stopPropagation(); schrittVerschieben(id,1); });
+  const go=()=>{ const v=parseInt(document.getElementById('vpPos').value,10); if(v>=1) schrittAnPosition(id,v); };
+  document.getElementById('vpGo').addEventListener('click',e=>{ e.stopPropagation(); go(); });
+  document.getElementById('vpPos').addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+  pop.classList.add('open');
+  positionPopup(pop,tr.querySelector('td.nr'));
+  tr.scrollIntoView({block:'nearest'});
+}
+/* Alt+↑/↓ am Laptop: aktiven Schritt verschieben */
+document.addEventListener('keydown',e=>{
+  if(!e.altKey || e.ctrlKey || e.metaKey || (e.key!=='ArrowUp'&&e.key!=='ArrowDown')) return;
+  const tag=(document.activeElement&&document.activeElement.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  if(!activePart || document.querySelector('.modal-bg.open') || document.getElementById('startScreen').classList.contains('open')) return;
+  e.preventDefault();
+  const mit=verschMitUnter && unterschritte(activePart)>0;
+  const [i,j]=schrittBlock(activePart,mit);
+  const k=e.key==='ArrowUp' ? i-1 : j;
+  if(k<0||k>=parts.length) return;
+  blockUmsetzen(i,j,e.key==='ArrowUp'?k:k+1-(j-i));
+  const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(activePart)+'"]'); if(tr) tr.scrollIntoView({block:'nearest'});
+});
+
+/* ═══════════════════════════════════════
+   SCHNELLSUCHE
+   Springt zum Treffer, ohne zu filtern: Prozessschritt, Sachnummer, Bauteilbenennung, Zusatzspalten.
+   Ein Treffer in einem Teil klappt den Schritt auf. Durchsucht werden die sichtbaren Zeilen.
+═══════════════════════════════════════ */
+let suchTreffer=[], suchPos=-1, suchTmr=null;
+const suchNorm=x=>String(x||'').toLowerCase();
+function suchenJetzt(){
+  const q=suchNorm(document.getElementById('suchFeld').value).trim();
+  const info=document.getElementById('suchInfo');
+  suchTreffer=[]; suchPos=-1;
+  if(!q){ info.textContent=''; info.classList.remove('leer'); return; }
+  const treffer=p=>{
+    const d=data[p.id], h=[];
+    if(suchNorm(p.name).includes(q) || ZUSATZ_KEYS.some(k=>suchNorm(d['__'+k]).includes(q))) h.push({id:p.id,teil:null});
+    stepTeile(p.id).forEach(t=>{ if(suchNorm(t.sachnr).includes(q)||suchNorm(t.name).includes(q)) h.push({id:p.id,teil:t.id}); });
+    return h;
+  };
+  getFilteredParts().forEach(p=>suchTreffer.push(...treffer(p)));
+  const verborgen=hasAnyFilter() ? parts.filter(p=>!partPassesFilters(p)).reduce((n,p)=>n+treffer(p).length,0) : 0;
+  info.title=verborgen ? verborgen+' weitere Treffer durch den Filter ausgeblendet' : '';
+  if(!suchTreffer.length){ info.textContent=verborgen?'0 (+'+verborgen+')':'0'; info.classList.add('leer'); return; }
+  info.classList.remove('leer');
+  suchPos=0; suchZeigen(verborgen);
+}
+function suchSprung(r){
+  if(!suchTreffer.length){ suchenJetzt(); return; }
+  suchPos=(suchPos+r+suchTreffer.length)%suchTreffer.length;
+  suchZeigen();
+}
+function suchZeigen(verborgen){
+  const h=suchTreffer[suchPos]; if(!h) return;
+  if(!data[h.id]){ suchenJetzt(); return; }
+  if(h.teil && !teileOffen[h.id]) toggleTeile(h.id);
+  selectPart(h.id);
+  const tr=h.teil ? document.querySelector('#tblBody tr.teil[data-teil="'+CSS.escape(h.teil)+'"]')
+                  : document.querySelector('#tblBody tr[data-id="'+CSS.escape(h.id)+'"]');
+  const info=document.getElementById('suchInfo');
+  if(verborgen===undefined) verborgen=parseInt((info.title.match(/^\d+/)||['0'])[0],10)||0;
+  info.textContent=(suchPos+1)+'/'+suchTreffer.length+(verborgen?' (+'+verborgen+')':'');
+  if(!tr) return;
+  tr.scrollIntoView({block:'center'});
+  tr.classList.remove('such-hit'); void tr.offsetWidth; tr.classList.add('such-hit');
+}
+(()=>{
+  const f=document.getElementById('suchFeld');
+  f.addEventListener('input',()=>{ clearTimeout(suchTmr); suchTmr=setTimeout(suchenJetzt,200); });
+  f.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ e.preventDefault(); clearTimeout(suchTmr); if(!suchTreffer.length) suchenJetzt(); else suchSprung(e.shiftKey?-1:1); }
+    else if(e.key==='Escape'){ f.value=''; suchenJetzt(); f.blur(); }
+  });
+})();
+
+/* Laufende Nummern (Spalte #) nach Einfügen, Löschen oder Verschieben nachführen */
+function nummernNachfuehren(){
+  const pos=new Map(parts.map((p,i)=>[p.id,i+1]));
+  document.querySelectorAll('#tblBody tr[data-id]').forEach(tr=>{
+    const tn=[...tr.querySelector('td.nr').childNodes].find(n=>n.nodeType===3);
+    if(tn) tn.textContent=pos.get(tr.dataset.id);
+  });
+}
+/* Zeilen eines Schritts aus der Tabelle nehmen */
+function schrittZeilenEntfernen(id){
+  document.querySelectorAll('#tblBody tr[data-id="'+CSS.escape(id)+'"], #tblBody tr.teil[data-step="'+CSS.escape(id)+'"]').forEach(z=>z.remove());
+}
+/* Erste Tabellenzeile nach dem Block eines Schritts (seine Teile-Zeilen gehören dazu) */
+function zeileNachSchritt(id){
+  const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]'); if(!tr) return null;
+  let n=tr.nextElementSibling;
+  while(n && n.classList.contains('teil') && n.dataset.step===id) n=n.nextElementSibling;
+  return n;
+}
+/* Schritt neu in die Tabelle setzen — vor die Zeile des nächsten sichtbaren Schritts, sonst vor die Summe */
+function schrittEinsetzen(id){
+  const part=parts.find(p=>p.id===id); if(!part) return false;
+  const i=parts.indexOf(part);
+  let vor=null;
+  for(let j=i+1;j<parts.length && !vor;j++) vor=document.querySelector('#tblBody tr[data-id="'+CSS.escape(parts[j].id)+'"]');
+  vor=vor||document.querySelector('#tblBody tr.sum-row');
+  if(!vor) return false;
+  vor.before(...schrittZeilen(part,tabKontext()));
+  return true;
+}
+function schrittNeuZeichnen(id){
+  const alt=[...document.querySelectorAll('#tblBody tr[data-id="'+CSS.escape(id)+'"], #tblBody tr.teil[data-step="'+CSS.escape(id)+'"]')];
+  const part=parts.find(p=>p.id===id);
+  if(!alt.length || !part || hasAnyFilter()){ renderBody(); return; }
+  const neu=schrittZeilen(part,tabKontext());
+  alt[0].before(...neu);
+  schrittZeilenEntfernenAusser(id,neu);
+  summenNachfuehren(); updateTeileAllBtn();
 }
 
 /* ── Unterzeilen: Teile eines Schritts ──
@@ -4153,12 +4383,19 @@ function undoLast(){
     lastActionText='↩ Rückgängig: '+last.text; toast(lastActionText); updateLastAction();
     return;
   }
+  if(last.typ==='reihenfolge'){
+    const pos=new Map(last.prev.map((id,i)=>[id,i]));
+    parts=parts.slice().sort((a,b)=>(pos.has(a.id)?pos.get(a.id):1e9)-(pos.has(b.id)?pos.get(b.id):1e9));
+    tabelleNachReihenfolge(); closeColPopup(); markDirty();
+    lastActionText='↩ Rückgängig: Reihenfolge'; toast(lastActionText); updateLastAction();
+    return;
+  }
   if(last.typ==='name'){
     const p=parts.find(x=>x.id===last.part);
     if(!p){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
     p.name=last.prev;
     if(rowClipboard && rowClipboard.sourceId===p.id) rowClipboard.sourceName=p.name;
-    updGrid(); renderBody(); updateActiveBar(); markDirty();
+    updGrid(); schrittNeuZeichnen(p.id); updateActiveBar(); markDirty();
     lastActionText='↩ Rückgängig: Name „'+p.name+'"'; toast(lastActionText); updateLastAction();
     return;
   }
@@ -4169,7 +4406,9 @@ function undoLast(){
     if(last.offen) teileOffen[p.id]=true;
     if(!activePart) activePart=p.id;
     ensureKeys(); lwNeuRechnen();
-    updGrid(); renderBody(); updateActiveBar(); markDirty();
+    if(hasAnyFilter() || !schrittEinsetzen(p.id)) renderBody();
+    else { nummernNachfuehren(); summenNachfuehren(); updateTeileAllBtn(); }
+    updGrid(); updateActiveBar(); markDirty();
     lastActionText='↩ Rückgängig: „'+p.name+'" wiederhergestellt'; toast(lastActionText); updateLastAction();
     return;
   }
@@ -4177,7 +4416,7 @@ function undoLast(){
     if(!data[last.part]){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
     data[last.part]=last.prev;
     ensureKeys(); lwNeuRechnen();
-    updGrid(); renderBody(); markDirty();
+    updGrid(); schrittNeuZeichnen(last.part); updateActiveBar(); markDirty();
     lastActionText='↩ Rückgängig: Einfügen in „'+partName(last.part)+'"'; toast(lastActionText); updateLastAction();
     return;
   }
@@ -4188,7 +4427,10 @@ function undoLast(){
     last.ids.forEach(id=>{ delete data[id]; delete teileOffen[id]; });
     if(!parts.some(p=>p.id===activePart)) activePart=parts[0]?parts[0].id:null;
     if(rowClipboard && weg.has(rowClipboard.sourceId)) rowClipboard=null;
-    updGrid(); renderBody(); updateActiveBar(); markDirty();
+    last.ids.forEach(schrittZeilenEntfernen);
+    nummernNachfuehren(); summenNachfuehren(); updateTeileAllBtn();
+    if(activePart) selectPart(activePart);
+    updGrid(); updateActiveBar(); markDirty();
     lastActionText='↩ Rückgängig: '+last.ids.length+' eingefügte Prozessschritte entfernt';
     toast(lastActionText); updateLastAction();
     return;
@@ -4201,7 +4443,7 @@ function undoLast(){
   }
   data[last.part][last.key]=last.prev;
   updGrid();
-  if(COLS.some(c=>c.key===last.key)) zaehlerZeigen(last.part,last.key); else renderBody();
+  if(COLS.some(c=>c.key===last.key)) zaehlerZeigen(last.part,last.key); else { schrittNeuZeichnen(last.part); updateActiveBar(); }
   markDirty();
   const nm=partName(last.part)||'(gelöschter Prozessschritt)';
   toast('↩ Rückgängig: '+nm);
@@ -4225,7 +4467,18 @@ function saveSoon(){ clearTimeout(saveTmr); saveTmr=setTimeout(saveState,800); }
 function toggleTeile(id){
   if(teileOffen[id]) delete teileOffen[id]; else teileOffen[id]=true;
   selectPart(id);
-  renderBody(); saveSoon();
+  /* Aufklappen ändert nichts an der Filterzugehörigkeit — nur diesen Schritt neu zeichnen */
+  const alt=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]');
+  const part=parts.find(p=>p.id===id);
+  if(alt && part){
+    const neu=schrittZeilen(part,tabKontext());
+    alt.before(...neu); schrittZeilenEntfernenAusser(id,neu); updateTeileAllBtn();
+  } else renderBody();
+  saveSoon();
+}
+function schrittZeilenEntfernenAusser(id,neu){
+  const bleibt=new Set(neu);
+  document.querySelectorAll('#tblBody tr[data-id="'+CSS.escape(id)+'"], #tblBody tr.teil[data-step="'+CSS.escape(id)+'"]').forEach(z=>{ if(!bleibt.has(z)) z.remove(); });
 }
 function toggleAlleTeile(){
   const vis=getFilteredParts();
@@ -4256,7 +4509,7 @@ function addTeil(stepId){
   d.__teile.push(t);
   teileOffen[stepId]=true;
   selectPart(stepId);
-  renderBody(); markDirty(); updateActiveBar();
+  schrittNeuZeichnen(stepId); markDirty(); updateActiveBar();
   /* Fokus ins erste sichtbare Feld des neuen Teils */
   const tr=document.querySelector('#tblBody tr.teil[data-teil="'+t.id+'"]');
   if(tr){
@@ -4270,7 +4523,7 @@ function delTeil(stepId,teilId){
   const i=d.__teile.findIndex(t=>t.id===teilId); if(i<0) return;
   undoPush({part:stepId,key:'__teile',prev:JSON.parse(JSON.stringify(d.__teile))});
   const t=d.__teile.splice(i,1)[0];
-  renderBody(); markDirty();
+  schrittNeuZeichnen(stepId); markDirty(); updateActiveBar();
   const bez=t.name||t.sachnr||'ohne Bezeichnung';
   lastActionText='Teil „'+bez+'" entfernt · '+partName(stepId); updateLastAction();
   toast('✕ Teil „'+bez+'" entfernt – ↩ Undo holt es zurück');
@@ -4310,7 +4563,9 @@ function renamePart(id,newName,inp){
   undoPush({typ:'name',part:id,prev:p.name});
   p.name=newName;
   if(rowClipboard && rowClipboard.sourceId===id) rowClipboard.sourceName=newName;
-  updGrid();renderBody(); markDirty();
+  updGrid(); updateActiveBar();
+  if(colFilters.name) renderBody();
+  markDirty();
   if(dup) toast('ℹ „'+newName+'" gibt es schon – beide Prozessschritte bleiben unabhängig');
 }
 function copyRow(id){
@@ -4330,7 +4585,7 @@ function pasteRow(id){
   data[id].__teile=normTeile(data[id].__teile).map(t=>Object.assign(t,{id:newTeilId()}));
   ensureKeys();
   lwNeuRechnen();   // Auslöser kommen mit; Meter aus denselben Meterwerten
-  updGrid();renderBody();markDirty();
+  updGrid();schrittNeuZeichnen(id);updateActiveBar();markDirty();
   toast('✓ Eingefügt in „'+targetName+'"');
 }
 
@@ -4356,7 +4611,12 @@ function addPart(){
   initPart(id);
   undoPush({typ:'einfuegen',ids:[id]});
   if(!activePart) activePart=id;
-  renderBody();markDirty();
+  const nach=activeIdx>=0 ? zeileNachSchritt(parts[activeIdx].id) : null;
+  if(activeIdx>=0 && nach && !hasAnyFilter()){
+    nach.before(...schrittZeilen(newPart,tabKontext()));
+    nummernNachfuehren(); updateTeileAllBtn();
+  } else renderBody();
+  markDirty();
   toast('✓ "'+name+'" hinzugefügt'+(existingNames.includes(name)?' – Name gibt es bereits':''));
 }
 function delPart(id){
@@ -4375,7 +4635,9 @@ function delPart(id){
   delete teileOffen[id];
   if(activePart===id) activePart=parts[0]?parts[0].id:null;
   if(rowClipboard && rowClipboard.sourceId===id) rowClipboard=null;
-  updGrid();renderBody();updateActiveBar();markDirty();
+  schrittZeilenEntfernen(id); nummernNachfuehren(); summenNachfuehren(); updateTeileAllBtn();
+  if(activePart) selectPart(activePart);
+  updGrid();updateActiveBar();markDirty();
   toast('✓ „'+name+'" gelöscht – ↩ Undo holt ihn zurück');
 }
 function resetAll(){

@@ -56,6 +56,27 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   hinzufügen“, Zeiten, Bausteine, Laufwege, Sollzeit/Verteilzeit/Stundensatz, Soll-Taktzeit,
   Spaltenüberschriften, Projektname und alle Szenario-Änderungen.
 
+### Tabelle: Tempo, Verschieben, Suche
+
+- **Schneller bei großen Projekten:** Aufklappen, Teil hinzufügen/löschen, Umbenennen, Schritt
+  hinzufügen/löschen, Zeile einfügen und die meisten Undos zeichnen nur noch die betroffenen
+  Zeilen neu statt der ganzen Tabelle. Bei 300 Schritten (CPU gedrosselt wie am iPad) sinkt das
+  von 3–12 s auf 0,1–0,3 s. Im Einfach-Modus legt die Tabelle die ausgeblendeten [minD]-Zellen
+  und Laptop-Knöpfe gar nicht erst an.
+- **Schritte verschieben:** Ein Tipp auf die Nummer (Spalte #) öffnet „Schritt verschieben“:
+  ▲/▼ oder „An Position …“. Ein Schritt mit Unterschritten (folgende Schritte mit höherem Level)
+  nimmt sie auf Wunsch mit. Am Laptop geht es auch mit Alt+↑/↓. Undo stellt die Reihenfolge wieder
+  her. Die aktive Zeile zeigt unter der Nummer ein ⇅.
+- **Schnellsuche:** Suchfeld über der Tabelle (Prozessschritt, Sachnummer, Benennung,
+  Zusatzspalten). Springt zum Treffer, klappt bei Teilen den Schritt auf und markiert die Zeile
+  kurz; Enter/Umschalt+Enter oder ‹ › blättern. Treffer, die ein Filter ausblendet, werden als
+  „(+n)“ angezeigt.
+
+### Behoben
+
+- Die farbigen Spaltenköpfe der Kategorien waren leicht durchsichtig — beim Blättern schienen
+  Zahlen der Tabelle durch.
+
 ### Auswertung
 
 - **Top 10 mit Auswahl:** Über der Top-10-Liste wählt ein Auswahlfeld, wonach zusammengefasst

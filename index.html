@@ -152,6 +152,21 @@ body:not(.beginner-mode) .simple-only{display:none!important;}
 .start-input:focus{outline:none;border-color:var(--accent);}
 .start-btn{width:100%;padding:11px;border-radius:var(--radius);border:none;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:var(--fs-m);cursor:pointer;}
 .start-btn.secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border2);}
+.start-projekte{margin-bottom:18px;}
+.start-proj{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);}
+.start-proj-info{flex:1;min-width:0;}
+.start-proj-name{font-weight:600;font-size:var(--fs-m);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.start-proj-meta{font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);}
+.start-proj .tbtn{min-height:40px;}
+.start-speicher{margin-top:16px;font-size:var(--fs-xs);color:var(--text3);line-height:1.45;}
+.start-speicher.warn,.sich-status.warn{color:var(--red);}
+.sich-modal{max-width:640px;}
+.sich-status{font-size:var(--fs-xs);color:var(--text2);background:var(--surface2);border-radius:var(--r-s);padding:8px 10px;margin-bottom:10px;line-height:1.5;}
+.sich-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.sich-info{flex:1;min-width:180px;}
+.sich-zeit{font-weight:600;font-size:var(--fs-s);color:var(--text);}
+.sich-meta{font-size:var(--fs-xs);color:var(--text3);font-family:var(--mono);}
+body.beginner-mode .start-proj .tbtn,body.beginner-mode .sich-row .tbtn{min-height:44px;}
 .start-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--text3);font-size:var(--fs-xs);}
 .start-divider::before,.start-divider::after{content:'';flex:1;height:1px;background:var(--border);}
 .proj-label{font-size:var(--fs-s);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
@@ -1013,12 +1028,14 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
   <div class="start-card">
     <div class="start-title"><svg class="ic"><use href="#i-uhr"/></svg>ZEITAUFNAHME</div>
     <div class="start-sub">Projekt wählen, um zu starten</div>
+    <div id="startProjekte"></div>
     <label class="start-lbl">Neues Projekt</label>
     <input type="text" class="start-input" id="startProjectName" placeholder="z.B. Linie3_Getriebe_Welle" onkeydown="if(event.key==='Enter')startNewProject()"/>
     <input type="text" class="start-input" id="startProjectDesc" placeholder="Kurzbeschreibung (optional, z.B. Baugruppen-Nr.)"/>
     <button class="start-btn" onclick="startNewProject()"><svg class="ic"><use href="#i-plus"/></svg>Projekt erstellen</button>
     <div class="start-divider">oder</div>
     <button class="start-btn secondary" onclick="openStartImport()"><svg class="ic"><use href="#i-import"/></svg>Projekt aus CSV laden</button>
+    <div class="start-speicher" id="startSpeicher"></div>
   </div>
 </div>
 <input type="file" id="startImportFileInput" accept=".csv" class="hidden" onchange="handleStartImport(event)"/>
@@ -1067,6 +1084,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
       <button class="simple-only" onclick="switchProject()"><svg class="ic"><use href="#i-projekt"/></svg>Projekt wechseln</button>
       <button class="simple-only" onclick="openImport()"><svg class="ic"><use href="#i-import"/></svg>CSV importieren</button>
       <button onclick="openPaste()"><svg class="ic"><use href="#i-tabelle"/></svg>Aus Excel einfügen</button>
+      <button onclick="openSicherungen()"><svg class="ic"><use href="#i-uhr"/></svg>Sicherungsstände</button>
       <div class="mehr-trenner adv-only"></div>
       <button class="adv-only" onclick="openCfg()"><svg class="ic"><use href="#i-zeiten"/></svg>Zeiten</button>
       <button class="adv-only" onclick="openMtm()"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine</button>
@@ -1309,7 +1327,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
     <div class="exp-row">
       <label class="exp-label">Dateiname</label>
       <input class="exp-input" id="expFilename" type="text" placeholder="z.B. Linie3_Getriebe_Welle"/>
-      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import, auch in Excel bearbeitbar · Excel = formatierter Report (5 Blätter)</span>
+      <span class="exp-hint">CSV = zum Weiterarbeiten &amp; Re-Import, auch in Excel bearbeitbar · Excel = formatierter Report (6 Blätter) · am iPad öffnet sich das Teilen-Menü (Dateien, OneDrive, Mail …)</span>
       <button class="exp-vorlage" onclick="doExportVorlage()"><svg class="ic"><use href="#i-tabelle"/></svg>Leere Vorlage (CSV) zum Ausfüllen in Excel</button>
     </div>
     <div class="exp-btns mfooter">
@@ -1317,6 +1335,17 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
       <button class="exp-go" onclick="doExportXlsx()"><svg class="ic"><use href="#i-tabelle"/></svg>Excel (.xlsx)</button>
       <button class="exp-go" onclick="doExport()"><svg class="ic"><use href="#i-export"/></svg>CSV</button>
     </div>
+  </div>
+</div>
+
+<!-- SICHERUNGSSTÄNDE -->
+<div class="modal-bg" id="sichModal">
+  <div class="modal sich-modal">
+    <div class="mh">
+      <span class="mh-title"><svg class="ic"><use href="#i-uhr"/></svg>Sicherungsstände</span>
+      <button class="mclose" aria-label="Schließen" onclick="closeSicherungen()"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="mbody" id="sichBody"></div>
   </div>
 </div>
 
@@ -1805,6 +1834,7 @@ function openColMenu(anchorEl){
       const val=prompt('Neue Überschrift für diese Spalte:',cur);
       if(val===null) return;
       const t=val.replace(/[\r\n]/g,' ').trim();   // einzeilig — Semikolon u.ä. schützt die CSV mit Anführungszeichen
+      undoStand('Spalte „'+cur+'" umbenannt');
       if(t && t!==oc.label) colLabels[oc.key]=t; else delete colLabels[oc.key];
       markDirty();buildHead();renderBody();openColMenu(anchorEl);
     });
@@ -2203,17 +2233,20 @@ function printAnalysis(){
 }
 function updateSoll(){
   const v=Math.max(0,parseFloat(document.getElementById('sollInput').value)||0);
+  undoStand('Sollzeit geändert');
   sollzeit = unit==='minD' ? v : v/MIND_FACTOR; // kanonisch in minD
   markDirty();
   renderAnalysis();
 }
 function updateVerteil(){
+  undoStand('Verteilzeit geändert');
   verteilzeitFactor=Math.max(0,parseFloat(document.getElementById('verteilInput').value)||0);
   markVerteilPreset();
   markDirty();
   renderAnalysis();
 }
 function updateStundensatz(){
+  undoStand('Stundensatz geändert');
   hourlyRate=Math.max(0,parseFloat(document.getElementById('stundensatzInput').value)||0);
   markDirty();
   renderAnalysis();
@@ -2370,10 +2403,11 @@ function taktStationNamen(szen){
 /* ── Eingaben ── */
 function setTaktSoll(v){
   const n=parseFloat(String(v).replace(',','.'));
+  undoStand('Soll-Taktzeit geändert');
   taktSoll=(isNaN(n)||n<0) ? 0 : n;
   markDirty(); renderTaktabgleich();
 }
-function setTaktMitVz(on){ taktMitVz=!!on; markDirty(); renderTaktabgleich(); }
+function setTaktMitVz(on){ undoStand('Taktabgleich mit/ohne Verteilzeit'); taktMitVz=!!on; markDirty(); renderTaktabgleich(); }
 function setTaktAnsicht(a){ taktAnsicht=a==='szenario'?'szenario':'ist'; taktNeuZeichnen(); }
 
 /* ── Szenario bearbeiten ── */
@@ -2383,6 +2417,7 @@ function taktSzenStart(){
 }
 function taktMove(pid,ziel){
   const p=parts.find(x=>x.id===pid); if(!p) return;
+  undoStand('Szenario: „'+p.name+'" verschoben');
   const szen=taktSzenStart();
   if(ziel===taktBasis(p)) delete szen.moves[pid]; else szen.moves[pid]=ziel;
   markDirty(); renderTaktabgleich();
@@ -2422,6 +2457,7 @@ function taktWahlVerschieben(){
   /* Nur was gerade sichtbar angehakt ist — nie eine Auswahl aus einer zuvor offenen Station */
   const ids=[...document.querySelectorAll('#taktSzenWrap .takt-wahl-chk:checked')].map(cb=>cb.dataset.pid).filter(id=>parts.some(p=>p.id===id));
   if(!ids.length) return;
+  undoStand('Szenario: '+ids.length+' Prozessschritt(e) verschoben');
   const szen=taktSzenStart();
   ids.forEach(id=>{
     const p=parts.find(x=>x.id===id);
@@ -2436,6 +2472,7 @@ function taktNeueStation(){
   if(!name) return;
   const szen=taktSzenStart();
   if(taktStationNamen(szen).includes(name)){ toast('⚠ „'+name+'" gibt es schon'); return; }
+  undoStand('Szenario: „'+name+'" angelegt');
   szen.extra.push(name);
   taktOffen=name;
   markDirty(); renderTaktabgleich();
@@ -2446,6 +2483,7 @@ function taktStationEntfernen(i,ev){
   const szen=taktSzenAktiv(); if(!szen) return;
   const name=szen.extra[i]; if(name===undefined) return;
   if(parts.some(p=>taktStation(p,szen)===name)){ toast('⚠ „'+name+'" ist noch belegt — erst die Prozessschritte wegverschieben'); return; }
+  undoStand('Szenario: „'+name+'" entfernt');
   szen.extra.splice(i,1);
   if(taktOffen===name) taktOffen=null;
   markDirty(); renderTaktabgleich();
@@ -2457,17 +2495,17 @@ function taktSzenUebernehmen(){
   const fld='__'+taktGroupKey;
   if(!confirm(mv.length+' Prozessschritt(e) in der Spalte „'+taktGroupLabel()+'" umtragen?\n\n'
     +'Damit ändern sich die Basisdaten. Mit ↩ Undo lässt es sich Schritt für Schritt zurücknehmen.')) return;
-  mv.forEach(p=>{
-    undoPush({part:p.id,key:fld,prev:data[p.id][fld]||''});
-    data[p.id][fld]=szen.moves[p.id];
-  });
+  sicherungAnlegen('vor Szenario-Übernahme',true);
+  undoStand('Szenario in die Tabelle übernommen');
+  mv.forEach(p=>{ data[p.id][fld]=szen.moves[p.id]; });
   taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
   renderBody(); markDirty(); renderTaktabgleich();
   toast('✓ '+mv.length+' Prozessschritt(e) umgetragen');
 }
 function taktSzenVerwerfen(){
   if(!taktSzenario) return;
-  if(!confirm('Szenario verwerfen?\n\nDie Verschiebungen gehen verloren, die Basisdaten bleiben unverändert.')) return;
+  if(!confirm('Szenario verwerfen?\n\nDie Verschiebungen gehen verloren, die Basisdaten bleiben unverändert. ↩ Undo holt es zurück.')) return;
+  undoStand('Szenario verworfen');
   taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
   markDirty(); renderTaktabgleich();
 }
@@ -2927,6 +2965,7 @@ function startNewProject(){
   const descInput=document.getElementById('startProjectDesc');
   const name=nameInput.value.trim();
   if(!name){ toast('⚠ Bitte Projektnamen eingeben'); nameInput.focus(); return; }
+  projektId=neueProjektId();
   currentProject=name;
   projectDescription=descInput?descInput.value.trim():'';
   parts = Array.from({length:10},(_,i)=>({id:newPartId(), name:`Schritt ${i+1}`}));
@@ -2971,6 +3010,7 @@ function handleStartImport(evt){
     try{
       const parsed=parseImportedCSV(text);
       if(!parsed||parsed.parts.length===0){ toast('⚠ Keine Prozessschritte gefunden oder CSV ungültig'); return; }
+      projektId=neueProjektId();
       importUebernehmen(parsed,true,file.name);
       importHinweis(parsed,'✓ Projekt "'+currentProject+'" geladen');
     }catch(err){
@@ -2980,8 +3020,11 @@ function handleStartImport(evt){
 }
 
 function switchProject(){
-  if(hasUnsavedChanges && !confirm('Zum Projekt-Start wechseln?\n\nNicht exportierte Änderungen gehen verloren.\nVorher über „Export" als CSV sichern!')) return;
-  currentProject=null;
+  if(saveTmr){ clearTimeout(saveTmr); saveTmr=null; saveState(); }
+  if(!projektAblegen() && !confirm('Das Projekt ließ sich auf dem Gerät nicht ablegen (Speicher voll?).\n\nTrotzdem wechseln? Nicht exportierte Änderungen gingen verloren.')) return;
+  if(currentProject) toast('✓ „'+currentProject+'" auf diesem Gerät abgelegt');
+  currentProject=null; projektId=null;
+  renderStartProjekte();
   updateProjLabel();
   document.getElementById('startScreen').classList.add('open');
   const inp=document.getElementById('startProjectName');
@@ -3596,6 +3639,7 @@ function buildGrid(){
         e.stopPropagation();
         openNotePopup(tgl,'Notiz: '+c.label, c.note||'', val=>{
           if((c.note||'')!==val){
+            undoStand('Notiz „'+c.label+'"');
             c.note=val;markDirty();
             tgl.classList.toggle('has-note',!!val);
           }
@@ -3826,6 +3870,7 @@ function renderBody(){
     lvSel.addEventListener('focus',e=>{e.stopPropagation();selectPart(id);});
     lvSel.addEventListener('click',e=>e.stopPropagation());
     lvSel.addEventListener('change',()=>{
+      undoPush({part:id,key:'__level',prev:data[id].__level});
       data[id].__level=parseInt(lvSel.value)||1;
       markDirty();
       tr.className=tr.className.replace(/\blvl-\d\b/,'lvl-'+data[id].__level);
@@ -3871,7 +3916,7 @@ function renderBody(){
       ei.addEventListener('keydown',e=>{if(e.key==='Enter')ei.blur();});
       ei.addEventListener('blur',()=>{
         const val=ei.value;
-        if((data[id][fld]||'')!==val){ data[id][fld]=val; markDirty(); }
+        if((data[id][fld]||'')!==val){ undoPush({part:id,key:fld,prev:data[id][fld]||''}); data[id][fld]=val; markDirty(); }
       });
       tdE.appendChild(ei);
       tr.appendChild(tdE);
@@ -3903,6 +3948,7 @@ function renderBody(){
       openNotePopup(noteBtn,'Notiz: '+name, data[id].__note||'', val=>{
         if(!data[id]) return;   // Schritt inzwischen gelöscht
         if((data[id].__note||'')!==val){
+          undoPush({part:id,key:'__note',prev:data[id].__note||''});
           data[id].__note=val;markDirty();
           noteBtn.classList.toggle('active',!!val);
         }
@@ -3989,6 +4035,7 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
     i.value=t[key];
     i.addEventListener('focus',e=>{e.stopPropagation();selectPart(stepId);});
     i.addEventListener('keydown',e=>{if(e.key==='Enter')i.blur();});
+    i.addEventListener('focus',()=>teilFeldBetreten(stepId));
     i.addEventListener('input',()=>teilAendern(stepId,t.id,key,i.value));
     if(key==='menge') i.addEventListener('blur',()=>{ i.value=t.menge; });   // leeres Feld zeigt danach 0
     c.appendChild(i);
@@ -4061,9 +4108,60 @@ function updateLastAction(){
   if(el) el.textContent=lastActionText?'↳ '+lastActionText:'';
 }
 function undoPush(e){ undoStack.push(e); if(undoStack.length>50) undoStack.shift(); }
+/* ── Undo für alles, was kein Zähler ist ──
+   Ein „Stand" hält alles fest, was zum Projekt gehört (nicht Anzeige-Einstellungen wie Filter oder
+   Spaltenbreiten). Wird vor einer Änderung gemerkt; Undo setzt ihn als Ganzes zurück. */
+function projektStand(){
+  return JSON.stringify({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,
+    taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject,activePart});
+}
+/* quelle: gleichartige Änderungen kurz hintereinander (Tippen in einem Feld) ergeben einen Undo-Schritt */
+function undoStand(text,quelle,vorher){
+  const top=undoStack[undoStack.length-1];
+  if(quelle && top && top.typ==='stand' && top.quelle===quelle && Date.now()-top.zeit<1500){ top.zeit=Date.now(); return; }
+  undoPush({typ:'stand',text,quelle:quelle||null,zeit:Date.now(),stand:vorher||projektStand()});
+}
+/* Fenster, die viele kleine Änderungen machen (Bausteine, Laufwege): Stand beim Öffnen merken und
+   nach jeder Änderung den vorigen auf den Stapel legen */
+let fensterVorher={};
+function fensterStandMerken(f){ fensterVorher[f]=projektStand(); }
+function fensterGeaendert(f,text){
+  const vorher=fensterVorher[f];
+  if(vorher) undoStand(text,'fenster-'+f,vorher);
+  fensterVorher[f]=projektStand();
+}
+function standZuruecksetzen(json){
+  const st=JSON.parse(json);
+  ({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject}=st);
+  activePart=parts.some(p=>p.id===st.activePart) ? st.activePart : (parts[0]?parts[0].id:null);
+  Object.keys(teileOffen).forEach(id=>{ if(!data[id]) delete teileOffen[id]; });
+  if(rowClipboard && !data[rowClipboard.sourceId]) rowClipboard=null;
+  if(notePopupTarget) closeNotePopup();
+  ensureKeys(); lwNeuRechnen();
+  buildLegend(); buildGrid(); buildHead(); renderBody(); updGrid(); updateActiveBar(); updateProjLabel();
+  ['cfgModal','mtmModal'].forEach(id=>document.getElementById(id).classList.remove('open'));
+  if(lwOffen()) closeLw();
+  if(document.getElementById('anaModal').classList.contains('open')) openAnalysis();
+  fensterVorher={};
+}
 function undoLast(){
   const last=undoStack.pop();
   if(!last){toast('Nichts rückgängig zu machen');return;}
+  if(last.typ==='stand'){
+    standZuruecksetzen(last.stand);
+    markDirty();
+    lastActionText='↩ Rückgängig: '+last.text; toast(lastActionText); updateLastAction();
+    return;
+  }
+  if(last.typ==='name'){
+    const p=parts.find(x=>x.id===last.part);
+    if(!p){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
+    p.name=last.prev;
+    if(rowClipboard && rowClipboard.sourceId===p.id) rowClipboard.sourceName=p.name;
+    updGrid(); renderBody(); updateActiveBar(); markDirty();
+    lastActionText='↩ Rückgängig: Name „'+p.name+'"'; toast(lastActionText); updateLastAction();
+    return;
+  }
   if(last.typ==='geloescht'){
     const p=last.schritt;
     parts.splice(Math.min(last.idx,parts.length),0,p);
@@ -4154,6 +4252,7 @@ function teilTrifftFilter(t){
 function addTeil(stepId){
   const d=data[stepId]; if(!d) return;
   const t={id:newTeilId(),sachnr:'',name:'',menge:1};
+  undoPush({part:stepId,key:'__teile',prev:JSON.parse(JSON.stringify(d.__teile))});
   d.__teile.push(t);
   teileOffen[stepId]=true;
   selectPart(stepId);
@@ -4178,8 +4277,11 @@ function delTeil(stepId,teilId){
 }
 /* Eingabe in einer Unterzeile: Daten sofort nachführen, Hauptzeile und Summe gezielt aktualisieren —
    ein Neuaufbau der Tabelle würde dem Feld unter dem Finger den Fokus nehmen. */
+let teilUndoOffen=null;   // Teile-Liste beim Betreten eines Feldes — erst die erste Eingabe legt sie auf den Stapel
+function teilFeldBetreten(stepId){ teilUndoOffen={step:stepId,prev:JSON.parse(JSON.stringify(stepTeile(stepId)))}; }
 function teilAendern(stepId,teilId,key,val){
   const t=stepTeile(stepId).find(x=>x.id===teilId); if(!t) return;
+  if(teilUndoOffen && teilUndoOffen.step===stepId){ undoPush({part:stepId,key:'__teile',prev:teilUndoOffen.prev}); teilUndoOffen=null; }
   if(key==='menge') t.menge=Math.max(0,parseInt(val)||0);
   else if(key==='sachnr') t.sachnr=String(val).trim();
   else t.name=val;
@@ -4205,6 +4307,7 @@ function renamePart(id,newName,inp){
   if(!newName){ inp.value=p.name; return; }
   if(newName===p.name) return;
   const dup=parts.some(x=>x.id!==id && x.name===newName);
+  undoPush({typ:'name',part:id,prev:p.name});
   p.name=newName;
   if(rowClipboard && rowClipboard.sourceId===id) rowClipboard.sourceName=newName;
   updGrid();renderBody(); markDirty();
@@ -4251,6 +4354,7 @@ function addPart(){
     parts.push(newPart);
   }
   initPart(id);
+  undoPush({typ:'einfuegen',ids:[id]});
   if(!activePart) activePart=id;
   renderBody();markDirty();
   toast('✓ "'+name+'" hinzugefügt'+(existingNames.includes(name)?' – Name gibt es bereits':''));
@@ -4275,7 +4379,9 @@ function delPart(id){
   toast('✓ „'+name+'" gelöscht – ↩ Undo holt ihn zurück');
 }
 function resetAll(){
-  if(!confirm('Alle Zähler zurücksetzen?'))return;
+  if(!confirm('Alle Zähler zurücksetzen?\n\n↩ Undo holt die Werte zurück.'))return;
+  sicherungAnlegen('vor „Alle Zähler zurücksetzen"',true);
+  undoStand('Alle Zähler zurückgesetzt');
   parts.forEach(p=>{COLS.forEach(c=>data[p.id][c.key]=0);});   // Teile und Mengen bleiben
   lwNeuRechnen();   // Auslöser sind keine Zähler: gerechnete Meter stehen gleich wieder da
   updGrid();renderBody();markDirty();toast('Alle Zähler zurückgesetzt');
@@ -4298,11 +4404,26 @@ function openCfg(){
       +`<input class="pval" type="number" step="0.001" value="${c.param}" placeholder="0.000"/>`
       +`<span class="punit">minD</span>`
       +`<select class="pgrp">${groupOptions(c.group)}</select>`
-      +`<button class="pdel" onclick="this.closest('.prow').remove()" title="Kategorie entfernen">${ic('x')}</button>`
+      +`<button class="pdel" onclick="cfgZeileEntfernen(this)" title="Baustein entfernen">${ic('x')}</button>`
       +`<input class="pnote" type="text" value="${escAttr(c.note||'')}" placeholder="Notiz zur Kategorie (optional)"/>`;
     b.appendChild(row);
   });
   document.getElementById('cfgModal').classList.add('open');
+}
+/* Baustein in „Zeiten" entfernen: sind darauf Zählungen erfasst, erst nachfragen — beim Speichern
+   fielen sie aus allen Summen und beim nächsten Export ganz weg (Undo holt sie zurück). */
+function cfgZeileEntfernen(btn){
+  const row=btn.closest('.prow'), key=row.dataset.key;
+  const c=COLS.find(x=>x.key===key);
+  if(c){
+    const benutzt=parts.filter(pt=>(data[pt.id][key]||0)>0);
+    const summe=benutzt.reduce((x,pt)=>x+(data[pt.id][key]||0),0);
+    let txt='';
+    if(benutzt.length) txt='„'+c.label+'" ist '+summe+'× gezählt, in '+benutzt.length+' Prozessschritt(en).\n\nBeim Speichern fallen diese Zählungen aus allen Summen und beim nächsten Export ganz weg. ↩ Undo holt sie zurück.';
+    if(key===LW_KAT) txt=(txt?txt+'\n\n':'')+'„'+c.label+'" ist der Baustein der Laufwege — gerechnete Meter hätten danach kein Ziel mehr.';
+    if(txt && !confirm(txt+'\n\nTrotzdem entfernen?')) return;
+  }
+  row.remove();
 }
 function closeCfg(){document.getElementById('cfgModal').classList.remove('open');}
 function addCfgRow(){
@@ -4330,6 +4451,7 @@ function saveCfg(){
     newCols.push({key,label:lbl,param:val,group:grp,note});
   });
   if(!newCols.length){toast('Mindestens eine Kategorie nötig');return;}
+  undoStand('Zeiten geändert');
   COLS=newCols;ensureKeys();closeCfg();
   buildLegend();buildGrid();buildHead();renderBody();markDirty();toast('Gespeichert');
 }
@@ -4410,7 +4532,7 @@ function mtmCustomGePruefen(o){
   return r;
 }
 
-function openMtm(){ setMtmTab(mtmTab); document.getElementById('mtmModal').classList.add('open'); }
+function openMtm(){ fensterStandMerken('mtm'); setMtmTab(mtmTab); document.getElementById('mtmModal').classList.add('open'); }
 function closeMtm(){ document.getElementById('mtmModal').classList.remove('open'); }
 function setMtmTab(t){
   mtmTab=t;
@@ -4430,6 +4552,7 @@ function setMtmTab(t){
 function mtmToggleBs(i){ const k=mtmEntries()[i].key; mtmOpenBs=mtmOpenBs===k?null:k; mtmOpenGe=null; renderMtmHerkunft(); }
 function mtmToggleGe(nr){ mtmOpenGe=mtmOpenGe===nr?null:nr; renderMtmHerkunft(); }
 function mtmApplyCols(){
+  fensterGeaendert('mtm','Änderung in Bausteine');
   ensureKeys();buildLegend();buildGrid();buildHead();renderBody();markDirty();
 }
 
@@ -4583,6 +4706,7 @@ function mtmDeleteGe(nr){
   delete mtmCustomGE[nr];
   mtmNew.elems=mtmNew.elems.filter(e=>e.nr!==nr);   // auch aus einem angefangenen Baustein nehmen
   if(mtmOpenGrund===nr) mtmOpenGrund=null;
+  fensterGeaendert('mtm','Grundelement gelöscht');
   markDirty();renderMtmGeList();
   toast('✓ Grundelement „'+g.name+'" gelöscht');
 }
@@ -4817,6 +4941,7 @@ function mtmCreateGe(){
   if(mtmAllGe().some(g=>(g.name||'').trim().toLowerCase()===name.toLowerCase())){ toast('⚠ „'+name+'" gibt es schon'); return; }
   const nr=Math.max(MTM_GE_BASE,...Object.keys(mtmCustomGE).map(Number))+1;
   mtmCustomGE[nr]={nr,name,divisor:mtmNewGe.divisor,codes:mtmNewGe.codes.map(c=>({code:c.code,anz:c.anz,hfg:c.hfg}))};
+  fensterGeaendert('mtm','Grundelement angelegt');
   markDirty();
   mtmNewGe={name:'',divisor:1,codes:[]};
   toast('✓ Grundelement „'+name+'" angelegt (#'+nr+')');
@@ -4875,7 +5000,7 @@ const LW_BEREIT_WOERTER=['transportwagen','bereitstellen','bereitstellung','abr�
   'sonderladungsträger','sonderladungstraeger','abrüsten','abruesten'];
 
 function lwOffen(){ return document.getElementById('lwModal').classList.contains('open'); }
-function openLw(tab){ setLwTab(tab||lwTab); document.getElementById('lwModal').classList.add('open'); }
+function openLw(tab){ fensterStandMerken('lw'); setLwTab(tab||lwTab); document.getElementById('lwModal').classList.add('open'); }
 function closeLw(){ if(lwTabelleTmr) lwTabelleNachziehen(); document.getElementById('lwModal').classList.remove('open'); }
 function setLwTab(t){
   lwTab=t;
@@ -4892,7 +5017,7 @@ function lwKatParam(){ const c=COLS.find(c=>c.key===LW_KAT); return c?c.param:0;
    die vom Fenster verdeckte Haupttabelle nach der letzten Eingabe einmal neu zu zeichnen. */
 let lwTabelleTmr=null;
 function lwNachAenderung(){
-  lwNeuRechnen(); markDirty();
+  lwNeuRechnen(); fensterGeaendert('lw','Änderung in Laufwege'); markDirty();
   clearTimeout(lwTabelleTmr);
   lwTabelleTmr=setTimeout(lwTabelleNachziehen,150);
 }
@@ -5202,6 +5327,7 @@ document.addEventListener('keydown',e=>{
   else if(offen('notePopup')) closeNotePopup();
   else if(offen('colPopup')) closeColPopup();
   else if(offen('pasteModal')) closePaste();
+  else if(offen('sichModal')) closeSicherungen();
   else if(offen('expModal')) closeExpModal();
   else if(lwOffen()) closeLw();
   else if(offen('mtmModal')) closeMtm();
@@ -5228,14 +5354,169 @@ function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
                   projectDescription, lastExportTime, verteilzeitFactor, uiMode, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
-                  ungesichert: hasUnsavedChanges,
+                  ungesichert: hasUnsavedChanges, projektId,
                   saved: new Date().toISOString() };
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    if(!speicherSchreiben(LS_KEY,state)) throw new Error('voll');
     if(dot()){ dot().className='save-dot saved'; }
-  } catch(e){ toast('⚠ Speichern fehlgeschlagen (Storage voll?)'); }
+    listeEintragen();
+    return true;
+  } catch(e){ toast('⚠ Speichern fehlgeschlagen (Speicher voll?) – bitte exportieren'); return false; }
 }
 
+/* ═══════════════════════════════════════
+   PROJEKTE UND SICHERUNGSSTÄNDE (auf diesem Gerät)
+   Das geöffnete Projekt liegt wie bisher unter LS_KEY. Alle anderen liegen als CSV-Text (Format 4,
+   ~30 KB bei 300 Schritten) unter LS_PROJ+id, die Liste unter LS_LISTE. Je Projekt bis zu SICH_MAX
+   Sicherungsstände unter LS_SICH+id, neueste zuerst. Ist der Speicher voll, fallen die ältesten
+   Sicherungsstände weg. Ob der Speicher eines Aufrufs dauerhaft ist, kann die App nicht prüfen —
+   „gespeichert seit" auf der Startseite zeigt es: steht dort nach dem Neustart wieder heute, war er es nicht.
+═══════════════════════════════════════ */
+const LS_LISTE='zeitaufnahme_projekte', LS_PROJ='zeitaufnahme_p_', LS_SICH='zeitaufnahme_s_', LS_SEIT='zeitaufnahme_seit';
+const SICH_MAX=10, SICH_MIN=10;   // Anzahl je Projekt · automatisch alle SICH_MIN Minuten mit Änderungen
+let projektId=null;
+let sicherungOffen=false;   // Änderungen seit dem letzten Sicherungsstand
+function neueProjektId(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function lsLesen(k,std){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):std; }catch(e){ return std; } }
+function lsSchreiben(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
+function speicherGeht(){ try{ localStorage.setItem('zeitaufnahme_test','1'); localStorage.removeItem('zeitaufnahme_test'); return true; }catch(e){ return false; } }
+function speicherBelegtKB(){
+  let n=0; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith('zeitaufnahme')) n+=(localStorage.getItem(k)||'').length; } }catch(e){}
+  return Math.round(n*2/1024);   // UTF-16
+}
+/* Schreiben; ist der Speicher voll, die ältesten Sicherungsstände (aller Projekte) opfern */
+function speicherSchreiben(k,v){
+  for(let runde=0;runde<40;runde++){
+    if(lsSchreiben(k,v)) return true;
+    let aeltest=null;
+    projektListe().forEach(m=>{ const l=lsLesen(LS_SICH+m.id,[]); if(l.length){ const t=l[l.length-1].t; if(!aeltest||t<aeltest.t) aeltest={id:m.id,t}; } });
+    if(!aeltest) return false;
+    const l=lsLesen(LS_SICH+aeltest.id,[]); l.pop();
+    if(!lsSchreiben(LS_SICH+aeltest.id,l)) try{ localStorage.removeItem(LS_SICH+aeltest.id); }catch(e){}
+  }
+  return false;
+}
+function projektListe(){ const l=lsLesen(LS_LISTE,[]); return Array.isArray(l)?l.filter(x=>x&&x.id):[]; }
+function projektSumme(){ return parts.reduce((x,p)=>x+calcTotal(p.id),0); }
+function projektMeta(){ return {id:projektId,name:currentProject||'',saved:new Date().toISOString(),n:parts.length,minD:+projektSumme().toFixed(3)}; }
+function listeEintragen(){
+  if(!projektId||!currentProject) return;
+  const l=projektListe().filter(x=>x.id!==projektId); l.unshift(projektMeta());
+  lsSchreiben(LS_LISTE,l);
+  if(!lsLesen(LS_SEIT,null)) lsSchreiben(LS_SEIT,new Date().toISOString());
+}
+/* Geöffnetes Projekt ablegen, bevor ein anderes geladen wird */
+function projektAblegen(){
+  if(!currentProject||!projektId||!parts.length) return true;
+  const ok=speicherSchreiben(LS_PROJ+projektId,{csv:csvProjektV4(),ui:{colVis,teileOffen,anaTopNach,lastExportTime,ungesichert:hasUnsavedChanges}});
+  if(ok) listeEintragen();
+  return ok;
+}
+function projektOeffnen(id){
+  const e=lsLesen(LS_PROJ+id,null);
+  if(!e||!e.csv){ toast('⚠ Projekt auf diesem Gerät nicht gefunden'); renderStartProjekte(); return; }
+  let parsed;
+  try{ parsed=parseImportedCSV(e.csv); }catch(err){ parsed=null; }
+  if(!parsed||!parsed.parts.length){ toast('⚠ Gespeichertes Projekt ist beschädigt'); return; }
+  const meta=projektListe().find(x=>x.id===id);
+  projektId=id;
+  importUebernehmen(parsed,true,(meta&&meta.name)||'Projekt');
+  const ui=e.ui||{};
+  if(ui.colVis) OPT_COLS.forEach(o=>{ if(typeof ui.colVis[o.key]==='boolean') colVis[o.key]=ui.colVis[o.key]; });
+  if(typeof ui.anaTopNach==='string') anaTopNach=ui.anaTopNach;
+  lastExportTime=ui.lastExportTime||null;
+  hasUnsavedChanges=ui.ungesichert===true;
+  buildHead(); renderBody(); updateExportIndicator();
+  if(saveState()) try{ localStorage.removeItem(LS_PROJ+id); }catch(err){}   // geöffnet liegt es unter LS_KEY
+  toast('✓ „'+currentProject+'" geöffnet');
+}
+function projektLoeschen(id){
+  const m=projektListe().find(x=>x.id===id); if(!m) return;
+  if(!confirm('Projekt „'+m.name+'" von diesem Gerät löschen?\n\nAuch seine Sicherungsstände gehen verloren. Exportierte Dateien bleiben unberührt.')) return;
+  try{ localStorage.removeItem(LS_PROJ+id); localStorage.removeItem(LS_SICH+id); }catch(e){}
+  lsSchreiben(LS_LISTE,projektListe().filter(x=>x.id!==id));
+  renderStartProjekte();
+  toast('✓ „'+m.name+'" gelöscht');
+}
+const datumKurz=iso=>{ const d=new Date(iso); if(isNaN(d)) return '–';
+  const heute=new Date().toDateString()===d.toDateString();
+  return (heute?'heute':d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'}))+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}); };
+function speicherHinweisText(){
+  if(!speicherGeht()) return {warn:true,txt:'⚠ Dieser Aufruf kann auf dem Gerät nichts speichern. Projekte regelmäßig über „Export" als Datei sichern!'};
+  const seit=lsLesen(LS_SEIT,null);
+  const d=seit?new Date(seit):null;
+  return {warn:false,txt:'Speicher auf diesem Gerät: '+(d&&!isNaN(d)?'in Gebrauch seit '+d.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'noch leer')
+    +' · belegt ca. '+speicherBelegtKB()+' KB. Fehlen nach einem Neustart der App Projekte oder ist dieses Datum neuer geworden, hat das Gerät den Speicher geleert – dann zusätzlich als Datei exportieren.'};
+}
+function renderStartProjekte(){
+  const el=document.getElementById('startProjekte'); if(!el) return;
+  const l=projektListe().filter(x=>x.id!==projektId||!currentProject);
+  el.className=l.length?'start-projekte':'';
+  el.innerHTML=l.length ? '<label class="start-lbl">Projekte auf diesem Gerät</label>'+l.map(m=>`<div class="start-proj">
+      <div class="start-proj-info"><div class="start-proj-name" title="${escAttr(m.name)}">${escHtml(m.name)}</div>
+        <div class="start-proj-meta">${m.n} Schritte · ${(+m.minD||0).toFixed(2)} minD · ${datumKurz(m.saved)}</div></div>
+      <button class="tbtn" onclick="projektOeffnen('${escAttr(m.id)}')">${ic('projekt')}Öffnen</button>
+      <button class="row-icon-btn danger" onclick="projektLoeschen('${escAttr(m.id)}')" title="Von diesem Gerät löschen" aria-label="Löschen">${ic('loeschen')}</button>
+    </div>`).join('') : '';
+  const h=speicherHinweisText(), sp=document.getElementById('startSpeicher');
+  sp.textContent=h.txt; sp.classList.toggle('warn',h.warn);
+}
+/* ── Sicherungsstände ── */
+function sicherungen(id){ const l=lsLesen(LS_SICH+(id||projektId),[]); return Array.isArray(l)?l:[]; }
+function sicherungAnlegen(grund,still){
+  if(!currentProject||!projektId||!parts.length) return false;
+  const csv=csvProjektV4(), l=sicherungen();
+  sicherungOffen=false;
+  if(l.length && l[0].csv===csv) return true;   // nichts geändert seit dem letzten Stand
+  l.unshift({t:new Date().toISOString(),grund,n:parts.length,minD:+projektSumme().toFixed(3),csv});
+  if(l.length>SICH_MAX) l.length=SICH_MAX;
+  const ok=speicherSchreiben(LS_SICH+projektId,l);
+  if(!ok && !still) toast('⚠ Sicherungsstand konnte nicht gespeichert werden (Speicher voll?) – bitte exportieren',5000);
+  if(document.getElementById('sichModal').classList.contains('open')) renderSicherungen();
+  return ok;
+}
+function openSicherungen(){ renderSicherungen(); document.getElementById('sichModal').classList.add('open'); }
+function closeSicherungen(){ document.getElementById('sichModal').classList.remove('open'); }
+function renderSicherungen(){
+  const h=speicherHinweisText(), l=sicherungen();
+  document.getElementById('sichBody').innerHTML=`<div class="sich-status${h.warn?' warn':''}">${escHtml(h.txt)}<br>
+      Gesichert wird automatisch alle ${SICH_MIN} Minuten mit Änderungen, beim Wechsel in eine andere App und vor Import,
+      „Alle Zähler zurücksetzen", Szenario-Übernahme und Wiederherstellen. Die letzten ${SICH_MAX} bleiben.</div>
+    <div class="takt-szen-btns"><button class="tbtn" onclick="sicherungAnlegen('von Hand')">${ic('haken')}Jetzt sichern</button></div>
+    ${l.length?l.map((x,i)=>`<div class="sich-row">
+      <div class="sich-info"><div class="sich-zeit">${datumKurz(x.t)} <span class="takt-hint">· ${escHtml(x.grund||'')}</span></div>
+        <div class="sich-meta">${x.n} Schritte · ${(+x.minD||0).toFixed(2)} minD</div></div>
+      <button class="tbtn" onclick="sicherungLaden(${i})">${ic('undo')}Wiederherstellen</button>
+      <button class="tbtn" onclick="sicherungDatei(${i})">${ic('export')}Als Datei</button>
+    </div>`).join(''):'<div class="leer-hinweis">Noch keine Sicherungsstände für dieses Projekt.</div>'}`;
+}
+function sicherungLaden(i){
+  const x=sicherungen()[i]; if(!x) return;
+  if(!confirm('Stand von '+datumKurz(x.t)+' wiederherstellen?\n\nDer jetzige Stand wird vorher als Sicherungsstand abgelegt.')) return;
+  sicherungAnlegen('vor Wiederherstellen',true);
+  let parsed; try{ parsed=parseImportedCSV(x.csv); }catch(e){ parsed=null; }
+  if(!parsed||!parsed.parts.length){ toast('⚠ Sicherungsstand ist beschädigt'); return; }
+  const name=currentProject, le=lastExportTime;
+  importUebernehmen(parsed,true,name);
+  currentProject=name; lastExportTime=le; updateProjLabel(); updateExportIndicator(); saveState();
+  closeSicherungen();
+  toast('✓ Stand von '+datumKurz(x.t)+' wiederhergestellt');
+}
+function sicherungDatei(i){
+  const x=sicherungen()[i]; if(!x) return;
+  const d=new Date(x.t), z=n=>String(n).padStart(2,'0');
+  dateiAnbieten(dateiBasis(currentProject)+'_Sicherung_'+d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'_'+z(d.getHours())+z(d.getMinutes())+'.csv',
+    new Blob(['\uFEFF'+x.csv],{type:'text/csv;charset=utf-8;'}));
+}
+setInterval(()=>{ if(sicherungOffen) sicherungAnlegen('automatisch',true); }, SICH_MIN*60*1000);
+/* App geht in den Hintergrund (iPad: anderes Programm, Bildschirm aus): sofort speichern und sichern */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='hidden' || !currentProject) return;
+  if(saveTmr){ clearTimeout(saveTmr); saveTmr=null; saveState(); }
+  if(sicherungOffen) sicherungAnlegen('automatisch',true);
+});
+
 function markDirty(){
+  sicherungOffen=true;
   hasUnsavedChanges=true;
   if(dot()) dot().className='save-dot dirty';
   clearTimeout(saveTmr);
@@ -5276,6 +5557,7 @@ function loadState(){
     }
     lwParams=lwParamsPruefen(s.lwParams);
     hasUnsavedChanges=s.ungesichert===true;
+    projektId=typeof s.projektId==='string' ? s.projektId : (s.currentProject ? neueProjektId() : null);
     ensureKeys();   // wandelt Daten der Vorversion in Prozessschritte mit Teilen um
     lwNeuRechnen();   // gespeicherte Meterzahlen könnten zu anderen Meterwerten gehören
     if(ausAlt) saveState();   // ab jetzt unter dem neuen Schlüssel; der alte bleibt als Rückfallebene
@@ -5871,7 +6153,22 @@ function csvProjektV4(){
 }
 /* Datei zum Speichern anbieten. Die Objekt-URL bleibt bestehen: am iPad kann die Abfrage
    „Laden?" beliebig lange offen stehen, eine freigegebene URL ließe den Download dann scheitern. */
+/* iPad: über das Teilen-Menü (Dateien, OneDrive, Mail …) — so liegt die Datei sicher außerhalb der App.
+   Wo das nicht geht (Laptop, ältere Geräte), wie bisher als Download. */
 function dateiAnbieten(name,blob){
+  try{
+    const touch=/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+    if(touch && navigator.canShare && navigator.share){
+      const f=new File([blob],name,{type:blob.type||'application/octet-stream'});
+      if(navigator.canShare({files:[f]})){
+        navigator.share({files:[f]}).catch(e=>{ if(!e || e.name!=='AbortError') herunterladen(name,blob); });
+        return;
+      }
+    }
+  }catch(e){}
+  herunterladen(name,blob);
+}
+function herunterladen(name,blob){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download=name;
   document.body.appendChild(a); a.click(); a.remove();
@@ -6027,7 +6324,8 @@ function handleImport(evt){
     try{
       const parsed=parseImportedCSV(text);
       if(!parsed||parsed.parts.length===0){ toast('⚠ CSV leer, ungültig oder keine Prozessschritte gefunden'); return; }
-      if(!confirm(`CSV importieren?\n„${file.name}"\n\nAchtung: Aktuelle Daten werden überschrieben.`)) return;
+      if(!confirm(`CSV importieren?\n„${file.name}"\n\nDie aktuellen Daten werden ersetzt – der jetzige Stand liegt danach unter „Sicherungsstände".`)) return;
+      sicherungAnlegen('vor Import',true);
       importUebernehmen(parsed,false,file.name);
       importHinweis(parsed,'✓ Importiert: '+file.name);
     } catch(err){
@@ -6156,8 +6454,11 @@ if(hadSaved && currentProject){
   if(dot()) dot().className='save-dot saved';
   toast('✓ Letzter Stand wiederhergestellt: '+(currentProject||''));
 } else {
+  currentProject=null; projektId=null;   // Startseite: das zuletzt geöffnete liegt in der Liste
   setTimeout(()=>{ const i=document.getElementById('startProjectName'); if(i) i.focus(); },300);
 }
+renderStartProjekte();
+try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch(e){}
 startAutosaveReminder();
 setInterval(updateExportIndicator, 30000);
 updateFilterClearBtn();
@@ -6167,7 +6468,9 @@ const projDescBtn=document.getElementById('projDescBtn');
 function projektBearbeiten(e){
   e.stopPropagation();
   if(!currentProject) return;
+  const vorher=projektStand();
   openNotePopup(projDescBtn,'Projekt', projectDescription||'', (val,name)=>{
+    if((projectDescription||'')!==val || (name && name!==currentProject)) undoStand('Projektname/Beschreibung',null,vorher);
     let geaendert=false;
     if((projectDescription||'')!==val){ projectDescription=val; geaendert=true; }
     if(name && name!==currentProject){ currentProject=name; geaendert=true; }

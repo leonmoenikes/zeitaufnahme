@@ -35,6 +35,27 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   Finger. Die Breiten gelten nur auf diesem Gerät. Doppelklick auf den Rand oder „Breiten
   zurücksetzen“ im Menü „Spalten“ stellt die automatische Breite wieder her.
 
+### Daten schützen
+
+- **Projekte auf diesem Gerät:** „Projekt wechseln“ verwirft das Projekt nicht mehr, sondern legt es
+  auf dem Gerät ab. Die Startseite listet alle abgelegten Projekte (Schritte, minD, letzte Änderung)
+  zum Öffnen oder Löschen. Abgelegt wird als CSV-Text (Format 4), rund 30 KB bei 300 Schritten.
+- **Sicherungsstände:** Je Projekt bis zu 10 Stände, automatisch alle 10 Minuten mit Änderungen,
+  beim Wechsel in eine andere App sowie vor Import, „Alle Zähler zurücksetzen“, Szenario-Übernahme
+  und Wiederherstellen. Menü „⋯ → Sicherungsstände“: jetzt sichern, wiederherstellen oder als
+  Datei ausgeben. Ist der Speicher voll, fallen die ältesten Sicherungsstände weg.
+- **Speicher-Hinweis:** Startseite und Sicherungsstände zeigen, seit wann auf dem Gerät gespeichert
+  wird und wie viel belegt ist. Fehlen nach einem Neustart Projekte, hat das Gerät den Speicher
+  geleert. Kann ein Aufruf gar nichts speichern, erscheint eine Warnung.
+- **Teilen-Menü am iPad:** CSV, Excel, Vorlage und Sicherungsstände öffnen am iPad das Teilen-Menü
+  (Dateien, OneDrive, Mail …). Am Laptop bleibt es beim Download.
+- **Warnung in „Zeiten“:** Wird ein Baustein mit Zählungen entfernt, fragt die App nach („3× gezählt,
+  in 2 Prozessschritten“). Beim Baustein der Laufwege kommt ein eigener Hinweis.
+- **Undo für alles:** Rückgängig lassen sich jetzt auch „Alle Zähler zurücksetzen“, Umbenennen,
+  Level, Zusatzspalten, Notizen, Teile (Hinzufügen und Ändern, ein Schritt je Feld), „Schritt
+  hinzufügen“, Zeiten, Bausteine, Laufwege, Sollzeit/Verteilzeit/Stundensatz, Soll-Taktzeit,
+  Spaltenüberschriften, Projektname und alle Szenario-Änderungen.
+
 ### Auswertung
 
 - **Top 10 mit Auswahl:** Über der Top-10-Liste wählt ein Auswahlfeld, wonach zusammengefasst

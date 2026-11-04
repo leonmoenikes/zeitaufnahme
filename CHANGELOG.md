@@ -56,6 +56,23 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   hinzufügen“, Zeiten, Bausteine, Laufwege, Sollzeit/Verteilzeit/Stundensatz, Soll-Taktzeit,
   Spaltenüberschriften, Projektname und alle Szenario-Änderungen.
 
+### Stoppuhr (Einfach-Modus)
+
+- **Zeit messen an der Linie:** Unter der gelben Aktiv-Leiste sitzt im Einfach-Modus die Stoppuhr.
+  „Zeit messen“ startet für den aktiven Schritt; der große Knopf „Stop · Nächster“ speichert die
+  Zeit und startet im selben Augenblick den nächsten Schritt (Überschriften mit Level 1 werden
+  übersprungen). Wurde während der Messung eine andere Zeile angetippt, geht es dort weiter.
+  „■ Stop“ hält an, ✕ verwirft. Während der Messung bleibt der Bildschirm an (wo das Gerät es
+  erlaubt).
+- **Mehrere Messungen je Schritt:** Alle Werte werden gespeichert (Sekunden), angezeigt wird der
+  Mittelwert. Neue Tabellenspalte „⏱ Ø gem.“ (erscheint mit der ersten Messung) — antippen zeigt
+  die Einzelwerte, Ausreißer lassen sich löschen; Undo holt sie zurück.
+- **Auswertung „Zeitmessung“:** neuer Reiter mit MTM gegen gemessen je Schritt (Einzelwerte, Ø,
+  Abweichung, Leistungsgrad = MTM ÷ gemessen) und Summen. Auch in Drucken/PDF und als Blatt
+  „Zeitmessung“ in der Excel-Datei.
+- **CSV:** neue Spalte „Messungen [s]“ nach „Notiz“ (Werte mit | getrennt). Ältere App-Versionen
+  melden sie als unbekannte Spalte und lassen sie aus.
+
 ### Tabelle: Tempo, Verschieben, Suche
 
 - **Schneller bei großen Projekten:** Aufklappen, Teil hinzufügen/löschen, Umbenennen, Schritt

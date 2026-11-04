@@ -359,6 +359,32 @@ body.beginner-mode .such-box .tb-ic{width:44px;height:44px;}
 body.beginner-mode .versch-pop input[type=number]{height:44px;}
 .versch-pop .vp-info{font-size:var(--fs-xs);color:var(--text2);}
 
+/* ── STOPPUHR ── */
+.stopp-leiste{flex-shrink:0;display:flex;align-items:center;gap:10px;min-height:56px;padding:6px var(--sp3);
+  background:var(--surface);border-bottom:1px solid var(--border2);box-shadow:inset 4px 0 0 var(--yellow);}
+.stopp-leiste button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:var(--radius);
+  font-size:var(--fs-m);font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text);}
+.stopp-leiste .stopp-start{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+.stopp-leiste .stopp-weiter{background:var(--green);border-color:var(--green);color:#fff;font-size:var(--fs-l);min-width:200px;justify-content:center;}
+.stopp-leiste .stopp-weg{padding:0 12px;color:var(--red);}
+.stopp-zeit{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);min-width:110px;}
+.stopp-info{flex:1;min-width:0;font-size:var(--fs-xs);color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.stopp-leiste:not(.laeuft) :is(.stopp-zeit,.stopp-weiter,.stopp-stop,.stopp-weg){display:none;}
+.stopp-leiste.laeuft .stopp-start{display:none;}
+.stopp-leiste.laeuft{background:var(--green-dim,#e5f5ec);box-shadow:inset 4px 0 0 var(--green);}
+/* Spalte „Ø gemessen" */
+.data-tbl th.mess,.data-tbl td.mess{width:1px;white-space:nowrap;text-align:center;font-family:var(--mono);}
+.data-tbl th.mess{color:var(--green);background:var(--surface2);}
+.data-tbl tbody td.mess{color:var(--text);cursor:pointer;}
+.data-tbl tbody td.mess small{color:var(--text3);margin-left:2px;}
+.mess-chips{display:flex;flex-wrap:wrap;gap:4px;}
+.mess-chip{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--border2);border-radius:999px;padding:1px 2px 1px 8px;font-family:var(--mono);font-size:var(--fs-xs);background:var(--surface);}
+.mess-chip button{border:none;background:none;color:var(--text3);cursor:pointer;padding:2px 5px;min-height:28px;}
+body.beginner-mode .mess-chip button{min-height:36px;min-width:36px;}
+.mess-tbl td.tk-name{font-weight:500;}
+.mess-tbl td:nth-child(3){min-width:170px;}
+.mess-tbl .mess-chip button{min-height:24px;}
+
 /* ── ACTIVE BAR ──
    Gleiches Gelb wie die aktive Tabellenzeile: auf einen Blick klar, worauf die Kacheln zählen */
 .active-bar{
@@ -1133,6 +1159,16 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
   <span class="act-time"><span>∑ </span><span id="actTime">0.000</span> <span id="actUnit">minD</span></span>
 </div>
 
+<!-- STOPPUHR (Einfach-Modus): misst den aktiven Schritt; „Stop · Nächster" startet ohne Lücke den nächsten -->
+<div class="stopp-leiste simple-only" id="stoppLeiste">
+  <button class="stopp-start" onclick="stoppStart()"><svg class="ic"><use href="#i-uhr"/></svg>Zeit messen</button>
+  <span class="stopp-zeit" id="stoppZeit">0:00,0</span>
+  <span class="stopp-info" id="stoppInfo"></span>
+  <button class="stopp-weiter" onclick="stoppWeiter()" title="Messung speichern und sofort den nächsten Schritt messen"><svg class="ic"><use href="#i-rechts"/></svg>Stop · Nächster</button>
+  <button class="stopp-stop" onclick="stoppStop()" title="Messung speichern und anhalten">■ Stop</button>
+  <button class="stopp-weg" onclick="stoppVerwerfen()" title="Laufende Messung verwerfen" aria-label="Messung verwerfen"><svg class="ic"><use href="#i-x"/></svg></button>
+</div>
+
 <!-- WERKZEUGE -->
 <div class="filter-bar">
   <button class="tbtn" onclick="addPart()"><svg class="ic"><use href="#i-plus"/></svg>Schritt</button>
@@ -1169,6 +1205,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
         <button class="ana-tab on" id="anaTabUeb" onclick="setAnaTab('ueberblick')">Übersicht</button>
         <button class="ana-tab" id="anaTabTakt" onclick="setAnaTab('takt')">Taktabgleich</button>
         <button class="ana-tab" id="anaTabTeile" onclick="setAnaTab('teile')">Teile je Station</button>
+        <button class="ana-tab" id="anaTabMess" onclick="setAnaTab('mess')">Zeitmessung</button>
       </div>
       <div class="ana-scope-note" id="anaScope">
         <span id="anaScopeNote"></span>
@@ -1269,6 +1306,8 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
         </div>
         <div id="taktSzenWrap"></div>
       </div>
+
+      <div id="anaPanelMess" style="display:none;"><div id="messWrap"></div></div>
 
       <div id="anaPanelTeile" style="display:none;">
         <div class="ana-chart-head">
@@ -2211,6 +2250,27 @@ function printAnalysis(){
       <p class="pr-hint">Teileart = verschiedene Sachnummer (je ein Ladungsträger), Stück = Summe der Mengen; gleiche Sachnummern einer ${escHtml(stLbl)} zusammengefasst.${tjSzen?' Szenario-Stand: verschobene Schritte bringen ihre Teile mit, gestrichelt = Ist.':''}</p>
     </div>`;
 
+  /* Zeitmessung: nur wenn gemessen wurde */
+  const md=messDaten(fParts), mk=messKennzahlen(md);
+  const mpct=v=>v==null?'–':v.toFixed(0)+' %';
+  const messSec=!md.length ? '' : `<div class="pr-sec">
+      <h2>Zeitmessung – MTM gegen gemessen</h2>
+      <div class="pr-kpis" style="margin-bottom:7px">
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Gemessene Schritte</span><span class="pr-kpi-val">${md.length} von ${fParts.length} · ${mk.n} Messungen</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">MTM (gemessene Schritte)</span><span class="pr-kpi-val">${disp2(mk.mtm)} ${u}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Gemessen (Ø)</span><span class="pr-kpi-val">${disp2(mk.ist)} ${u}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Leistungsgrad</span><span class="pr-kpi-val">${mpct(mk.lg)}</span></div>
+      </div>
+      <table class="pr-tbl">
+        <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>Ø gem. [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+        <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${e.m.map(sekText).join(' / ')}</td><td>${sekText(e.avg)}</td>
+          <td>${disp2(e.ist)}</td><td>${disp2(e.mtm)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${(e.abw>0?'+':'')+disp2(e.abw)}</td><td>${mpct(e.lg)}</td></tr>`).join('')}
+          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen</td><td></td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
+        </tbody>
+      </table>
+      <p class="pr-hint">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 %.</p>
+    </div>`;
+
   const topMax=Math.max(...top.map(it=>it.value),0.0001);
   const topTbl=list=>`<table class="pr-tbl">
     <thead><tr><th>#</th><th class="pr-txt">${escHtml(topOpt.e)}</th>${topOpt.k==='schritt'?'':'<th>Schritte</th>'}<th>Gesamt [${u}]</th><th>Zusammensetzung nach Kategorie-Gruppe</th></tr></thead>
@@ -2248,6 +2308,7 @@ function printAnalysis(){
     </div>
     ${szenSec}
     ${tjSec}
+    ${messSec}
 
     <div class="pr-sec pr-keep">
       <h2>Top 10 ${escHtml(topOpt.l)} – höchste Gesamtzeit</h2>
@@ -2312,8 +2373,11 @@ function setAnaTab(t){
   document.getElementById('anaTabTeile').className='ana-tab'+(t==='teile'?' on':'');
   document.getElementById('anaPanelTeile').style.display=(t==='teile')?'':'none';
   document.getElementById('anaTabTeile').textContent='Teile je '+taktGroupLabel();
+  document.getElementById('anaTabMess').className='ana-tab'+(t==='mess'?' on':'');
+  document.getElementById('anaPanelMess').style.display=(t==='mess')?'':'none';
   if(t==='takt') renderTaktabgleich();
   if(t==='teile') renderTeileJeStation();
+  if(t==='mess') renderMess();
 }
 /* Gruppierung und Ist/Szenario teilen sich Taktabgleich und „Teile je Station" */
 function taktNeuZeichnen(){ if(anaTab==='teile') renderTeileJeStation(); else renderTaktabgleich(); }
@@ -2884,6 +2948,7 @@ function renderAnalysis(){
   renderAnaTopList('anaTopHigh',topParts(fParts,topOpt.k));
   if(anaTab==='takt') renderTaktabgleich();
   if(anaTab==='teile') renderTeileJeStation();
+  if(anaTab==='mess') renderMess();
 
 }
 /* Zeitanteile je Gruppe bzw. Kategorie — Grundlage für Diagramm, Legende und Druck */
@@ -3168,6 +3233,7 @@ const CSV_FELDER={
   teilname:['benennung','bauteilbenennung','bauteil','bezeichnung','teilbenennung','objektkurztext'],
   menge:   ['menge','anzahl','stück','stk','stk.'],
   note:    ['notiz','bemerkung','kommentar'],
+  mess:    ['messungen [s]','messungen','gemessen [s]','zeitmessung'],
 };
 /* Ordnet jede Spalte der Kopfzeile einem Feld oder einer Kategorie zu.
    katMeta[j] = Kategorie-Schlüssel aus der __COLS__-Zeile genau über dieser Spalte (falls vorhanden).
@@ -3182,7 +3248,7 @@ function csvKopfZuordnen(kopf,katMeta,cols,labelsDatei){
     const km=katMeta&&katMeta[j];
     if(km && cols.some(c=>c.key===km) && !belegt.has(km)){ belegt.add(km); kat.push({key:km,j}); fertig.add(j); }
   });
-  const exportNamen=['level','name','sachnr','teilname','menge',...CSV_V4_EXTRAS,'note'].map(k=>[k,
+  const exportNamen=['level','name','sachnr','teilname','menge',...CSV_V4_EXTRAS,'note','mess'].map(k=>[k,
     CSV_V4_EXTRAS.includes(k) ? [labelsDatei&&labelsDatei[k],colLabel(k)].filter(Boolean).map(csvNorm) : [CSV_FELDER[k][0]]]);
   const ersatzNamen=[];
   CSV_V4_EXTRAS.forEach(k=>ersatzNamen.push([k,[OPT_COLS.find(o=>o.key===k).label,k].map(csvNorm)]));
@@ -3360,6 +3426,9 @@ function csvV4Lesen(rows,einfuegen){
     nTeile+=d.__teile.length;
     CSV_V4_EXTRAS.forEach(k=>{ d['__'+k]=zelle(row,k); });
     d.__note=zelle(row,'note');
+    /* Stoppuhr-Messungen in Sekunden, mit | getrennt */
+    const mess=zelle(row,'mess').split(/[|;]/).map(zahlLesen).filter(x=>x>0).map(x=>Math.round(x*10)/10);
+    if(mess.length) d.__mess=mess;
     cols.forEach(c=>{ d[c.key]=0; });
     kat.forEach(({key,j})=>{ d[key]=zahl(row,j); });
   }
@@ -3710,6 +3779,7 @@ function updateActiveBar(){
   document.getElementById('actName').textContent=activePart?partName(activePart):'—';
   document.getElementById('actTime').textContent=disp2(calcTotal(activePart));
   document.getElementById('actUnit').textContent=ul();
+  stoppInfo();
 }
 
 /* ═══════════════════════════════════════
@@ -3747,6 +3817,7 @@ function buildHead(){
   h+=`<th class="th-qty">Anzahl${fltIco('qty','Anzahl','range')}</th>`;
   h+='<th class="acts"></th>';
   h+=`<th class="ct th-tot">∑ ${ul()}${fltIco('total','Gesamtzeit','range')}</th>`;
+  if(messSpalteAn()) h+=`<th class="mess" title="Mittelwert der Stoppuhr-Messungen (×Anzahl) — antippen zeigt die Einzelwerte">⏱ Ø gem.<br>[${ul()}]</th>`;
   tabCols().forEach(c=>{
     const gCol=(GROUPS[c.group]||{}).color||'#dde1ed';
     h+=`<th class="th-q" title="${escAttr(c.label)}" style="background:linear-gradient(${gCol}e6,${gCol}e6),var(--surface);border-bottom-color:${gCol};">${c.label.split(' ').slice(0,2).map(escHtml).join('<br>')}${fltIco('cat:'+c.key,c.label,'nonzero')}</th>`;
@@ -3861,7 +3932,8 @@ function tabKontext(){
   const posNr=new Map(parts.map((p,i)=>[p.id,i+1]));   // statt findIndex je Zeile
   /* Einfach-Modus: die ausgeblendeten [minD]-Zellen und Laptop-Knöpfe gar nicht erst anlegen —
      das halbiert die Zellen der Tabelle, und ihr Layout ist bei ~300 Schritten der größte Posten */
-  return {L,vis,extraFlds,td,posNr,einfach:uiMode==='beginner'};
+  tabMess=messSpalteAn();
+  return {L,vis,extraFlds,td,posNr,einfach:uiMode==='beginner',mess:tabMess};
 }
 /* Hauptzeile eines Schritts und — aufgeklappt — seine Teile-Zeilen */
 function schrittZeilen(part,k){
@@ -3993,6 +4065,11 @@ function schrittZeilen(part,k){
     const tot=calcTotal(id);
     const tdtot=td('ct');
     tdtot.textContent=tot>0?disp2(tot):'–';tr.appendChild(tdtot);
+    if(k.mess){
+      const tdm=td('mess'); messZelleFuellen(tdm,id);
+      tdm.addEventListener('click',e=>{ e.stopPropagation(); selectPart(id); openMessPopup(id,tdm); });
+      tr.appendChild(tdm);
+    }
 
     tabCols().forEach(c=>{
       const v=data[id][c.key]||0;
@@ -4038,6 +4115,7 @@ function renderBody(){
   const sQty=td('qty');sQty.textContent=totQty>0?totQty:'–';sr.appendChild(sQty);
   sr.appendChild(td('acts'));
   const stot=td('ct');stot.textContent=disp2(totT);sr.appendChild(stot);
+  if(k.mess){ const sm=td('mess'); messSummeFuellen(sm,visibleParts); sr.appendChild(sm); }
   tabCols().forEach(c=>{
     const tdv=document.createElement('td'); tdv.dataset.k=c.key; sr.appendChild(tdv);
     let tdt=null; if(!k.einfach){ tdt=document.createElement('td'); tdt.dataset.kt=c.key; sr.appendChild(tdt); }
@@ -4062,10 +4140,179 @@ function summenNachfuehren(){
   const {totQ,totT,totQty}=tabSummen(getFilteredParts());
   const q=sr.querySelector('td.qty'); if(q) q.textContent=totQty>0?totQty:'–';
   const t=sr.querySelector('td.ct'); if(t) t.textContent=disp2(totT);
+  const m=sr.querySelector('td.mess'); if(m) messSummeFuellen(m,getFilteredParts());
   COLS.forEach(c=>zaehlZellen(sr.querySelector('td[data-k="'+CSS.escape(c.key)+'"]'),sr.querySelector('td[data-kt="'+CSS.escape(c.key)+'"]'),totQ[c.key],c,true));
 }
 /* Einen Schritt samt Teile-Zeilen neu zeichnen, statt die ganze Tabelle. Ein Filter, den die Änderung
    betreffen kann, braucht den vollen Neuaufbau — dann kann die Zeile ein- oder ausgeblendet werden. */
+/* ═══════════════════════════════════════
+   STOPPUHR (Einfach-Modus)
+   Misst den aktiven Schritt. „Stop · Nächster" speichert und startet im selben Augenblick den nächsten
+   Schritt (Level 1 = Überschrift wird übersprungen) — es sei denn, während der Messung wurde eine andere
+   Zeile angetippt: dann geht es dort weiter. „Stop" hält an, ✕ verwirft. Je Schritt werden alle
+   Messungen in Sekunden gespeichert (data[id].__mess), gezeigt wird der Mittelwert.
+═══════════════════════════════════════ */
+const SEK_JE_MIND=36;   // 1 minD = 0,6 min = 36 s
+let stopp=null, stoppTmr=null, stoppWach=null, tabMess=false;
+function messWerte(id){ const m=(data[id]||{}).__mess; return Array.isArray(m)?m:[]; }
+function messMittel(id){ const m=messWerte(id); return m.length?m.reduce((a,b)=>a+b,0)/m.length:0; }
+function messSpalteAn(){ return parts.some(p=>messWerte(p.id).length>0); }
+const sekText=x=>(Math.round(x*10)/10).toFixed(1).replace('.',',');
+function messZelleFuellen(td,id){
+  const m=messWerte(id);
+  if(!m.length){ td.textContent='–'; td.title='Noch nicht gemessen'; return; }
+  td.innerHTML=disp2(messMittel(id)/SEK_JE_MIND)+'<small>×'+m.length+'</small>';
+  td.title=m.length+' Messung(en): '+m.map(sekText).join(' / ')+' s · Ø '+sekText(messMittel(id))+' s';
+}
+function messSummeFuellen(td,liste){
+  const g=liste.filter(p=>messWerte(p.id).length);
+  td.textContent=g.length?disp2(g.reduce((x,p)=>x+messMittel(p.id),0)/SEK_JE_MIND):'–';
+  td.title='Summe der Mittelwerte – '+g.length+' von '+liste.length+' Schritten gemessen';
+}
+/* Nach einer neuen oder gelöschten Messung: Zelle und Summe nachführen; erscheint oder verschwindet
+   die Spalte dadurch, die Tabelle neu aufbauen */
+function messNachfuehren(id){
+  if(messSpalteAn()!==!!document.querySelector('#tblHead th.mess')){ buildHead(); renderBody(); }
+  else {
+    const td=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"] td.mess'); if(td) messZelleFuellen(td,id);
+    summenNachfuehren();
+  }
+  stoppInfo();
+  if(document.getElementById('anaModal').classList.contains('open') && anaTab==='mess') renderMess();
+}
+function stoppFormat(sek){ const m=Math.floor(sek/60), r=sek-m*60; return m+':'+(r<10?'0':'')+r.toFixed(1).replace('.',','); }
+function stoppStart(id,start){
+  id=id||activePart;
+  if(!id||!data[id]){ toast('⚠ Erst einen Prozessschritt wählen'); return; }
+  stopp={id,start:start||Date.now()};
+  if(activePart!==id) selectPart(id);
+  clearInterval(stoppTmr); stoppTmr=setInterval(stoppTick,100); stoppTick();
+  document.getElementById('stoppLeiste').classList.add('laeuft');
+  stoppInfo();
+  /* Bildschirm während der Messung nicht abschalten lassen (wo das Gerät es erlaubt) */
+  try{ if(!stoppWach && navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>{ stoppWach=w; }).catch(()=>{}); }catch(e){}
+}
+function stoppTick(){ if(stopp) document.getElementById('stoppZeit').textContent=stoppFormat((Date.now()-stopp.start)/1000); }
+function stoppErfassen(ende){
+  const id=stopp.id, sek=Math.round((ende-stopp.start)/100)/10;
+  if(!data[id]){ toast('⚠ Schritt gelöscht – Messung verworfen'); return null; }
+  if(sek<0.5){ toast('Unter 0,5 s – nicht gespeichert'); return null; }
+  undoPush({part:id,key:'__mess',prev:messWerte(id).slice()});
+  data[id].__mess=messWerte(id).concat([sek]);
+  markDirty(); messNachfuehren(id);
+  return {id,sek};
+}
+function naechsterMessSchritt(id){
+  const l=getFilteredParts(), i=l.findIndex(p=>p.id===id);
+  for(let j=i+1;j<l.length;j++) if((data[l[j].id].__level||1)>1) return l[j].id;
+  return null;
+}
+function stoppWeiter(){
+  if(!stopp) return;
+  const jetzt=Date.now(), alt=stopp.id;
+  /* Während der Messung eine andere Zeile angetippt? Dann dort weiter, sonst der nächste Schritt */
+  const gewaehlt=activePart && activePart!==alt && data[activePart] ? activePart : null;
+  const r=stoppErfassen(jetzt);
+  const naechst=gewaehlt||naechsterMessSchritt(alt);
+  stoppAus(!!naechst);
+  if(naechst){
+    stoppStart(naechst,jetzt);
+    const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(naechst)+'"]'); if(tr) tr.scrollIntoView({block:'nearest'});
+  }
+  if(r) toast('✓ '+sekText(r.sek)+' s · „'+partName(r.id)+'"'+(naechst?' → misst „'+partName(naechst)+'"':' – Ende der Liste, angehalten'),3000);
+}
+function stoppStop(){
+  if(!stopp) return;
+  const r=stoppErfassen(Date.now()); stoppAus();
+  if(r) toast('✓ '+sekText(r.sek)+' s · „'+partName(r.id)+'" ('+messWerte(r.id).length+'. Messung, Ø '+sekText(messMittel(r.id))+' s)',3000);
+}
+function stoppVerwerfen(){ if(!stopp) return; stoppAus(); toast('Messung verworfen'); }
+function stoppAus(weiter){
+  clearInterval(stoppTmr); stoppTmr=null; stopp=null;
+  document.getElementById('stoppLeiste').classList.remove('laeuft');
+  if(!weiter && stoppWach){ try{ stoppWach.release(); }catch(e){} stoppWach=null; }
+  stoppInfo();
+}
+function stoppInfo(){
+  const el=document.getElementById('stoppInfo'); if(!el) return;
+  const nr=id=>'#'+(parts.findIndex(p=>p.id===id)+1);
+  if(stopp){
+    let t='misst '+nr(stopp.id)+' '+partName(stopp.id)+' · '+(messWerte(stopp.id).length+1)+'. Messung';
+    if(activePart && activePart!==stopp.id) t+=' · danach: '+nr(activePart)+' '+partName(activePart);
+    el.textContent=t; return;
+  }
+  const m=messWerte(activePart);
+  el.textContent=!activePart ? '' : m.length
+    ? m.length+' Messung'+(m.length===1?'':'en')+' · Ø '+sekText(messMittel(activePart))+' s = '+disp2(messMittel(activePart)/SEK_JE_MIND)+' '+ul()+' · MTM '+disp2(calcTotal(activePart))+' '+ul()
+    : 'Noch nicht gemessen · MTM '+disp2(calcTotal(activePart))+' '+ul();
+}
+/* Einzelwerte eines Schritts — Ausreißer löschen */
+function openMessPopup(id,anchor){
+  const pop=document.getElementById('colPopup'), body=document.getElementById('colPopupBody');
+  pop.classList.remove('versch-pop');
+  document.getElementById('colPopupTitle').textContent='Messungen: '+partName(id);
+  const m=messWerte(id);
+  body.innerHTML=m.length ? `<div class="mess-chips">${m.map((x,i)=>`<span class="mess-chip">${sekText(x)} s<button data-i="${i}" title="Messung löschen" aria-label="Messung löschen">✕</button></span>`).join('')}</div>
+      <div class="vp-info" style="margin-top:6px">Ø ${sekText(messMittel(id))} s = ${disp2(messMittel(id)/SEK_JE_MIND)} ${ul()} · MTM ${disp2(calcTotal(id))} ${ul()}</div>
+      <div class="col-popup-actions"><button class="tbtn" id="messAlleWeg">Alle löschen</button></div>`
+    : '<div class="leer-hinweis">Noch nicht gemessen.</div>';
+  body.querySelectorAll('.mess-chip button').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); messLoeschen(id,+b.dataset.i,anchor); }));
+  const alle=document.getElementById('messAlleWeg'); if(alle) alle.addEventListener('click',e=>{ e.stopPropagation(); messLoeschen(id,-1,anchor); });
+  pop.classList.add('open');
+  positionPopup(pop,anchor);
+}
+function messLoeschen(id,i,anchor){
+  const m=messWerte(id).slice(); if(!m.length) return;
+  undoPush({part:id,key:'__mess',prev:m.slice()});
+  if(i<0) delete data[id].__mess; else { m.splice(i,1); if(m.length) data[id].__mess=m; else delete data[id].__mess; }
+  markDirty(); messNachfuehren(id);
+  toast(i<0?'Alle Messungen gelöscht – ↩ Undo holt sie zurück':'Messung gelöscht – ↩ Undo holt sie zurück');
+  const td=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"] td.mess');
+  if(messWerte(id).length && anchor && anchor.isConnected) openMessPopup(id,anchor);
+  else if(messWerte(id).length && td) openMessPopup(id,td);
+  else closeColPopup();
+}
+/* Auswertung „Zeitmessung": MTM gegen gemessen */
+function messDaten(liste){
+  return (liste||anaParts()).filter(p=>messWerte(p.id).length).map(p=>{
+    const m=messWerte(p.id), avg=messMittel(p.id), ist=avg/SEK_JE_MIND, mtm=calcTotal(p.id);
+    return {p,m,avg,ist,mtm,abw:ist-mtm,lg:ist>0?mtm/ist*100:null};
+  });
+}
+function messKennzahlen(d){
+  const mtm=d.reduce((x,e)=>x+e.mtm,0), ist=d.reduce((x,e)=>x+e.ist,0);
+  return {mtm,ist,n:d.reduce((x,e)=>x+e.m.length,0),lg:ist>0?mtm/ist*100:null};
+}
+function renderMess(){
+  const w=document.getElementById('messWrap'), liste=anaParts(), d=messDaten(liste);
+  if(!d.length){ w.innerHTML='<div class="leer-hinweis">Noch keine Zeiten gemessen – im Einfach-Modus über „Zeit messen" in der Leiste unter dem aktiven Schritt.</div>'; return; }
+  const k=messKennzahlen(d), u=ul();
+  const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
+  const pct=v=>v==null?'–':v.toFixed(0)+' %';
+  w.innerHTML=`<div class="ana-kpi-row">
+      <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessene Schritte</span><span class="ana-kpi-val">${d.length} von ${liste.length}</span><span class="ana-kpi-sub">${k.n} Messungen</span></div>
+      <div class="ana-kpi"><span class="ana-kpi-lbl">MTM (gemessene Schritte)</span><span class="ana-kpi-val">${disp2(k.mtm)} ${u}</span></div>
+      <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessen (Ø)</span><span class="ana-kpi-val">${disp2(k.ist)} ${u}</span></div>
+      <div class="ana-kpi" title="MTM-Zeit ÷ gemessene Zeit × 100 %"><span class="ana-kpi-lbl">Leistungsgrad</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ gemessen</span></div>
+    </div>
+    <table class="takt-tbl mess-tbl">
+      <thead><tr><th>#</th><th>Prozessschritt</th><th>Messungen [s]</th><th>Ø [s]</th><th>Ø gemessen [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+      <tbody>${d.map(e=>`<tr>
+        <td>${nr.get(e.p.id)}</td>
+        <td class="tk-name">${escHtml(e.p.name)}</td>
+        <td class="tk-name"><div class="mess-chips">${e.m.map((x,i)=>`<span class="mess-chip">${sekText(x)}<button onclick="messLoeschen('${escAttr(e.p.id)}',${i})" title="Messung löschen" aria-label="Messung löschen">✕</button></span>`).join('')}</div></td>
+        <td>${sekText(e.avg)}</td>
+        <td>${disp2(e.ist)}</td>
+        <td>${disp2(e.mtm)}</td>
+        <td class="${e.abw>1e-9?'tk-pos':(e.abw<-1e-9?'tk-neg':'')}">${(e.abw>0?'+':'')+disp2(e.abw)}</td>
+        <td>${pct(e.lg)}</td>
+      </tr>`).join('')}
+      <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
+        <td>${(k.ist-k.mtm>0?'+':'')+disp2(k.ist-k.mtm)}</td><td>${pct(k.lg)}</td></tr></tbody>
+    </table>
+    <div class="takt-fuss">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 % — über 100 % war die Messung schneller als die MTM-Vorgabe. Abw. = gemessen − MTM (rot: länger als MTM).</div>`;
+}
+
 /* ═══════════════════════════════════════
    SCHRITTE VERSCHIEBEN
    Spalte # antippen (oder Alt+↑/↓ am Laptop). Ein Schritt mit Unterschritten (folgende Schritte mit
@@ -4282,6 +4529,7 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
   tdA.appendChild(del);
   tr.appendChild(tdA);
   tr.appendChild(td('ct'));
+  if(tabMess) tr.appendChild(td('mess'));
   const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest);
   tr.addEventListener('click',e=>{ if(e.target.tagName==='INPUT') return; selectPart(stepId); });
   return tr;
@@ -4296,6 +4544,7 @@ function teilAddZeile(stepId,vis,extraFlds,L,td){
   tr.appendChild(tdCn); tr.appendChild(tdS); tr.appendChild(tdT);
   extraFlds.forEach(f=>tr.appendChild(td('extra x-'+f.slice(2))));
   tr.appendChild(td('qty')); tr.appendChild(td('acts')); tr.appendChild(td('ct'));
+  if(tabMess) tr.appendChild(td('mess'));
   const rest=td('teil-rest'); rest.colSpan=kategorieSpan(); tr.appendChild(rest);
   /* Knopf in die erste sichtbare der linken Spalten, damit er ohne Scrollen erreichbar ist */
   const host=[[vis.name,tdCn],[vis.sachnr,tdS],[vis.teilname,tdT]].find(x=>x[0]);
@@ -4443,7 +4692,8 @@ function undoLast(){
   }
   data[last.part][last.key]=last.prev;
   updGrid();
-  if(COLS.some(c=>c.key===last.key)) zaehlerZeigen(last.part,last.key); else { schrittNeuZeichnen(last.part); updateActiveBar(); }
+  if(last.key==='__mess') messNachfuehren(last.part);
+  else if(COLS.some(c=>c.key===last.key)) zaehlerZeigen(last.part,last.key); else { schrittNeuZeichnen(last.part); updateActiveBar(); }
   markDirty();
   const nm=partName(last.part)||'(gelöschter Prozessschritt)';
   toast('↩ Rückgängig: '+nm);
@@ -6237,6 +6487,31 @@ function xlsxSheetTeileJeStation(){
 <sheetData>${rows}</sheetData>
 </worksheet>`;
 }
+/* Blatt 7 (nur wenn gemessen wurde): Zeitmessung — Einzelwerte, Mittelwert, MTM, Leistungsgrad */
+function xlsxSheetZeitmessung(){
+  const u=ul(), fU=u==='minD'?1:MIND_FACTOR, d=messDaten(parts), k=messKennzahlen(d);
+  let rows='',rn=1;
+  rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Zeitmessung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Stoppuhr-Messungen gegen MTM (ohne Verteilzeit) · Leistungsgrad = MTM ÷ gemessen × 100 % · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
+  rn++;
+  const kopf=['Nr.','Prozessschritt',colLabel('extra1'),'Messungen','Einzelwerte [s]','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]'];
+  rows+=`<row r="${rn}" ht="26" customHeight="1">${kopf.map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+  const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
+  d.forEach(e=>{
+    rows+=`<row r="${rn}">${xc(1,rn,nr.get(e.p.id),33,true)}${xc(2,rn,e.p.name,33)}${xc(3,rn,data[e.p.id].__extra1||'',33)}${xc(4,rn,e.m.length,33,true)}`
+      +`${xc(5,rn,e.m.map(sekText).join(' / '),33)}${xc(6,rn,xn(e.avg),32,true)}${xc(7,rn,xn(e.ist*fU),32,true)}${xc(8,rn,xn(e.mtm*fU),32,true)}`
+      +`${xc(9,rn,xn(e.abw*fU),32,true)}${xc(10,rn,e.lg==null?'':e.lg.toFixed(1),39,e.lg!=null)}</row>`;rn++;
+  });
+  rows+=`<row r="${rn}">${xc(1,rn,'',35)}${xc(2,rn,'∑ Gemessene Schritte',35)}${xc(3,rn,'',35)}${xc(4,rn,k.n,36,true)}${xc(5,rn,'',35)}${xc(6,rn,'',35)}`
+    +`${xc(7,rn,xn(k.ist*fU),36,true)}${xc(8,rn,xn(k.mtm*fU),36,true)}${xc(9,rn,xn((k.ist-k.mtm)*fU),36,true)}${xc(10,rn,k.lg==null?'':k.lg.toFixed(1),36,k.lg!=null)}</row>`;rn++;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<dimension ref="A1:J${rn}"/>
+<sheetFormatPr defaultRowHeight="12"/>
+<cols><col min="1" max="1" width="7" customWidth="1"/><col min="2" max="2" width="40" customWidth="1"/><col min="3" max="4" width="11" customWidth="1"/><col min="5" max="5" width="30" customWidth="1"/><col min="6" max="10" width="13" customWidth="1"/></cols>
+<sheetData>${rows}</sheetData>
+</worksheet>`;
+}
 /* Blattname: höchstens 31 Zeichen, ohne die in Excel verbotenen Zeichen */
 function xlsxBlattName(n){ return n.replace(/[\\\/?*\[\]:]/g,' ').replace(/^'+|'+$/g,'').slice(0,31).trim()||'Blatt'; }
 /* Blatt 4: Kategorie-Zeitwerte */
@@ -6318,19 +6593,20 @@ function doExportXlsx(){
   closeExpModal();
   try{
     const blatt1=xlsxSheetArbeitsablauf(), blatt2=xlsxSheetTeileliste();
+    const mitMess=messSpalteAn();
     /* Excel schreibt zu jedem Autofilter den versteckten Namen _xlnm._FilterDatabase;
        LibreOffice übernimmt den Filter nur mit ihm (ohne ging er beim Öffnen verloren). */
     const abs=r=>r.replace(/([A-Z]+)(\d+)/g,'$$$1$$$2');
     const filterNamen=`<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'Arbeitsablauf'!${abs(blatt1.filter)}</definedName><definedName name="_xlnm._FilterDatabase" localSheetId="1" hidden="1">'Teileliste'!${abs(blatt2.filter)}</definedName></definedNames>`;
     const files=[
       {name:'[Content_Types].xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet5.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet6.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet5.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet6.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>${mitMess?'<Override PartName="/xl/worksheets/sheet7.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>':''}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
       {name:'_rels/.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
       {name:'xl/workbook.xml',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/><sheet name="Laufwege" sheetId="5" r:id="rId5"/><sheet name="${xmlEsc(xlsxBlattName('Teile je '+taktGroupLabel()))}" sheetId="6" r:id="rId7"/></sheets>${filterNamen}<calcPr fullCalcOnLoad="1"/></workbook>`},
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Arbeitsablauf" sheetId="1" r:id="rId1"/><sheet name="Teileliste" sheetId="2" r:id="rId2"/><sheet name="Auswertung" sheetId="3" r:id="rId3"/><sheet name="Zeitwerte" sheetId="4" r:id="rId4"/><sheet name="Laufwege" sheetId="5" r:id="rId5"/><sheet name="${xmlEsc(xlsxBlattName('Teile je '+taktGroupLabel()))}" sheetId="6" r:id="rId7"/>${mitMess?'<sheet name="Zeitmessung" sheetId="7" r:id="rId8"/>':''}</sheets>${filterNamen}<calcPr fullCalcOnLoad="1"/></workbook>`},
       {name:'xl/_rels/workbook.xml.rels',content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet5.xml"/><Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet6.xml"/></Relationships>`},
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet5.xml"/><Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet6.xml"/>${mitMess?'<Relationship Id="rId8" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet7.xml"/>':''}</Relationships>`},
       {name:'xl/styles.xml',content:xlsxStyles()},
       {name:'xl/worksheets/sheet1.xml',content:blatt1.xml},
       {name:'xl/worksheets/sheet2.xml',content:blatt2.xml},
@@ -6339,6 +6615,7 @@ function doExportXlsx(){
       {name:'xl/worksheets/sheet5.xml',content:xlsxSheetLaufwege()},
       {name:'xl/worksheets/sheet6.xml',content:xlsxSheetTeileJeStation()}
     ];
+    if(mitMess) files.push({name:'xl/worksheets/sheet7.xml',content:xlsxSheetZeitmessung()});
     const bytes=zipStore(files);
     dateiAnbieten(filename,new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
     lastExportTime=new Date().toISOString();
@@ -6352,18 +6629,18 @@ function doExportXlsx(){
 
 /* ── Format 4 schreiben ──
    Kopfzeile: Level, Prozessschritt, Sachnummer, Benennung, Menge, die sechs umbenennbaren Spalten,
-   Notiz, dann je Kategorie eine Spalte mit der Anzahl (Zeiten rechnet die App, sie stehen im Excel-Report).
+   Notiz, Messungen [s] (Stoppuhr, mit | getrennt), dann je Kategorie eine Spalte mit der Anzahl (Zeiten rechnet die App, sie stehen im Excel-Report).
    Weitere Teile eines Schritts folgen in eigenen Zeilen mit leerem Prozessschritt.
    Texte gehen durch csvText — Excel ließe sonst Sachnummern, Daten und Formeln nicht in Ruhe. */
 function csvKopfV4(){
-  return ['Level','Prozessschritt','Sachnummer','Benennung','Menge',...CSV_V4_EXTRAS.map(colLabel),'Notiz',...COLS.map(c=>c.label)].map(csvText);
+  return ['Level','Prozessschritt','Sachnummer','Benennung','Menge',...CSV_V4_EXTRAS.map(colLabel),'Notiz','Messungen [s]',...COLS.map(c=>c.label)].map(csvText);
 }
 function csvDatenV4(){
   const zeilen=[];
   parts.forEach(p=>{
     const d=data[p.id], teile=stepTeile(p.id), t0=teile[0];
     zeilen.push([d.__level||1, csvText(p.name), t0?csvText(t0.sachnr):'', t0?csvText(t0.name):'', t0?t0.menge:'',
-      ...CSV_V4_EXTRAS.map(k=>csvText(d['__'+k]||'')), csvText(d.__note||''),
+      ...CSV_V4_EXTRAS.map(k=>csvText(d['__'+k]||'')), csvText(d.__note||''), csvText(messWerte(p.id).map(zahlDe).join('|')),
       ...COLS.map(c=>d[c.key]||'')]);   // 0 bleibt leer — so ist die Matrix in Excel lesbar
     teile.slice(1).forEach(t=>zeilen.push(['','',csvText(t.sachnr),csvText(t.name),t.menge]));
   });
@@ -6444,8 +6721,8 @@ function doExportVorlage(){
   const ext=(stufe,st)=>{ const e=leer(nx); e[0]=stufe; if(iSt>=0) e[iSt]=st; return e; };
   const kat=leer(COLS.length); if(kat.length) kat[0]=1;
   const zeilen=[csvKopfV4(),
-    [1,'Beispiel: Vormontage Welle','','','',...ext('VM','S1'),'Level 1 = Überschrift',...leer(COLS.length)],
-    [2,'Beispiel: Deckel verschrauben',csvText('30506360'),'Deckel',1,...ext('VM','S1'),'Weitere Teile darunter, Prozessschritt leer lassen',...kat],
+    [1,'Beispiel: Vormontage Welle','','','',...ext('VM','S1'),'Level 1 = Überschrift','',...leer(COLS.length)],
+    [2,'Beispiel: Deckel verschrauben',csvText('30506360'),'Deckel',1,...ext('VM','S1'),'Weitere Teile darunter, Prozessschritt leer lassen','',...kat],
     ['','',csvText('00929520'),'Zylinderschraube M10x30',8],
     ['','',csvText('0056382'),'Dichtring',1]];
   const name='Vorlage_'+dateiBasis(currentProject)+'.csv';

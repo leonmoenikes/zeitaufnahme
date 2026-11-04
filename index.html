@@ -433,6 +433,18 @@ body.beginner-mode .grund-row input{height:44px;}
 .mess-chip button{border:none;background:none;color:var(--text3);cursor:pointer;padding:2px 5px;min-height:28px;}
 body.beginner-mode .mess-chip button{min-height:36px;min-width:36px;}
 .mess-tbl td.tk-name{font-weight:500;}
+.streu{display:inline-block;padding:1px 7px;border-radius:999px;font-family:var(--mono);font-size:var(--fs-xs);}
+.streu.gruen{background:var(--green-dim);color:var(--green);}
+.streu.gelb{background:var(--active);color:#8a6100;}
+.streu.rot{background:var(--red-dim);color:var(--red);}
+.mess-zyk{margin-top:6px;}
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.mess-tbl td,.mess-tbl th{white-space:nowrap;}
+.mess-tbl td.tk-name{white-space:normal;min-width:140px;}
+.mess-zyk select,.mess-zyk input{min-height:34px;font-size:var(--fs-xs);border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface);color:var(--text);padding:0 6px;width:100%;}
+body.beginner-mode .mess-zyk :is(select,input){min-height:44px;}
+.pausen-liste{margin-top:8px;}
+.pausen-liste summary{cursor:pointer;font-size:var(--fs-s);color:var(--accent-bright);padding:6px 0;}
 .mess-tbl td:nth-child(3){min-width:170px;}
 .mess-tbl .mess-chip button{min-height:24px;}
 
@@ -2326,14 +2338,29 @@ function printAnalysis(){
         <div class="pr-kpi"><span class="pr-kpi-lbl">Leistungsgrad</span><span class="pr-kpi-val">${mpct(mk.lg)}</span></div>
       </div>
       <table class="pr-tbl">
-        <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>Ø gem. [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
-        <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${messText(e.p.id,' / ')}</td><td>${e.n?sekText(e.avg):'–'}</td>
+        <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th>Streuung</th><th>Ø gem. [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+        <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${messText(e.p.id,' / ')}</td><td>${e.n?sekText(e.avg):'–'}</td><td>${e.n?sekText(e.min)+'–'+sekText(e.max):'–'}</td><td>${streuText(e.vk)}</td>
           <td>${e.n?disp2(e.ist):'–'}</td><td>${disp2(e.mtm)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td><td>${mpct(e.lg)}</td></tr>`).join('')}
-          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
+          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td></td><td></td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
         </tbody>
       </table>
       <p class="pr-hint">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 %. Werte in Klammern sind ausgeschlossen und zählen nicht mit.</p>
     </div>`;
+  const prZyk=messZyklen(fParts), prPz=pausenDaten(fParts);
+  const zykSec=!prZyk.length?'':`<div class="pr-sec pr-keep"><h2>Zyklen (Ablauf-Messung)</h2>
+      <table class="pr-tbl"><thead><tr><th>Zyklus</th><th>Schritte</th><th>Zeit [min:s]</th><th>Zeit [${u}]</th></tr></thead>
+      <tbody>${prZyk.map(e=>`<tr><td class="pr-txt">${e.nr}</td><td>${e.n}</td><td>${stoppFormat(e.sek)}</td><td>${disp2(e.sek/SEK_JE_MIND)}</td></tr>`).join('')}</tbody></table></div>`;
+  const pausenSec=!prPz.liste.length?'':`<div class="pr-sec"><h2>Unterbrechungen</h2>
+      <div class="pr-kpis" style="margin-bottom:7px">
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Unterbrechungen</span><span class="pr-kpi-val">${prPz.liste.length} · ${stoppFormat(prPz.summe)} min:s</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Anteil an der Arbeitszeit</span><span class="pr-kpi-val">${prPz.anteil==null?'–':prPz.anteil.toFixed(1)+' %'}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Verteilzeit angesetzt</span><span class="pr-kpi-val">${verteilzeitFactor?verteilzeitFactor+' %':'–'}</span></div>
+      </div>
+      <table class="pr-tbl"><thead><tr><th>Grund</th><th>Anzahl</th><th>Summe [min:s]</th><th>Anteil</th></tr></thead>
+      <tbody>${prPz.gruende.map(g=>`<tr><td class="pr-txt">${escHtml(g.grund)}</td><td>${g.n}</td><td>${stoppFormat(g.sek)}</td><td>${prPz.arbeit>0?(g.sek/prPz.arbeit*100).toFixed(1)+' %':'–'}</td></tr>`).join('')}</tbody></table>
+      <table class="pr-tbl" style="margin-top:6px"><thead><tr><th>Zeitpunkt</th><th class="pr-txt">Prozessschritt</th><th>Zyklus</th><th>Dauer</th><th class="pr-txt">Grund</th><th class="pr-txt">Notiz</th></tr></thead>
+      <tbody>${prPz.liste.map(x=>`<tr><td class="pr-txt">${datumKurz(x.t)}</td><td class="pr-txt">${escHtml(partName(x.id))}</td><td>${x.zyklus||'–'}</td><td>${stoppFormat(x.sek)}</td><td class="pr-txt">${escHtml(x.grund||'ohne Grund')}</td><td class="pr-txt">${escHtml(x.notiz||'')}</td></tr>`).join('')}</tbody></table>
+      <p class="pr-hint">Anteil = Summe der Unterbrechungen ÷ gemessene Arbeitszeit.</p></div>`;
 
   const topMax=Math.max(...top.map(it=>it.value),0.0001);
   const topTbl=list=>`<table class="pr-tbl">
@@ -2373,6 +2400,8 @@ function printAnalysis(){
     ${szenSec}
     ${tjSec}
     ${messSec}
+    ${zykSec}
+    ${pausenSec}
 
     <div class="pr-sec pr-keep">
       <h2>Top 10 ${escHtml(topOpt.l)} – höchste Gesamtzeit</h2>
@@ -3494,9 +3523,11 @@ function csvV4Lesen(rows,einfuegen){
     d.__note=zelle(row,'note');
     /* Stoppuhr-Messungen in Sekunden, mit | getrennt */
     /* ausgeschlossene stehen in Klammern: „12,3|(25,8)" */
-    const messRoh=zelle(row,'mess').split(/[|;]/).map(x=>x.trim()).filter(Boolean)
-      .map(x=>({aus:/^\(.*\)$/.test(x), v:Math.round(zahlLesen(x.replace(/[()]/g,''))*10)/10})).filter(x=>x.v>0);
-    if(messRoh.length){ d.__mess=messRoh.map(x=>x.v); if(messRoh.some(x=>x.aus)) d.__messAus=messRoh.map(x=>x.aus); }
+    const messRoh=zelle(row,'mess').split(/[|;]/).map(x=>x.trim()).filter(Boolean).map(x=>{
+        const [w,zk]=x.split('#'); const t=w.trim();
+        return {aus:/^\(.*\)$/.test(t), v:Math.round(zahlLesen(t.replace(/[()]/g,''))*10)/10, z:Math.max(0,parseInt(zk,10)||0)};
+      }).filter(x=>x.v>0);
+    if(messRoh.length){ d.__mess=messRoh.map(x=>x.v); if(messRoh.some(x=>x.aus)) d.__messAus=messRoh.map(x=>x.aus); if(messRoh.some(x=>x.z)) d.__messZ=messRoh.map(x=>x.z); }
     cols.forEach(c=>{ d[c.key]=0; });
     kat.forEach(({key,j})=>{ d[key]=zahl(row,j); });
   }
@@ -3528,6 +3559,20 @@ function csvV4Lesen(rows,einfuegen){
     });
     szenParsed=taktSzenPruefen({...szRaw,moves});
   }
+  /* Unterbrechungen der Zeitaufnahme — wie Laufwege über Schrittname und Nachbarn zugeordnet */
+  let pausen;
+  const paRaw=jsonMeta('__PAUSEN__');
+  if(paRaw && !einfuegen && Array.isArray(paRaw.s)){
+    /* Mehrere Unterbrechungen können am selben Schritt hängen — die Zuordnung ist eins zu eins,
+       daher erst die verschiedenen Schritt-Verweise zuordnen, dann alle Einträge verteilen */
+    const ein=paRaw.s.filter(e=>e && +e.sek>0);
+    const refKey=e=>JSON.stringify([e.i,e.n,e.k,e.v,e.w]);
+    const uniq=[...new Map(ein.map(e=>[refKey(e),e])).values()];
+    const zu=csvSchrittZuordnen(uniq,newParts), zuKey=new Map(uniq.map((e,x)=>[refKey(e),zu[x]]));
+    const ziel=ein.map(e=>zuKey.get(refKey(e)));
+    pausen=[];
+    ein.forEach((e,x)=>{ if(ziel[x]) pausen.push({id:ziel[x],sek:Math.round(+e.sek*10)/10,grund:String(e.g||''),notiz:String(e.o||''),zyklus:Math.max(0,parseInt(e.z,10)||0),t:String(e.t||'')}); else zuordnungFehlt++; });
+  }
   let lwParamRaw;
   if(meta.__LWPARAM__){
     lwParamRaw={};
@@ -3548,7 +3593,7 @@ function csvV4Lesen(rows,einfuegen){
     description:meta.__DESC__?(werte('__DESC__')[0]||'').trim():undefined,
     sollzeit:zahlOpt('__SOLLZEIT__'), verteilzeit:zahlOpt('__VERTEILZEIT__'), stundensatz:zahlOpt('__STUNDENSATZ__'),
     colLabels:colLabelsParsed, mtmCustom:jsonMeta('__MTMCUSTOM__'), mtmCustomGE:jsonMeta('__MTMGE__'),
-    takt:taktParsed, szenario:szenParsed, lwParams:lwParamRaw, lwTrigger,
+    takt:taktParsed, szenario:szenParsed, lwParams:lwParamRaw, lwTrigger, pausen,
     format:meta.__FORMAT__?(parseInt(wert('__FORMAT__'))||CSV_FORMAT):CSV_FORMAT, teileFehler:0,
     v4:{unbekannt, waisen, ohneName, teilWerte, zuordnungFehlt, nTeile, nurTeile, feld, nKat:kat.length}};
 }
@@ -4264,6 +4309,8 @@ function messSetzen(id,werte,aus,zyk){
 function messUndoMerken(id){ undoPush({typ:'mess',part:id,prev:{m:messWerte(id).slice(),a:messAus(id),z:messZyk(id)}}); }
 /* „12,3" — ausgeschlossene in Klammern: „(25,8)" */
 function messText(id,trenner){ const a=messAus(id); return messWerte(id).map((x,i)=>a[i]?'('+sekText(x)+')':sekText(x)).join(trenner); }
+/* CSV: wie messText, dazu die Zyklus-Nummer der Ablauf-Messung: „12,3#1|(31,0)#1|8,0" */
+function messCsv(id){ const z=messZyk(id), a=messAus(id); return messWerte(id).map((x,i)=>(a[i]?'('+sekText(x)+')':sekText(x))+(z[i]?'#'+z[i]:'')).join('|'); }
 function messSpalteAn(){ return parts.some(p=>messWerte(p.id).length>0); }
 function messSpalteSichtbar(){ return uiMode==='advanced' && messSpalteAn(); }
 const sekText=x=>(Math.round(x*10)/10).toFixed(1).replace('.',',');
@@ -4589,42 +4636,113 @@ function messUmschalten(id,i,anchor){
 /* Auswertung „Zeitmessung": MTM gegen gemessen */
 function messDaten(liste){
   return (liste||anaParts()).filter(p=>messWerte(p.id).length).map(p=>{
-    const m=messWerte(p.id), aus=messAus(p.id), n=m.length-aus.filter(Boolean).length, avg=messMittel(p.id), ist=avg/SEK_JE_MIND, mtm=calcTotal(p.id);
-    return {p,m,aus,n,avg,ist,mtm,abw:n?ist-mtm:null,lg:ist>0?mtm/ist*100:null};
+    const m=messWerte(p.id), aus=messAus(p.id), g=messGueltig(p.id), n=g.length, avg=messMittel(p.id), ist=avg/SEK_JE_MIND, mtm=calcTotal(p.id);
+    /* Streuung: Variationskoeffizient (Standardabweichung ÷ Mittelwert), ab zwei gültigen Messungen */
+    const sd=n>1 ? Math.sqrt(g.reduce((x,v)=>x+(v-avg)*(v-avg),0)/(n-1)) : null;
+    const vk=sd!=null&&avg>0 ? sd/avg*100 : null;
+    return {p,m,aus,n,avg,ist,mtm,abw:n?ist-mtm:null,lg:ist>0?mtm/ist*100:null,
+      min:n?Math.min(...g):null,max:n?Math.max(...g):null,vk};
   });
+}
+/* Ampel der Streuung: unter 10 % ruhig, bis 20 % auffällig, darüber unruhig (Ausreißer prüfen) */
+function streuStufe(vk){ return vk==null?'':(vk<10?'gruen':(vk<20?'gelb':'rot')); }
+function streuText(vk){ return vk==null?'–':vk.toFixed(0)+' %'; }
+/* Zyklen der Ablauf-Messung: Summe der gültigen Messungen je Zyklus-Nr. */
+function messZyklen(liste){
+  const z=new Map();
+  (liste||anaParts()).forEach(p=>{
+    const m=messWerte(p.id), a=messAus(p.id), zk=messZyk(p.id);
+    m.forEach((v,i)=>{ if(!zk[i]||a[i]) return; const e=z.get(zk[i])||{nr:zk[i],n:0,sek:0}; e.n++; e.sek+=v; z.set(zk[i],e); });
+  });
+  return [...z.values()].sort((a,b)=>a.nr-b.nr);
+}
+/* Unterbrechungen der gezeigten Schritte, nach Grund zusammengefasst; Anteil bezogen auf die
+   gemessene Arbeitszeit (Summe aller gültigen Messungen) — vergleichbar mit dem Verteilzeit-Faktor */
+function pausenDaten(liste){
+  const ids=new Set((liste||anaParts()).map(p=>p.id));
+  const l=unterbrechungen.map((u,i)=>({...u,i})).filter(u=>ids.has(u.id));
+  const nachGrund=new Map();
+  l.forEach(u=>{ const g=u.grund||'ohne Grund'; const e=nachGrund.get(g)||{grund:g,n:0,sek:0}; e.n++; e.sek+=u.sek; nachGrund.set(g,e); });
+  let arbeit=0; (liste||anaParts()).forEach(p=>messGueltig(p.id).forEach(v=>arbeit+=v));
+  const summe=l.reduce((x,u)=>x+u.sek,0);
+  return {liste:l, gruende:[...nachGrund.values()].sort((a,b)=>b.sek-a.sek), summe, arbeit, anteil:arbeit>0?summe/arbeit*100:null};
+}
+function pauseAendern(i,feld,wert){
+  const u=unterbrechungen[i]; if(!u) return;
+  undoStand('Unterbrechung geändert','pause-'+i+feld);
+  u[feld]=String(wert||'').trim(); markDirty(); renderMess();
+}
+function pauseLoeschen(i){
+  const u=unterbrechungen[i]; if(!u) return;
+  undoStand('Unterbrechung gelöscht');
+  unterbrechungen.splice(i,1); markDirty(); renderMess(); messAnsichtZeichnen();
+  toast('Unterbrechung gelöscht – ↩ Undo holt sie zurück');
 }
 function messKennzahlen(d){
   const g=d.filter(e=>e.n), mtm=g.reduce((x,e)=>x+e.mtm,0), ist=g.reduce((x,e)=>x+e.ist,0);
   return {mtm,ist,schritte:g.length,n:d.reduce((x,e)=>x+e.n,0),aus:d.reduce((x,e)=>x+e.m.length-e.n,0),lg:ist>0?mtm/ist*100:null};
 }
 function renderMess(){
-  const w=document.getElementById('messWrap'), liste=anaParts(), d=messDaten(liste);
-  if(!d.length){ w.innerHTML='<div class="leer-hinweis">Noch keine Zeiten gemessen – im Einfach-Modus über „Zeit messen" in der Leiste unter dem aktiven Schritt.</div>'; return; }
+  const w=document.getElementById('messWrap'), liste=anaParts(), d=messDaten(liste), pz=pausenDaten(liste);
+  if(!d.length && !pz.liste.length){ w.innerHTML='<div class="leer-hinweis">Noch keine Zeiten gemessen – im Einfach-Modus auf „Zeitaufnahme" umschalten und dort messen.</div>'; return; }
   const k=messKennzahlen(d), u=ul();
   const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
   const pct=v=>v==null?'–':v.toFixed(0)+' %';
+  if(!d.length){ w.innerHTML=pausenHtml(pz,nr); return; }
   w.innerHTML=`<div class="ana-kpi-row">
       <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessene Schritte</span><span class="ana-kpi-val">${k.schritte} von ${liste.length}</span><span class="ana-kpi-sub">${k.n} Messungen${k.aus?' · '+k.aus+' ausgeschlossen':''}</span></div>
       <div class="ana-kpi"><span class="ana-kpi-lbl">MTM (gemessene Schritte)</span><span class="ana-kpi-val">${disp2(k.mtm)} ${u}</span></div>
       <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessen (Ø)</span><span class="ana-kpi-val">${disp2(k.ist)} ${u}</span></div>
       <div class="ana-kpi" title="MTM-Zeit ÷ gemessene Zeit × 100 %"><span class="ana-kpi-lbl">Leistungsgrad</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ gemessen</span></div>
     </div>
-    <table class="takt-tbl mess-tbl">
-      <thead><tr><th>#</th><th>Prozessschritt</th><th>Messungen [s]</th><th>Ø [s]</th><th>Ø gemessen [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+    <div class="tbl-scroll"><table class="takt-tbl mess-tbl">
+      <thead><tr><th>#</th><th>Prozessschritt</th><th>Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th title="Variationskoeffizient: Standardabweichung ÷ Mittelwert">Streuung</th><th>Ø gemessen [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
       <tbody>${d.map(e=>`<tr>
         <td>${nr.get(e.p.id)}</td>
         <td class="tk-name">${escHtml(e.p.name)}</td>
         <td class="tk-name"><div class="mess-chips">${e.m.map((x,i)=>messChip(x,i,e.aus[i],escAttr(e.p.id))).join('')}</div></td>
         <td>${e.n?sekText(e.avg):'–'}</td>
+        <td>${e.n?sekText(e.min)+'–'+sekText(e.max):'–'}</td>
+        <td><span class="streu ${streuStufe(e.vk)}">${streuText(e.vk)}</span></td>
         <td>${e.n?disp2(e.ist):'–'}</td>
         <td>${disp2(e.mtm)}</td>
         <td class="${e.abw>1e-9?'tk-pos':(e.abw<-1e-9?'tk-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td>
         <td>${pct(e.lg)}</td>
       </tr>`).join('')}
-      <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
+      <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td></td><td></td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
         <td>${(k.ist-k.mtm>0?'+':'')+disp2(k.ist-k.mtm)}</td><td>${pct(k.lg)}</td></tr></tbody>
-    </table>
-    <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✕ löscht. MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 % — über 100 % war die Messung schneller als die MTM-Vorgabe. Abw. = gemessen − MTM (rot: länger als MTM).</div>`;
+    </table></div>
+    <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✕ löscht. MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 % — über 100 % war die Messung schneller als die MTM-Vorgabe. Abw. = gemessen − MTM (rot: länger als MTM). Streuung = Standardabweichung ÷ Mittelwert: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span> – dann Ausreißer prüfen.</div>`
+    +messZyklenHtml(liste)+pausenHtml(pz,nr);
+}
+function messZyklenHtml(liste){
+  const z=messZyklen(liste); if(!z.length) return '';
+  const u=ul(), max=Math.max(...z.map(e=>e.sek),1);
+  return `<div class="ana-chart-head mt5"><span class="ana-chart-title">Zyklen (Ablauf-Messung)</span><span class="takt-hint">Summe der gültigen Messungen je Zyklus</span></div>
+    <table class="takt-tbl mess-zyk"><thead><tr><th>Zyklus</th><th>Schritte</th><th>Zeit [min:s]</th><th>Zeit [${u}]</th><th>Verteilung</th></tr></thead>
+    <tbody>${z.map(e=>`<tr><td>${e.nr}</td><td>${e.n}</td><td>${stoppFormat(e.sek)}</td><td>${disp2(e.sek/SEK_JE_MIND)}</td>
+      <td style="width:40%"><div class="tj-track tj-track-a"><div class="tj-fill-a" style="width:${(e.sek/max*100).toFixed(1)}%"></div></div></td></tr>`).join('')}</tbody></table>
+    ${z.length>1?`<div class="takt-fuss">Ø je Zyklus ${stoppFormat(z.reduce((x,e)=>x+e.sek,0)/z.length)} · kürzester ${stoppFormat(Math.min(...z.map(e=>e.sek)))} · längster ${stoppFormat(Math.max(...z.map(e=>e.sek)))} — Zyklen mit weniger Schritten sind unvollständig.</div>`:''}`;
+}
+function pausenHtml(pz,nr){
+  if(!pz.liste.length) return '';
+  const vz=verteilzeitFactor||0, gr=pauseGruende();
+  const opts=g=>['',...new Set([...gr,g].filter(x=>x!==undefined))].map(x=>`<option value="${escAttr(x)}"${x===g?' selected':''}>${escHtml(x||'ohne Grund')}</option>`).join('');
+  return `<div class="ana-chart-head mt5"><span class="ana-chart-title">Unterbrechungen</span><span class="takt-hint">aus „Pause" in der Mess-Ansicht</span></div>
+    <div class="ana-kpi-row">
+      <div class="ana-kpi"><span class="ana-kpi-lbl">Unterbrechungen</span><span class="ana-kpi-val">${pz.liste.length} · ${stoppFormat(pz.summe)}</span><span class="ana-kpi-sub">min:s gesamt</span></div>
+      <div class="ana-kpi" title="Summe der Unterbrechungen ÷ gemessene Arbeitszeit"><span class="ana-kpi-lbl">Anteil an der Arbeitszeit</span><span class="ana-kpi-val">${pz.anteil==null?'–':pz.anteil.toFixed(1)+' %'}</span>
+        <span class="ana-kpi-sub">Verteilzeit angesetzt: ${vz?vz+' %':'–'}</span></div>
+    </div>
+    <table class="takt-tbl mess-zyk"><thead><tr><th>Grund</th><th>Anzahl</th><th>Summe [min:s]</th><th>Anteil an der Arbeitszeit</th></tr></thead>
+      <tbody>${pz.gruende.map(g=>`<tr><td class="tk-name">${escHtml(g.grund)}</td><td>${g.n}</td><td>${stoppFormat(g.sek)}</td><td>${pz.arbeit>0?(g.sek/pz.arbeit*100).toFixed(1)+' %':'–'}</td></tr>`).join('')}</tbody></table>
+    <details class="pausen-liste"><summary>Alle ${pz.liste.length} Unterbrechungen bearbeiten</summary>
+    <table class="takt-tbl mess-zyk"><thead><tr><th>Zeitpunkt</th><th>Prozessschritt</th><th>Zyklus</th><th>Dauer</th><th>Grund</th><th>Notiz</th><th></th></tr></thead>
+      <tbody>${pz.liste.map(x=>`<tr><td>${datumKurz(x.t)}</td><td class="tk-name">#${nr.get(x.id)||'–'} ${escHtml(partName(x.id))}</td><td>${x.zyklus||'–'}</td><td>${stoppFormat(x.sek)}</td>
+        <td class="tk-name"><select onchange="pauseAendern(${x.i},'grund',this.value)">${opts(x.grund||'')}</select></td>
+        <td class="tk-name"><input type="text" value="${escAttr(x.notiz||'')}" onchange="pauseAendern(${x.i},'notiz',this.value)"/></td>
+        <td><button class="pdel" onclick="pauseLoeschen(${x.i})" title="Unterbrechung löschen" aria-label="Löschen">${ic('x')}</button></td></tr>`).join('')}</tbody></table></details>
+    <div class="takt-fuss">Anteil = Summe der Unterbrechungen ÷ gemessene Arbeitszeit (alle gültigen Messungen). Liegt er deutlich über dem Verteilzeit-Faktor, ist die Verteilzeit zu knapp angesetzt – oder es gab ungewöhnlich viele Störungen.</div>`;
 }
 
 /* ═══════════════════════════════════════
@@ -6824,21 +6942,38 @@ function xlsxSheetZeitmessung(){
   rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Zeitmessung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Stoppuhr-Messungen gegen MTM (ohne Verteilzeit) · Leistungsgrad = MTM ÷ gemessen × 100 % · Werte in Klammern ausgeschlossen · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
   rn++;
-  const kopf=['Nr.','Prozessschritt',colLabel('extra1'),'Messungen','Einzelwerte [s]','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]'];
+  const kopf=['Nr.','Prozessschritt',colLabel('extra1'),'Messungen','Einzelwerte [s]','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]','min [s]','max [s]','Streuung [%]'];
   rows+=`<row r="${rn}" ht="26" customHeight="1">${kopf.map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
   const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
   d.forEach(e=>{
     rows+=`<row r="${rn}">${xc(1,rn,nr.get(e.p.id),33,true)}${xc(2,rn,e.p.name,33)}${xc(3,rn,data[e.p.id].__extra1||'',33)}${xc(4,rn,e.n,33,true)}`
       +`${xc(5,rn,messText(e.p.id,' / '),33)}${xc(6,rn,e.n?xn(e.avg):'',32,!!e.n)}${xc(7,rn,e.n?xn(e.ist*fU):'',32,!!e.n)}${xc(8,rn,xn(e.mtm*fU),32,true)}`
-      +`${xc(9,rn,e.abw==null?'':xn(e.abw*fU),32,e.abw!=null)}${xc(10,rn,e.lg==null?'':e.lg.toFixed(1),39,e.lg!=null)}</row>`;rn++;
+      +`${xc(9,rn,e.abw==null?'':xn(e.abw*fU),32,e.abw!=null)}${xc(10,rn,e.lg==null?'':e.lg.toFixed(1),39,e.lg!=null)}`
+      +`${xc(11,rn,e.n?xn(e.min):'',32,!!e.n)}${xc(12,rn,e.n?xn(e.max):'',32,!!e.n)}${xc(13,rn,e.vk==null?'':e.vk.toFixed(1),39,e.vk!=null)}</row>`;rn++;
   });
   rows+=`<row r="${rn}">${xc(1,rn,'',35)}${xc(2,rn,'∑ Gemessene Schritte',35)}${xc(3,rn,'',35)}${xc(4,rn,k.n,36,true)}${xc(5,rn,'',35)}${xc(6,rn,'',35)}`
     +`${xc(7,rn,xn(k.ist*fU),36,true)}${xc(8,rn,xn(k.mtm*fU),36,true)}${xc(9,rn,xn((k.ist-k.mtm)*fU),36,true)}${xc(10,rn,k.lg==null?'':k.lg.toFixed(1),36,k.lg!=null)}</row>`;rn++;
+  /* Zyklen */
+  const zy=messZyklen(parts);
+  if(zy.length){
+    rn++; rows+=`<row r="${rn}">${xc(1,rn,'Zyklen (Ablauf-Messung)',40)}</row>`;rn++;
+    rows+=`<row r="${rn}">${['Zyklus','Schritte','Zeit [s]','Zeit ['+u+']'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+    zy.forEach(e=>{ rows+=`<row r="${rn}">${xc(1,rn,e.nr,33,true)}${xc(2,rn,e.n,33,true)}${xc(3,rn,xn(e.sek),32,true)}${xc(4,rn,xn(e.sek/SEK_JE_MIND*fU),32,true)}</row>`;rn++; });
+  }
+  /* Unterbrechungen */
+  const pz=pausenDaten(parts);
+  if(pz.liste.length){
+    rn++; rows+=`<row r="${rn}">${xc(1,rn,'Unterbrechungen nach Grund',40)}${xc(3,rn,'Anteil an der Arbeitszeit: '+(pz.anteil==null?'–':pz.anteil.toFixed(1)+' %')+' · Verteilzeit angesetzt: '+(verteilzeitFactor?verteilzeitFactor+' %':'–'),33)}</row>`;rn++;
+    rows+=`<row r="${rn}">${['Grund','Anzahl','Summe [s]','Anteil [%]'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+    pz.gruende.forEach(g=>{ rows+=`<row r="${rn}">${xc(1,rn,g.grund,33)}${xc(2,rn,g.n,33,true)}${xc(3,rn,xn(g.sek),32,true)}${xc(4,rn,pz.arbeit>0?(g.sek/pz.arbeit*100).toFixed(1):'',39,pz.arbeit>0)}</row>`;rn++; });
+    rn++; rows+=`<row r="${rn}">${['Zeitpunkt','Prozessschritt','Zyklus','Dauer [s]','Grund','Notiz'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+    pz.liste.forEach(x=>{ rows+=`<row r="${rn}">${xc(1,rn,new Date(x.t).toLocaleString('de-DE'),33)}${xc(2,rn,partName(x.id),33)}${xc(3,rn,x.zyklus||'',33,!!x.zyklus)}${xc(4,rn,xn(x.sek),32,true)}${xc(5,rn,x.grund||'ohne Grund',33)}${xc(6,rn,x.notiz||'',33)}</row>`;rn++; });
+  }
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<dimension ref="A1:J${rn}"/>
+<dimension ref="A1:M${rn}"/>
 <sheetFormatPr defaultRowHeight="12"/>
-<cols><col min="1" max="1" width="7" customWidth="1"/><col min="2" max="2" width="40" customWidth="1"/><col min="3" max="4" width="11" customWidth="1"/><col min="5" max="5" width="30" customWidth="1"/><col min="6" max="10" width="13" customWidth="1"/></cols>
+<cols><col min="1" max="1" width="7" customWidth="1"/><col min="2" max="2" width="40" customWidth="1"/><col min="3" max="4" width="11" customWidth="1"/><col min="5" max="5" width="30" customWidth="1"/><col min="6" max="13" width="13" customWidth="1"/></cols>
 <sheetData>${rows}</sheetData>
 </worksheet>`;
 }
@@ -6923,7 +7058,7 @@ function doExportXlsx(){
   closeExpModal();
   try{
     const blatt1=xlsxSheetArbeitsablauf(), blatt2=xlsxSheetTeileliste();
-    const mitMess=messSpalteAn();
+    const mitMess=messSpalteAn()||unterbrechungen.length>0;
     /* Excel schreibt zu jedem Autofilter den versteckten Namen _xlnm._FilterDatabase;
        LibreOffice übernimmt den Filter nur mit ihm (ohne ging er beim Öffnen verloren). */
     const abs=r=>r.replace(/([A-Z]+)(\d+)/g,'$$$1$$$2');
@@ -6959,7 +7094,7 @@ function doExportXlsx(){
 
 /* ── Format 4 schreiben ──
    Kopfzeile: Level, Prozessschritt, Sachnummer, Benennung, Menge, die sechs umbenennbaren Spalten,
-   Notiz, Messungen [s] (Stoppuhr, mit | getrennt, ausgeschlossene in Klammern), dann je Kategorie eine Spalte mit der Anzahl (Zeiten rechnet die App, sie stehen im Excel-Report).
+   Notiz, Messungen [s] (Stoppuhr, mit | getrennt, ausgeschlossene in Klammern, #n = Zyklus), dann je Kategorie eine Spalte mit der Anzahl (Zeiten rechnet die App, sie stehen im Excel-Report).
    Weitere Teile eines Schritts folgen in eigenen Zeilen mit leerem Prozessschritt.
    Texte gehen durch csvText — Excel ließe sonst Sachnummern, Daten und Formeln nicht in Ruhe. */
 function csvKopfV4(){
@@ -6970,7 +7105,7 @@ function csvDatenV4(){
   parts.forEach(p=>{
     const d=data[p.id], teile=stepTeile(p.id), t0=teile[0];
     zeilen.push([d.__level||1, csvText(p.name), t0?csvText(t0.sachnr):'', t0?csvText(t0.name):'', t0?t0.menge:'',
-      ...CSV_V4_EXTRAS.map(k=>csvText(d['__'+k]||'')), csvText(d.__note||''), csvText(messText(p.id,'|')),
+      ...CSV_V4_EXTRAS.map(k=>csvText(d['__'+k]||'')), csvText(d.__note||''), csvText(messCsv(p.id)),
       ...COLS.map(c=>d[c.key]||'')]);   // 0 bleibt leer — so ist die Matrix in Excel lesbar
     teile.slice(1).forEach(t=>zeilen.push(['','',csvText(t.sachnr),csvText(t.name),t.menge]));
   });
@@ -6999,6 +7134,7 @@ function csvProjektV4(){
   const lwCsv={n:parts.length, s:parts.map((p,i)=>lwHat(p.id)?{...ref[i],t:lwTrig(p.id)}:null).filter(Boolean)};
   const szenCsv=taktSzenario ? {groupKey:taktSzenario.groupKey, extra:taktSzenario.extra, n:parts.length,
     moves:parts.map((p,i)=>taktHas(taktSzenario.moves,p.id)?{...ref[i],z:taktSzenario.moves[p.id]}:null).filter(Boolean)} : null;
+  const pausenCsv=unterbrechungen.length ? {n:parts.length, s:unterbrechungen.map(u=>{ const i=parts.findIndex(p=>p.id===u.id); return i<0?null:{...ref[i],sek:u.sek,g:u.grund||'',o:u.notiz||'',z:u.zyklus||0,t:u.t||''}; }).filter(Boolean)} : null;
   const fix=csvKopfV4().length-COLS.length;   // Spalten vor der ersten Kategorie
   /* Einstellungen oben wie bisher, aber lesbar; nur interne Herleitungen bleiben kodiert */
   const meta=[
@@ -7017,6 +7153,7 @@ function csvProjektV4(){
     ['__SZENARIO__',...csvJsonZellen(szenCsv)],
     ['__LWPARAM__',...LW_KEYS.map(k=>k+'|'+zahlDe(lwParams[k]))],
     ['__LW__',...csvJsonZellen(lwCsv)],
+    ...(pausenCsv?[['__PAUSEN__',...csvJsonZellen(pausenCsv)]]:[]),
   ];
   return '\uFEFF'+[...meta,csvKopfV4(),...csvDatenV4()].map(csvZeile).join('\n');
 }

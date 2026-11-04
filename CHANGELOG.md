@@ -79,6 +79,17 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 - **Pausegründe einstellen:** Menü „⋯ → Pausegründe“ (oder „Gründe bearbeiten“ in der Pause):
   Gründe hinzufügen, umbenennen, entfernen; gilt auf diesem Gerät für alle Projekte.
 - **Spalte „Ø gem.“** steht jetzt ganz am Ende der Tabelle und nur im Erweitert-Modus.
+- **Auswertung „Zeitmessung“ erweitert:**
+  - je Schritt *min–max* und *Streuung* (Standardabweichung ÷ Mittelwert) mit Ampel: unter 10 %
+    grün, 10–20 % gelb, darüber rot – Hinweis auf Ausreißer;
+  - *Zyklen*: Zeit je Zyklus mit Balken, Ø/kürzester/längster;
+  - *Unterbrechungen*: Anzahl, Summe und Anteil an der gemessenen Arbeitszeit je Grund, im
+    Vergleich zum angesetzten Verteilzeit-Faktor; alle Unterbrechungen einzeln bearbeitbar (Grund,
+    Notiz, löschen – mit Undo).
+  Alles auch in Drucken/PDF und im Excel-Blatt „Zeitmessung“; die Haupttabelle ist im Fenster
+  seitlich scrollbar.
+- **CSV:** Die Spalte „Messungen [s]“ trägt die Zyklus-Nummer („12,3#1“), Unterbrechungen stehen in
+  der Metazeile `__PAUSEN__` (Zuordnung über Schrittname und Nachbarn wie bei den Laufwegen).
 
 ### Stoppuhr (Einfach-Modus)
 

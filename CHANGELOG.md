@@ -67,6 +67,10 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 - **Mehrere Messungen je Schritt:** Alle Werte werden gespeichert (Sekunden), angezeigt wird der
   Mittelwert. Neue Tabellenspalte „⏱ Ø gem.“ (erscheint mit der ersten Messung) — antippen zeigt
   die Einzelwerte, Ausreißer lassen sich löschen; Undo holt sie zurück.
+- **Ausreißer ausschließen statt löschen:** Einen Messwert antippen (im Popup der Tabelle oder in
+  der Auswertung) nimmt ihn aus Mittelwert und Auswertung, er bleibt aber gespeichert und wird
+  grau durchgestrichen angezeigt. Erneutes Antippen nimmt ihn wieder auf; ✕ löscht endgültig.
+  In CSV, Excel und Druck stehen ausgeschlossene Werte in Klammern, z. B. „12,3|(31,0)“.
 - **Auswertung „Zeitmessung“:** neuer Reiter mit MTM gegen gemessen je Schritt (Einzelwerte, Ø,
   Abweichung, Leistungsgrad = MTM ÷ gemessen) und Summen. Auch in Drucken/PDF und als Blatt
   „Zeitmessung“ in der Excel-Datei.

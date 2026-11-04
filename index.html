@@ -379,6 +379,9 @@ body.beginner-mode .versch-pop input[type=number]{height:44px;}
 .data-tbl tbody td.mess small{color:var(--text3);margin-left:2px;}
 .mess-chips{display:flex;flex-wrap:wrap;gap:4px;}
 .mess-chip{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--border2);border-radius:999px;padding:1px 2px 1px 8px;font-family:var(--mono);font-size:var(--fs-xs);background:var(--surface);}
+.mess-chip .mc-wert{cursor:pointer;padding:2px 0;}
+.mess-chip.aus{background:var(--surface2);color:var(--text3);border-style:dashed;}
+.mess-chip.aus .mc-wert{text-decoration:line-through;}
 .mess-chip button{border:none;background:none;color:var(--text3);cursor:pointer;padding:2px 5px;min-height:28px;}
 body.beginner-mode .mess-chip button{min-height:36px;min-width:36px;}
 .mess-tbl td.tk-name{font-weight:500;}
@@ -2256,19 +2259,19 @@ function printAnalysis(){
   const messSec=!md.length ? '' : `<div class="pr-sec">
       <h2>Zeitmessung – MTM gegen gemessen</h2>
       <div class="pr-kpis" style="margin-bottom:7px">
-        <div class="pr-kpi"><span class="pr-kpi-lbl">Gemessene Schritte</span><span class="pr-kpi-val">${md.length} von ${fParts.length} · ${mk.n} Messungen</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Gemessene Schritte</span><span class="pr-kpi-val">${mk.schritte} von ${fParts.length} · ${mk.n} Messungen</span></div>
         <div class="pr-kpi"><span class="pr-kpi-lbl">MTM (gemessene Schritte)</span><span class="pr-kpi-val">${disp2(mk.mtm)} ${u}</span></div>
         <div class="pr-kpi"><span class="pr-kpi-lbl">Gemessen (Ø)</span><span class="pr-kpi-val">${disp2(mk.ist)} ${u}</span></div>
         <div class="pr-kpi"><span class="pr-kpi-lbl">Leistungsgrad</span><span class="pr-kpi-val">${mpct(mk.lg)}</span></div>
       </div>
       <table class="pr-tbl">
         <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>Ø gem. [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
-        <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${e.m.map(sekText).join(' / ')}</td><td>${sekText(e.avg)}</td>
-          <td>${disp2(e.ist)}</td><td>${disp2(e.mtm)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${(e.abw>0?'+':'')+disp2(e.abw)}</td><td>${mpct(e.lg)}</td></tr>`).join('')}
-          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen</td><td></td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
+        <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${messText(e.p.id,' / ')}</td><td>${e.n?sekText(e.avg):'–'}</td>
+          <td>${e.n?disp2(e.ist):'–'}</td><td>${disp2(e.mtm)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td><td>${mpct(e.lg)}</td></tr>`).join('')}
+          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
         </tbody>
       </table>
-      <p class="pr-hint">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 %.</p>
+      <p class="pr-hint">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 %. Werte in Klammern sind ausgeschlossen und zählen nicht mit.</p>
     </div>`;
 
   const topMax=Math.max(...top.map(it=>it.value),0.0001);
@@ -3427,8 +3430,10 @@ function csvV4Lesen(rows,einfuegen){
     CSV_V4_EXTRAS.forEach(k=>{ d['__'+k]=zelle(row,k); });
     d.__note=zelle(row,'note');
     /* Stoppuhr-Messungen in Sekunden, mit | getrennt */
-    const mess=zelle(row,'mess').split(/[|;]/).map(zahlLesen).filter(x=>x>0).map(x=>Math.round(x*10)/10);
-    if(mess.length) d.__mess=mess;
+    /* ausgeschlossene stehen in Klammern: „12,3|(25,8)" */
+    const messRoh=zelle(row,'mess').split(/[|;]/).map(x=>x.trim()).filter(Boolean)
+      .map(x=>({aus:/^\(.*\)$/.test(x), v:Math.round(zahlLesen(x.replace(/[()]/g,''))*10)/10})).filter(x=>x.v>0);
+    if(messRoh.length){ d.__mess=messRoh.map(x=>x.v); if(messRoh.some(x=>x.aus)) d.__messAus=messRoh.map(x=>x.aus); }
     cols.forEach(c=>{ d[c.key]=0; });
     kat.forEach(({key,j})=>{ d[key]=zahl(row,j); });
   }
@@ -4155,17 +4160,29 @@ function summenNachfuehren(){
 const SEK_JE_MIND=36;   // 1 minD = 0,6 min = 36 s
 let stopp=null, stoppTmr=null, stoppWach=null, tabMess=false;
 function messWerte(id){ const m=(data[id]||{}).__mess; return Array.isArray(m)?m:[]; }
-function messMittel(id){ const m=messWerte(id); return m.length?m.reduce((a,b)=>a+b,0)/m.length:0; }
+/* Ausgeschlossene Messungen (Ausreißer): bleiben gespeichert, zählen aber nicht in Mittelwert und Auswertung.
+   data[id].__messAus = Wahrheitswerte parallel zu __mess, nur vorhanden, wenn einer ausgeschlossen ist. */
+function messAus(id){ const a=(data[id]||{}).__messAus, m=messWerte(id); return m.map((_,i)=>!!(Array.isArray(a)&&a[i])); }
+function messGueltig(id){ const a=messAus(id); return messWerte(id).filter((_,i)=>!a[i]); }
+function messMittel(id){ const m=messGueltig(id); return m.length?m.reduce((a,b)=>a+b,0)/m.length:0; }
+function messSetzen(id,werte,aus){
+  const d=data[id]; if(!d) return;
+  if(werte.length) d.__mess=werte; else delete d.__mess;
+  if(werte.length && aus && aus.some(Boolean)) d.__messAus=werte.map((_,i)=>!!aus[i]); else delete d.__messAus;
+}
+function messUndoMerken(id){ undoPush({typ:'mess',part:id,prev:{m:messWerte(id).slice(),a:messAus(id)}}); }
+/* „12,3" — ausgeschlossene in Klammern: „(25,8)" */
+function messText(id,trenner){ const a=messAus(id); return messWerte(id).map((x,i)=>a[i]?'('+sekText(x)+')':sekText(x)).join(trenner); }
 function messSpalteAn(){ return parts.some(p=>messWerte(p.id).length>0); }
 const sekText=x=>(Math.round(x*10)/10).toFixed(1).replace('.',',');
 function messZelleFuellen(td,id){
-  const m=messWerte(id);
+  const m=messWerte(id), g=messGueltig(id);
   if(!m.length){ td.textContent='–'; td.title='Noch nicht gemessen'; return; }
-  td.innerHTML=disp2(messMittel(id)/SEK_JE_MIND)+'<small>×'+m.length+'</small>';
-  td.title=m.length+' Messung(en): '+m.map(sekText).join(' / ')+' s · Ø '+sekText(messMittel(id))+' s';
+  td.innerHTML=g.length ? disp2(messMittel(id)/SEK_JE_MIND)+'<small>×'+g.length+'</small>' : '<small>alle aus</small>';
+  td.title=m.length+' Messung(en): '+messText(id,' / ')+' s'+(g.length<m.length?' — in Klammern: ausgeschlossen':'')+(g.length?' · Ø '+sekText(messMittel(id))+' s':'');
 }
 function messSummeFuellen(td,liste){
-  const g=liste.filter(p=>messWerte(p.id).length);
+  const g=liste.filter(p=>messGueltig(p.id).length);
   td.textContent=g.length?disp2(g.reduce((x,p)=>x+messMittel(p.id),0)/SEK_JE_MIND):'–';
   td.title='Summe der Mittelwerte – '+g.length+' von '+liste.length+' Schritten gemessen';
 }
@@ -4197,8 +4214,8 @@ function stoppErfassen(ende){
   const id=stopp.id, sek=Math.round((ende-stopp.start)/100)/10;
   if(!data[id]){ toast('⚠ Schritt gelöscht – Messung verworfen'); return null; }
   if(sek<0.5){ toast('Unter 0,5 s – nicht gespeichert'); return null; }
-  undoPush({part:id,key:'__mess',prev:messWerte(id).slice()});
-  data[id].__mess=messWerte(id).concat([sek]);
+  messUndoMerken(id);
+  messSetzen(id,messWerte(id).concat([sek]),messAus(id).concat([false]));
   markDirty(); messNachfuehren(id);
   return {id,sek};
 }
@@ -4224,7 +4241,7 @@ function stoppWeiter(){
 function stoppStop(){
   if(!stopp) return;
   const r=stoppErfassen(Date.now()); stoppAus();
-  if(r) toast('✓ '+sekText(r.sek)+' s · „'+partName(r.id)+'" ('+messWerte(r.id).length+'. Messung, Ø '+sekText(messMittel(r.id))+' s)',3000);
+  if(r) toast('✓ '+sekText(r.sek)+' s · „'+partName(r.id)+'" ('+messGueltig(r.id).length+'. Messung, Ø '+sekText(messMittel(r.id))+' s)',3000);
 }
 function stoppVerwerfen(){ if(!stopp) return; stoppAus(); toast('Messung verworfen'); }
 function stoppAus(weiter){
@@ -4241,47 +4258,68 @@ function stoppInfo(){
     if(activePart && activePart!==stopp.id) t+=' · danach: '+nr(activePart)+' '+partName(activePart);
     el.textContent=t; return;
   }
-  const m=messWerte(activePart);
+  const m=messGueltig(activePart), aus=messWerte(activePart).length-m.length;
   el.textContent=!activePart ? '' : m.length
-    ? m.length+' Messung'+(m.length===1?'':'en')+' · Ø '+sekText(messMittel(activePart))+' s = '+disp2(messMittel(activePart)/SEK_JE_MIND)+' '+ul()+' · MTM '+disp2(calcTotal(activePart))+' '+ul()
-    : 'Noch nicht gemessen · MTM '+disp2(calcTotal(activePart))+' '+ul();
+    ? m.length+' Messung'+(m.length===1?'':'en')+(aus?' (+'+aus+' ausgeschlossen)':'')+' · Ø '+sekText(messMittel(activePart))+' s = '+disp2(messMittel(activePart)/SEK_JE_MIND)+' '+ul()+' · MTM '+disp2(calcTotal(activePart))+' '+ul()
+    : (aus?aus+' Messung(en), alle ausgeschlossen':'Noch nicht gemessen')+' · MTM '+disp2(calcTotal(activePart))+' '+ul();
 }
 /* Einzelwerte eines Schritts — Ausreißer löschen */
 function openMessPopup(id,anchor){
   const pop=document.getElementById('colPopup'), body=document.getElementById('colPopupBody');
   pop.classList.remove('versch-pop');
   document.getElementById('colPopupTitle').textContent='Messungen: '+partName(id);
-  const m=messWerte(id);
-  body.innerHTML=m.length ? `<div class="mess-chips">${m.map((x,i)=>`<span class="mess-chip">${sekText(x)} s<button data-i="${i}" title="Messung löschen" aria-label="Messung löschen">✕</button></span>`).join('')}</div>
-      <div class="vp-info" style="margin-top:6px">Ø ${sekText(messMittel(id))} s = ${disp2(messMittel(id)/SEK_JE_MIND)} ${ul()} · MTM ${disp2(calcTotal(id))} ${ul()}</div>
+  const m=messWerte(id), aus=messAus(id);
+  body.innerHTML=m.length ? `<div class="mess-chips">${m.map((x,i)=>messChip(x,i,aus[i])).join('')}</div>
+      <div class="vp-info" style="margin-top:6px">${messGueltig(id).length?'Ø '+sekText(messMittel(id))+' s = '+disp2(messMittel(id)/SEK_JE_MIND)+' '+ul():'Alle Messungen ausgeschlossen'} · MTM ${disp2(calcTotal(id))} ${ul()}</div>
+      <div class="vp-info">Wert antippen: aus der Auswertung nehmen / wieder aufnehmen · ✕ löscht</div>
       <div class="col-popup-actions"><button class="tbtn" id="messAlleWeg">Alle löschen</button></div>`
     : '<div class="leer-hinweis">Noch nicht gemessen.</div>';
   body.querySelectorAll('.mess-chip button').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); messLoeschen(id,+b.dataset.i,anchor); }));
+  body.querySelectorAll('.mess-chip .mc-wert').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); messUmschalten(id,+b.dataset.i,anchor); }));
   const alle=document.getElementById('messAlleWeg'); if(alle) alle.addEventListener('click',e=>{ e.stopPropagation(); messLoeschen(id,-1,anchor); });
   pop.classList.add('open');
   positionPopup(pop,anchor);
 }
-function messLoeschen(id,i,anchor){
-  const m=messWerte(id).slice(); if(!m.length) return;
-  undoPush({part:id,key:'__mess',prev:m.slice()});
-  if(i<0) delete data[id].__mess; else { m.splice(i,1); if(m.length) data[id].__mess=m; else delete data[id].__mess; }
-  markDirty(); messNachfuehren(id);
-  toast(i<0?'Alle Messungen gelöscht – ↩ Undo holt sie zurück':'Messung gelöscht – ↩ Undo holt sie zurück');
+function messChip(x,i,aus,onclickId){
+  const klick=onclickId?` onclick="messUmschalten('${onclickId}',${i})"`:'';
+  const weg=onclickId?` onclick="messLoeschen('${onclickId}',${i})"`:` data-i="${i}"`;
+  return `<span class="mess-chip${aus?' aus':''}"><span class="mc-wert" data-i="${i}"${klick} title="${aus?'Ausgeschlossen – antippen, um wieder mitzuzählen':'Antippen, um aus der Auswertung zu nehmen'}">${sekText(x)}${onclickId?'':' s'}</span><button${weg} title="Messung löschen" aria-label="Messung löschen">✕</button></span>`;
+}
+function messPopupErneuern(id,anchor){
   const td=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"] td.mess');
+  const pop=document.getElementById('colPopup');
+  if(!pop.classList.contains('open')) return;
   if(messWerte(id).length && anchor && anchor.isConnected) openMessPopup(id,anchor);
   else if(messWerte(id).length && td) openMessPopup(id,td);
   else closeColPopup();
 }
+function messLoeschen(id,i,anchor){
+  const m=messWerte(id).slice(), a=messAus(id); if(!m.length) return;
+  messUndoMerken(id);
+  if(i<0) messSetzen(id,[],[]); else { m.splice(i,1); a.splice(i,1); messSetzen(id,m,a); }
+  markDirty(); messNachfuehren(id);
+  toast(i<0?'Alle Messungen gelöscht – ↩ Undo holt sie zurück':'Messung gelöscht – ↩ Undo holt sie zurück');
+  messPopupErneuern(id,anchor);
+}
+/* Messung aus der Auswertung nehmen oder wieder aufnehmen — der Wert bleibt gespeichert */
+function messUmschalten(id,i,anchor){
+  const m=messWerte(id), a=messAus(id); if(i<0||i>=m.length) return;
+  messUndoMerken(id);
+  a[i]=!a[i]; messSetzen(id,m.slice(),a);
+  markDirty(); messNachfuehren(id);
+  toast(a[i]?sekText(m[i])+' s ausgeschlossen – zählt nicht mehr mit':sekText(m[i])+' s zählt wieder mit');
+  messPopupErneuern(id,anchor);
+}
 /* Auswertung „Zeitmessung": MTM gegen gemessen */
 function messDaten(liste){
   return (liste||anaParts()).filter(p=>messWerte(p.id).length).map(p=>{
-    const m=messWerte(p.id), avg=messMittel(p.id), ist=avg/SEK_JE_MIND, mtm=calcTotal(p.id);
-    return {p,m,avg,ist,mtm,abw:ist-mtm,lg:ist>0?mtm/ist*100:null};
+    const m=messWerte(p.id), aus=messAus(p.id), n=m.length-aus.filter(Boolean).length, avg=messMittel(p.id), ist=avg/SEK_JE_MIND, mtm=calcTotal(p.id);
+    return {p,m,aus,n,avg,ist,mtm,abw:n?ist-mtm:null,lg:ist>0?mtm/ist*100:null};
   });
 }
 function messKennzahlen(d){
-  const mtm=d.reduce((x,e)=>x+e.mtm,0), ist=d.reduce((x,e)=>x+e.ist,0);
-  return {mtm,ist,n:d.reduce((x,e)=>x+e.m.length,0),lg:ist>0?mtm/ist*100:null};
+  const g=d.filter(e=>e.n), mtm=g.reduce((x,e)=>x+e.mtm,0), ist=g.reduce((x,e)=>x+e.ist,0);
+  return {mtm,ist,schritte:g.length,n:d.reduce((x,e)=>x+e.n,0),aus:d.reduce((x,e)=>x+e.m.length-e.n,0),lg:ist>0?mtm/ist*100:null};
 }
 function renderMess(){
   const w=document.getElementById('messWrap'), liste=anaParts(), d=messDaten(liste);
@@ -4290,7 +4328,7 @@ function renderMess(){
   const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
   const pct=v=>v==null?'–':v.toFixed(0)+' %';
   w.innerHTML=`<div class="ana-kpi-row">
-      <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessene Schritte</span><span class="ana-kpi-val">${d.length} von ${liste.length}</span><span class="ana-kpi-sub">${k.n} Messungen</span></div>
+      <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessene Schritte</span><span class="ana-kpi-val">${k.schritte} von ${liste.length}</span><span class="ana-kpi-sub">${k.n} Messungen${k.aus?' · '+k.aus+' ausgeschlossen':''}</span></div>
       <div class="ana-kpi"><span class="ana-kpi-lbl">MTM (gemessene Schritte)</span><span class="ana-kpi-val">${disp2(k.mtm)} ${u}</span></div>
       <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessen (Ø)</span><span class="ana-kpi-val">${disp2(k.ist)} ${u}</span></div>
       <div class="ana-kpi" title="MTM-Zeit ÷ gemessene Zeit × 100 %"><span class="ana-kpi-lbl">Leistungsgrad</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ gemessen</span></div>
@@ -4300,17 +4338,17 @@ function renderMess(){
       <tbody>${d.map(e=>`<tr>
         <td>${nr.get(e.p.id)}</td>
         <td class="tk-name">${escHtml(e.p.name)}</td>
-        <td class="tk-name"><div class="mess-chips">${e.m.map((x,i)=>`<span class="mess-chip">${sekText(x)}<button onclick="messLoeschen('${escAttr(e.p.id)}',${i})" title="Messung löschen" aria-label="Messung löschen">✕</button></span>`).join('')}</div></td>
-        <td>${sekText(e.avg)}</td>
-        <td>${disp2(e.ist)}</td>
+        <td class="tk-name"><div class="mess-chips">${e.m.map((x,i)=>messChip(x,i,e.aus[i],escAttr(e.p.id))).join('')}</div></td>
+        <td>${e.n?sekText(e.avg):'–'}</td>
+        <td>${e.n?disp2(e.ist):'–'}</td>
         <td>${disp2(e.mtm)}</td>
-        <td class="${e.abw>1e-9?'tk-pos':(e.abw<-1e-9?'tk-neg':'')}">${(e.abw>0?'+':'')+disp2(e.abw)}</td>
+        <td class="${e.abw>1e-9?'tk-pos':(e.abw<-1e-9?'tk-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td>
         <td>${pct(e.lg)}</td>
       </tr>`).join('')}
       <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
         <td>${(k.ist-k.mtm>0?'+':'')+disp2(k.ist-k.mtm)}</td><td>${pct(k.lg)}</td></tr></tbody>
     </table>
-    <div class="takt-fuss">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 % — über 100 % war die Messung schneller als die MTM-Vorgabe. Abw. = gemessen − MTM (rot: länger als MTM).</div>`;
+    <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✕ löscht. MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 % — über 100 % war die Messung schneller als die MTM-Vorgabe. Abw. = gemessen − MTM (rot: länger als MTM).</div>`;
 }
 
 /* ═══════════════════════════════════════
@@ -4630,6 +4668,13 @@ function undoLast(){
     standZuruecksetzen(last.stand);
     markDirty();
     lastActionText='↩ Rückgängig: '+last.text; toast(lastActionText); updateLastAction();
+    return;
+  }
+  if(last.typ==='mess'){
+    if(!data[last.part]){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
+    messSetzen(last.part,last.prev.m,last.prev.a);
+    messNachfuehren(last.part); markDirty();
+    lastActionText='↩ Rückgängig: Messung · '+partName(last.part); toast(lastActionText); updateLastAction();
     return;
   }
   if(last.typ==='reihenfolge'){
@@ -6492,15 +6537,15 @@ function xlsxSheetZeitmessung(){
   const u=ul(), fU=u==='minD'?1:MIND_FACTOR, d=messDaten(parts), k=messKennzahlen(d);
   let rows='',rn=1;
   rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Zeitmessung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
-  rows+=`<row r="${rn}">${xc(1,rn,'Stoppuhr-Messungen gegen MTM (ohne Verteilzeit) · Leistungsgrad = MTM ÷ gemessen × 100 % · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Stoppuhr-Messungen gegen MTM (ohne Verteilzeit) · Leistungsgrad = MTM ÷ gemessen × 100 % · Werte in Klammern ausgeschlossen · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
   rn++;
   const kopf=['Nr.','Prozessschritt',colLabel('extra1'),'Messungen','Einzelwerte [s]','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]'];
   rows+=`<row r="${rn}" ht="26" customHeight="1">${kopf.map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
   const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
   d.forEach(e=>{
-    rows+=`<row r="${rn}">${xc(1,rn,nr.get(e.p.id),33,true)}${xc(2,rn,e.p.name,33)}${xc(3,rn,data[e.p.id].__extra1||'',33)}${xc(4,rn,e.m.length,33,true)}`
-      +`${xc(5,rn,e.m.map(sekText).join(' / '),33)}${xc(6,rn,xn(e.avg),32,true)}${xc(7,rn,xn(e.ist*fU),32,true)}${xc(8,rn,xn(e.mtm*fU),32,true)}`
-      +`${xc(9,rn,xn(e.abw*fU),32,true)}${xc(10,rn,e.lg==null?'':e.lg.toFixed(1),39,e.lg!=null)}</row>`;rn++;
+    rows+=`<row r="${rn}">${xc(1,rn,nr.get(e.p.id),33,true)}${xc(2,rn,e.p.name,33)}${xc(3,rn,data[e.p.id].__extra1||'',33)}${xc(4,rn,e.n,33,true)}`
+      +`${xc(5,rn,messText(e.p.id,' / '),33)}${xc(6,rn,e.n?xn(e.avg):'',32,!!e.n)}${xc(7,rn,e.n?xn(e.ist*fU):'',32,!!e.n)}${xc(8,rn,xn(e.mtm*fU),32,true)}`
+      +`${xc(9,rn,e.abw==null?'':xn(e.abw*fU),32,e.abw!=null)}${xc(10,rn,e.lg==null?'':e.lg.toFixed(1),39,e.lg!=null)}</row>`;rn++;
   });
   rows+=`<row r="${rn}">${xc(1,rn,'',35)}${xc(2,rn,'∑ Gemessene Schritte',35)}${xc(3,rn,'',35)}${xc(4,rn,k.n,36,true)}${xc(5,rn,'',35)}${xc(6,rn,'',35)}`
     +`${xc(7,rn,xn(k.ist*fU),36,true)}${xc(8,rn,xn(k.mtm*fU),36,true)}${xc(9,rn,xn((k.ist-k.mtm)*fU),36,true)}${xc(10,rn,k.lg==null?'':k.lg.toFixed(1),36,k.lg!=null)}</row>`;rn++;
@@ -6629,7 +6674,7 @@ function doExportXlsx(){
 
 /* ── Format 4 schreiben ──
    Kopfzeile: Level, Prozessschritt, Sachnummer, Benennung, Menge, die sechs umbenennbaren Spalten,
-   Notiz, Messungen [s] (Stoppuhr, mit | getrennt), dann je Kategorie eine Spalte mit der Anzahl (Zeiten rechnet die App, sie stehen im Excel-Report).
+   Notiz, Messungen [s] (Stoppuhr, mit | getrennt, ausgeschlossene in Klammern), dann je Kategorie eine Spalte mit der Anzahl (Zeiten rechnet die App, sie stehen im Excel-Report).
    Weitere Teile eines Schritts folgen in eigenen Zeilen mit leerem Prozessschritt.
    Texte gehen durch csvText — Excel ließe sonst Sachnummern, Daten und Formeln nicht in Ruhe. */
 function csvKopfV4(){
@@ -6640,7 +6685,7 @@ function csvDatenV4(){
   parts.forEach(p=>{
     const d=data[p.id], teile=stepTeile(p.id), t0=teile[0];
     zeilen.push([d.__level||1, csvText(p.name), t0?csvText(t0.sachnr):'', t0?csvText(t0.name):'', t0?t0.menge:'',
-      ...CSV_V4_EXTRAS.map(k=>csvText(d['__'+k]||'')), csvText(d.__note||''), csvText(messWerte(p.id).map(zahlDe).join('|')),
+      ...CSV_V4_EXTRAS.map(k=>csvText(d['__'+k]||'')), csvText(d.__note||''), csvText(messText(p.id,'|')),
       ...COLS.map(c=>d[c.key]||'')]);   // 0 bleibt leer — so ist die Matrix in Excel lesbar
     teile.slice(1).forEach(t=>zeilen.push(['','',csvText(t.sachnr),csvText(t.name),t.menge]));
   });

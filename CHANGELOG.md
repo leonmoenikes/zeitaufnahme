@@ -56,6 +56,13 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   hinzufügen“, Zeiten, Bausteine, Laufwege, Sollzeit/Verteilzeit/Stundensatz, Soll-Taktzeit,
   Spaltenüberschriften, Projektname und alle Szenario-Änderungen.
 
+### Bausteine
+
+- **„Ø Ölen / Fetten“ neu aufgebaut:** Grundelement #36 besteht jetzt aus LAMOPE, LAMOPW und LAMOPZ
+  (Ölen/Fetten Punkt/Strich – erste, weitere, zusätzlich) mit Anzahl 1 und Häufigkeit je ⅓. Der Wert
+  sinkt von 0,156 auf 0,103333 minD. Projekte und CSV-Dateien, die noch genau den alten Wert 0,156
+  führen, werden beim Öffnen bzw. Import umgestellt (mit Hinweis); von Hand angepasste Werte bleiben.
+
 ### Zeitaufnahme: eigene Mess-Ansicht
 
 - **Mess-Ansicht statt Stoppuhr-Leiste:** Im Untermodus „Zeitaufnahme“ ersetzt eine eigene

@@ -56,6 +56,41 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   hinzufügen“, Zeiten, Bausteine, Laufwege, Sollzeit/Verteilzeit/Stundensatz, Soll-Taktzeit,
   Spaltenüberschriften, Projektname und alle Szenario-Änderungen.
 
+### Zeitaufnahme: eigene Mess-Ansicht
+
+- **Mess-Ansicht statt Stoppuhr-Leiste:** Im Untermodus „Zeitaufnahme“ ersetzt eine eigene
+  Messseite Aktiv-Leiste und Tabelle: aktueller Schritt und Uhr groß, darunter die Liste aller
+  Schritte (Messwerte, im laufenden Zyklus ✓ bzw. „übersprungen“), die Knöpfe unten in
+  Daumenreichweite.
+- **Zwei Messarten:** *Ablauf* (Fortschrittszeit) beginnt beim gewählten Schritt; „✓ Fertig“
+  speichert und startet ohne Lücke den nächsten (Überschriften werden übersprungen). Am Ende
+  „Zyklus beendet“ mit „Neuer Zyklus ab #…“. *Einzeln* misst einen Schritt wiederholt; „✓ Fertig“
+  speichert und hält an. Jede Ablauf-Messung trägt ihre Zyklus-Nummer.
+- **Pause mit Grund:** „Pause“ hält die Schrittzeit an, eine zweite Uhr zählt die Unterbrechung.
+  Grund antippen (Störung, Material fehlt, Warten, Gespräch, Sonstiges) und optional eine Notiz;
+  „Weiter“ setzt denselben Schritt fort. Unterbrechungen werden mit Schritt, Dauer, Grund und
+  Zyklus gespeichert.
+- **Weitere Knöpfe:** Überspringen (Schritt entfällt in diesem Zyklus), Stopp (speichern und
+  anhalten), ✕ Verwerfen (fragt ab 5 s nach). Während einer Ablauf-Messung legt ein Tipp in der
+  Liste fest, womit es nach „Fertig“ weitergeht („danach“).
+- **Übersteht Neuladen:** Eine laufende Messung (auch eine Pause) wird sofort gespeichert und läuft
+  nach Neuladen oder App-Wechsel weiter. Wechsel zu Erweitert/Zählen oder Projektwechsel sind
+  während einer Messung gesperrt.
+- **Pausegründe einstellen:** Menü „⋯ → Pausegründe“ (oder „Gründe bearbeiten“ in der Pause):
+  Gründe hinzufügen, umbenennen, entfernen; gilt auf diesem Gerät für alle Projekte.
+- **Spalte „Ø gem.“** steht jetzt ganz am Ende der Tabelle und nur im Erweitert-Modus.
+- **Auswertung „Zeitmessung“ erweitert:**
+  - je Schritt *min–max* und *Streuung* (Standardabweichung ÷ Mittelwert) mit Ampel: unter 10 %
+    grün, 10–20 % gelb, darüber rot – Hinweis auf Ausreißer;
+  - *Zyklen*: Zeit je Zyklus mit Balken, Ø/kürzester/längster;
+  - *Unterbrechungen*: Anzahl, Summe und Anteil an der gemessenen Arbeitszeit je Grund, im
+    Vergleich zum angesetzten Verteilzeit-Faktor; alle Unterbrechungen einzeln bearbeitbar (Grund,
+    Notiz, löschen – mit Undo).
+  Alles auch in Drucken/PDF und im Excel-Blatt „Zeitmessung“; die Haupttabelle ist im Fenster
+  seitlich scrollbar.
+- **CSV:** Die Spalte „Messungen [s]“ trägt die Zyklus-Nummer („12,3#1“), Unterbrechungen stehen in
+  der Metazeile `__PAUSEN__` (Zuordnung über Schrittname und Nachbarn wie bei den Laufwegen).
+
 ### Stoppuhr (Einfach-Modus)
 
 - **Zeit messen an der Linie:** Unter der gelben Aktiv-Leiste sitzt im Einfach-Modus die Stoppuhr.

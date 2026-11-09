@@ -369,6 +369,33 @@ body.zeitaufnahme .mess-ansicht{display:flex;flex-direction:column;flex:1;min-he
 .ma-kopf .tg-btn{min-height:44px;padding:0 18px;font-size:var(--fs-m);}
 .ma-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px var(--sp3) 0;padding:6px 12px;border-radius:var(--r-s);background:var(--accent-dim);color:var(--accent-bright);font-size:var(--fs-s);}
 .ma-filter .tbtn{min-height:40px;margin-left:auto;}
+.ma-mnotiz{display:flex;align-items:center;gap:8px;margin:10px var(--sp3) 0;}
+.ma-mnotiz input{flex:1;height:44px;font-size:var(--fs-m);padding:0 10px;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);}
+.ma-mnotiz.zu{justify-content:flex-start;}
+.ma-mnotiz.zu .tbtn{min-height:40px;}
+.ma-mnotiz>.ic{width:18px;height:18px;color:var(--text3);}
+.ma-tasten{display:none;padding:6px var(--sp3) 0;font-size:var(--fs-xs);color:var(--text3);text-align:center;}
+.ma-tasten b{font-weight:600;color:var(--text2);}
+.ma-tasten.an{display:block;}
+@media (hover:hover) and (pointer:fine){ .ma-tasten{display:block;} }
+.mess-chip .mc-notiz{padding:2px 3px;color:var(--text3);opacity:.45;}
+.mess-chip .mc-notiz .ic{width:12px;height:12px;}
+.mess-chip.hat-notiz{border-color:var(--accent);}
+.mess-chip.hat-notiz .mc-notiz{opacity:1;color:var(--accent-bright);}
+.mess-tbl td:nth-child(3){min-width:240px;}
+.mess-notizen{margin:4px 0 0;padding:0 0 0 2px;list-style:none;font-size:var(--fs-xs);color:var(--text2);font-family:inherit;}
+.mess-notizen li{margin:1px 0;}
+.mess-genau{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 10px;font-size:var(--fs-s);color:var(--text2);}
+.mess-genau select{height:34px;font-size:var(--fs-s);padding:0 8px;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);}
+.ana-kpi-val.ok{color:var(--green);}
+.takt-basis-hinweis{display:flex;align-items:center;gap:6px;margin:0 0 10px;padding:6px 12px;border-radius:var(--r-s);background:var(--accent-dim);color:var(--accent-bright);font-size:var(--fs-s);}
+.takt-basis-hinweis .ic{width:15px;height:15px;}
+.takt-gem{color:var(--text3);font-size:var(--fs-xs);white-space:nowrap;}
+.undo-liste{list-style:none;margin:0;padding:0;}
+.undo-liste li{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);}
+.undo-liste .ul-zeit{font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);flex:0 0 auto;}
+.undo-liste .ul-text{flex:1;font-size:var(--fs-s);min-width:0;overflow-wrap:anywhere;}
+.undo-liste .tbtn{min-height:40px;flex:0 0 auto;}
 .ma-status{font-size:var(--fs-s);color:var(--text2);margin-left:auto;font-family:var(--mono);}
 .ma-karte{margin:12px var(--sp3) 0;padding:14px 18px;border-radius:var(--radius);background:var(--surface);border:2px solid var(--border2);text-align:center;}
 .ma-karte.laeuft{border-color:var(--green);background:var(--green-dim);}
@@ -417,6 +444,14 @@ body.zeitaufnahme .toast{bottom:calc(96px + var(--safe-bot));}
 .ma-knoepfe .gelb{background:var(--yellow);border-color:var(--yellow);color:#1a1e2e;}
 .ma-knoepfe .rot{color:var(--red);}
 .ma-knoepfe button:disabled{opacity:.4;}
+/* Handy: Nebenknöpfe nur mit Symbol, damit „Fertig → #n" ganz sichtbar bleibt */
+@media (max-width:520px){
+  .ma-knoepfe{gap:6px;}
+  .ma-knoepfe button{padding:0 12px;min-width:48px;}
+  .ma-knoepfe button:not(.gross){font-size:0;}
+  .ma-knoepfe button.rot:not(.gross){font-size:var(--fs-m);}
+  .ma-knoepfe .gross{font-size:18px;min-width:0;}
+}
 .grund-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
 .grund-row input{flex:1;height:40px;font-size:var(--fs-m);padding:0 10px;border:1px solid var(--border2);border-radius:var(--r-s);background:var(--surface2);color:var(--text);}
 body.beginner-mode .grund-row input{height:44px;}
@@ -1201,6 +1236,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
       <button onclick="openPaste()"><svg class="ic"><use href="#i-tabelle"/></svg>Aus Excel einfügen</button>
       <button onclick="openSicherungen()"><svg class="ic"><use href="#i-uhr"/></svg>Sicherungsstände</button>
       <button onclick="openGruende()"><svg class="ic"><use href="#i-notiz"/></svg>Pausegründe</button>
+      <button onclick="openUndoVerlauf()"><svg class="ic"><use href="#i-undo"/></svg>Undo-Verlauf</button>
       <div class="mehr-trenner adv-only"></div>
       <button class="adv-only" onclick="openCfg()"><svg class="ic"><use href="#i-zeiten"/></svg>Zeiten</button>
       <button class="adv-only" onclick="openMtm()"><svg class="ic"><use href="#i-bausteine"/></svg>Bausteine</button>
@@ -1352,11 +1388,16 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
             <span class="punit">minD</span><span class="punit" id="taktSollSek"></span>
           </label>
           <label class="takt-ctl-item takt-chk"><input type="checkbox" id="taktVzChk" onchange="setTaktMitVz(this.checked)"/><span id="taktVzLbl">mit Verteilzeit</span></label>
+          <div class="toggle-group takt-basis" title="Zeitbasis: MTM-Vorgabe oder Ø der Stoppuhr-Messungen">
+            <button class="tg-btn" id="taktBasisMtm" onclick="setTaktZeitbasis('mtm')">MTM</button>
+            <button class="tg-btn" id="taktBasisMess" onclick="setTaktZeitbasis('mess')"><svg class="ic"><use href="#i-uhr"/></svg>Gemessen</button>
+          </div>
           <div class="toggle-group takt-view">
             <button class="tg-btn" id="taktViewIst" onclick="setTaktAnsicht('ist')">Ist</button>
             <button class="tg-btn" id="taktViewSzen" onclick="setTaktAnsicht('szenario')"><svg class="ic"><use href="#i-szenario"/></svg>Szenario</button>
           </div>
         </div>
+        <div id="taktBasisHinweis" class="takt-basis-hinweis"></div>
         <div id="taktKpiWrap"></div>
         <div class="takt-grid">
         <div id="taktTableWrap"></div>
@@ -1494,6 +1535,15 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
 </div>
 
 <!-- AUS EXCEL EINFÜGEN -->
+<div class="modal-bg" id="undoModal">
+  <div class="modal sich-modal">
+    <div class="mh">
+      <span class="mh-title"><svg class="ic"><use href="#i-undo"/></svg>Undo-Verlauf</span>
+      <button class="mclose" aria-label="Schließen" onclick="closeUndoVerlauf()"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="mbody" id="undoBody"></div>
+  </div>
+</div>
 <div class="modal-bg" id="pasteModal">
   <div class="modal paste-modal">
     <div class="mh">
@@ -2220,7 +2270,7 @@ function printAnalysis(){
 
   /* Taktabgleich: Balken direkt in der Tabelle, das spart auf Papier eine zweite Grafik */
   const mitT=taktSoll>0;
-  const vzTxt=(taktMitVz&&verteilzeitFactor)?' inkl. '+verteilzeitFactor+' % Verteilzeit':'';
+  const vzTxt=(taktZeitbasis==='mess'?' auf Basis der Messungen ('+taktBasisText(fParts)+')':' auf MTM-Basis')+((taktMitVz&&verteilzeitFactor)?' inkl. '+verteilzeitFactor+' % Verteilzeit':'');
   const noStations = takt.n===0;
   const prBar=(e,d,scale,ghost)=>{
     const cls=e.ohne?' pr-ohne':(mitT?(e.minD>taktSoll+1e-9?' pr-over':''):(e===d.engpass?' pr-max':''));
@@ -2287,7 +2337,7 @@ function printAnalysis(){
           <thead><tr><th>Verschobener Prozessschritt</th><th>von</th><th>nach</th><th>Zeit [minD]</th></tr></thead>
           <tbody>${szenMoves.length?szenMoves.map(pt=>`<tr><td class="pr-txt">${escHtml(pt.name)}</td>
             <td class="pr-txt">${escHtml(taktBasis(pt)||taktEmptyLabel())}</td><td class="pr-txt">${escHtml(szenP.moves[pt.id]||taktEmptyLabel())}</td>
-            <td>${(calcTotal(pt.id)*f).toFixed(2)}</td></tr>`).join(''):'<tr><td class="pr-txt" colspan="4">keine</td></tr>'}</tbody>
+            <td>${(taktZeit(pt.id)*f).toFixed(2)}</td></tr>`).join(''):'<tr><td class="pr-txt" colspan="4">keine</td></tr>'}</tbody>
         </table>
       </div>
       <table class="pr-tbl" style="margin-top:7px">
@@ -2356,13 +2406,13 @@ function printAnalysis(){
         <div class="pr-kpi"><span class="pr-kpi-lbl">Leistungsgrad</span><span class="pr-kpi-val">${mpct(mk.lg)}</span></div>
       </div>
       <table class="pr-tbl">
-        <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th>Streuung</th><th>Ø gem. [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
-        <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${messText(e.p.id,' / ')}</td><td>${e.n?sekText(e.avg):'–'}</td><td>${e.n?sekText(e.min)+'–'+sekText(e.max):'–'}</td><td>${streuText(e.vk)}</td>
+        <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th>Streuung</th><th>Noch nötig (±${messGenau} %)</th><th>Ø gem. [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+        <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${messText(e.p.id,' / ')}${e.notizen.some(Boolean)?'<br><i>'+e.notizen.map((t,i)=>t?(i+1)+'. '+escHtml(t):'').filter(Boolean).join(' · ')+'</i>':''}</td><td>${e.n?sekText(e.avg):'–'}</td><td>${e.n?sekText(e.min)+'–'+sekText(e.max):'–'}</td><td>${streuText(e.vk)}</td><td>${messFehltText(e.fehlt)}</td>
           <td>${e.n?disp2(e.ist):'–'}</td><td>${disp2(e.mtm)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td><td>${mpct(e.lg)}</td></tr>`).join('')}
-          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td></td><td></td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
+          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td></td><td></td><td>${mk.fehlt?'+'+mk.fehlt:''}</td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
         </tbody>
       </table>
-      <p class="pr-hint">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 %. Werte in Klammern sind ausgeschlossen und zählen nicht mit.</p>
+      <p class="pr-hint">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 %. Werte in Klammern sind ausgeschlossen und zählen nicht mit. Noch nötig = weitere Messungen für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit).</p>
     </div>`;
   const prZyk=messZyklen(fParts), prPz=pausenDaten(fParts);
   const zykSec=!prZyk.length?'':`<div class="pr-sec pr-keep"><h2>Zyklen (Ablauf-Messung)</h2>
@@ -2528,6 +2578,17 @@ let taktZiele=[];          // Zielnamen der Sammel-Auswahl, Index im <select> �
 
 const taktHas=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 function taktFaktor(){ return taktMitVz ? 1+(verteilzeitFactor||0)/100 : 1; }
+/* Zeitbasis des Taktabgleichs: MTM oder gemessen (Ø der gültigen Messungen). Ungemessene Schritte
+   gehen bei „Gemessen" mit ihrer MTM-Zeit ein, damit keine Station künstlich leer wirkt. */
+let taktZeitbasis='mtm';
+function taktGemessen(id){ return taktZeitbasis==='mess' && messGueltig(id).length>0; }
+function taktZeit(id){ return taktGemessen(id) ? messMittel(id)/SEK_JE_MIND : calcTotal(id); }
+function setTaktZeitbasis(b){ taktZeitbasis=b==='mess'?'mess':'mtm'; saveSoon(); renderTaktabgleich(); }
+function taktBasisText(liste){
+  if(taktZeitbasis!=='mess') return '';
+  const l=(liste||anaParts()).filter(p=>lvlVon(p.id)>1||calcTotal(p.id)>0||messWerte(p.id).length), g=l.filter(p=>taktGemessen(p.id)).length;
+  return 'Gemessen: '+g+' von '+l.length+' Schritten'+(g<l.length?' – die übrigen mit MTM':'');
+}
 function taktBasis(p){ return ((data[p.id]||{})['__'+taktGroupKey]||'').trim(); }
 /* Ein Szenario gehört zu der Spalte, in der es angelegt wurde */
 function taktSzenAktiv(){ return taktSzenario && taktSzenario.groupKey===taktGroupKey ? taktSzenario : null; }
@@ -2552,13 +2613,14 @@ function taktData(szen,liste){
   const f=taktFaktor();
   const map=new Map();
   let ohne=null;
-  const station=name=>{ if(!map.has(name)) map.set(name,{name,rows:0,teile:0,minD:0,parts:[]}); return map.get(name); };
+  const station=name=>{ if(!map.has(name)) map.set(name,{name,rows:0,teile:0,minD:0,gem:0,parts:[]}); return map.get(name); };
   (liste||anaParts()).forEach(p=>{
     const st=taktStation(p,szen);
-    const e=st ? station(st) : (ohne||(ohne={name:taktEmptyLabel(),rows:0,teile:0,minD:0,parts:[],ohne:true}));
+    const e=st ? station(st) : (ohne||(ohne={name:taktEmptyLabel(),rows:0,teile:0,minD:0,gem:0,parts:[],ohne:true}));
     e.rows++;                 // Prozessschritte
     e.teile+=stepQty(p.id);   // angepackte Teile (Summe der Mengen)
-    e.minD+=calcTotal(p.id)*f;   // kanonisch in minD
+    e.minD+=taktZeit(p.id)*f;   // kanonisch in minD
+    if(taktGemessen(p.id)) e.gem++;
     e.parts.push(p);
   });
   if(szen) szen.extra.forEach(n=>station(n));   // neu angelegte Stationen auch leer zeigen
@@ -2724,7 +2786,7 @@ function renderTaktabgleich(){
   const vz=verteilzeitFactor||0;
   const mitVz=taktMitVz&&vz>0;
   document.getElementById('taktTitle').textContent='Zeit je '+stLbl+' – Taktabgleich';
-  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [minD]'+(mitVz?' inkl. '+vz+' % Verteilzeit':'');
+  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [minD]'+(taktZeitbasis==='mess'?' · gemessen':'')+(mitVz?' inkl. '+vz+' % Verteilzeit':'');
   const sel=document.getElementById('taktGroupSel');
   sel.innerHTML=OPT_COLS.filter(o=>!o.own).map(o=>
     `<option value="${o.key}"${o.key===taktGroupKey?' selected':''}>${escHtml(colLabel(o.key))}</option>`).join('');
@@ -2740,6 +2802,11 @@ function renderTaktabgleich(){
   const szen=taktSzenAktiv();
   const inSzen=taktAnsicht==='szenario';
   const nMoves=taktMoves(szen).length;
+  document.getElementById('taktBasisMtm').className='tg-btn'+(taktZeitbasis==='mess'?'':' on-mode');
+  document.getElementById('taktBasisMess').className='tg-btn'+(taktZeitbasis==='mess'?' on-mode':'');
+  const bh=document.getElementById('taktBasisHinweis'), btx=taktBasisText();
+  bh.innerHTML=btx?ic('uhr')+escHtml(btx)+(messSpalteAn()?'':' – noch nichts gemessen (Einfach → Zeitaufnahme)'):'';
+  bh.style.display=btx?'':'none';
   document.getElementById('taktViewIst').className='tg-btn'+(inSzen?'':' on-mode');
   document.getElementById('taktViewSzen').className='tg-btn'+(inSzen?' on-mode':'');
   document.getElementById('taktViewSzen').innerHTML=ic('szenario')+'Szenario'+(nMoves?' ('+nMoves+')':(szen&&szen.extra.length?' •':''));
@@ -2788,7 +2855,7 @@ function renderTaktabgleich(){
     const auslCls=e.ausl!=null&&e.ausl>100+1e-9?'tk-pos':'';
     rows+=`<tr>
       <td class="tk-name">${escHtml(e.name)}${e.entfaellt?' <span class="takt-hint">entfällt</span>':''}</td>
-      <td>${e.rows}</td>
+      <td>${e.rows}${taktZeitbasis==='mess'&&!e.entfaellt?` <small class="takt-gem" title="davon gemessen">gem. ${e.gem}</small>`:''}</td>
       ${vergleich?`<td>${ie?ie.minD.toFixed(2):'–'}</td>`:`<td>${e.teile}</td>`}
       <td>${e.entfaellt?'–':e.minD.toFixed(2)}</td>
       ${vergleich?`<td class="${d>1e-9?'tk-pos':(d<-1e-9?'tk-neg':'')}">${Math.abs(d)<1e-9?'':(d>0?'+':'')+d.toFixed(2)}</td>`:`<td>${e.min.toFixed(2)}</td>`}
@@ -2885,7 +2952,7 @@ function renderTaktabgleich(){
           <label class="takt-part-wahl"><input type="checkbox" class="takt-wahl-chk" data-pid="${escAttr(p.id)}"${taktAuswahl.has(p.id)?' checked':''} onchange="taktWahl(this)"/>
           <span class="takt-part-name" title="${escAttr(p.name)}">${escHtml(p.name)}</span></label>
           ${moved?`<span class="takt-part-from">↪ aus ${escHtml(basis||taktEmptyLabel())}</span>`:''}
-          <span class="takt-part-t">${(calcTotal(p.id)*f).toFixed(2)} minD</span>
+          <span class="takt-part-t">${(taktZeit(p.id)*f).toFixed(2)} minD${taktGemessen(p.id)?' <small title="gemessen">gem.</small>':''}</span>
           <select onchange="taktMove('${escAttr(p.id)}',this.value)" title="Ziel-${escAttr(stLbl)}">${optionen(ziel)}</select>
         </div>`;
       }).join('')+'</div>';
@@ -3542,10 +3609,12 @@ function csvV4Lesen(rows,einfuegen){
     /* Stoppuhr-Messungen in Sekunden, mit | getrennt */
     /* ausgeschlossene stehen in Klammern: „12,3|(25,8)" */
     const messRoh=zelle(row,'mess').split(/[|;]/).map(x=>x.trim()).filter(Boolean).map(x=>{
+        const k=x.indexOf('~'); let nt='';
+        if(k>=0){ try{ nt=decodeURIComponent(x.slice(k+1)); }catch(e){ nt=x.slice(k+1); } x=x.slice(0,k); }
         const [w,zk]=x.split('#'); const t=w.trim();
-        return {aus:/^\(.*\)$/.test(t), v:Math.round(zahlLesen(t.replace(/[()]/g,''))*10)/10, z:Math.max(0,parseInt(zk,10)||0)};
+        return {aus:/^\(.*\)$/.test(t), v:Math.round(zahlLesen(t.replace(/[()]/g,''))*10)/10, z:Math.max(0,parseInt(zk,10)||0), n:nt.trim()};
       }).filter(x=>x.v>0);
-    if(messRoh.length){ d.__mess=messRoh.map(x=>x.v); if(messRoh.some(x=>x.aus)) d.__messAus=messRoh.map(x=>x.aus); if(messRoh.some(x=>x.z)) d.__messZ=messRoh.map(x=>x.z); }
+    if(messRoh.length){ d.__mess=messRoh.map(x=>x.v); if(messRoh.some(x=>x.aus)) d.__messAus=messRoh.map(x=>x.aus); if(messRoh.some(x=>x.z)) d.__messZ=messRoh.map(x=>x.z); if(messRoh.some(x=>x.n)) d.__messN=messRoh.map(x=>x.n); }
     cols.forEach(c=>{ d[c.key]=0; });
     kat.forEach(({key,j})=>{ d[key]=zahl(row,j); });
   }
@@ -4318,17 +4387,21 @@ function messGueltig(id){ const a=messAus(id); return messWerte(id).filter((_,i)
 function messMittel(id){ const m=messGueltig(id); return m.length?m.reduce((a,b)=>a+b,0)/m.length:0; }
 /* Zyklus je Messung (Ablauf-Messung): data[id].__messZ parallel zu __mess, 0 = Einzelmessung */
 function messZyk(id){ const z=(data[id]||{}).__messZ, m=messWerte(id); return m.map((_,i)=>Array.isArray(z)&&z[i]>0?Math.floor(z[i]):0); }
-function messSetzen(id,werte,aus,zyk){
+/* Notiz je Messung: data[id].__messN parallel zu __mess, nur vorhanden, wenn eine Notiz da ist */
+function messNotizen(id){ const n=(data[id]||{}).__messN, m=messWerte(id); return m.map((_,i)=>Array.isArray(n)&&typeof n[i]==='string'?n[i]:''); }
+function messSetzen(id,werte,aus,zyk,notizen){
   const d=data[id]; if(!d) return;
   if(werte.length) d.__mess=werte; else delete d.__mess;
   if(werte.length && aus && aus.some(Boolean)) d.__messAus=werte.map((_,i)=>!!aus[i]); else delete d.__messAus;
   if(werte.length && zyk && zyk.some(x=>x>0)) d.__messZ=werte.map((_,i)=>zyk[i]||0); else delete d.__messZ;
+  if(werte.length && notizen && notizen.some(x=>x&&String(x).trim())) d.__messN=werte.map((_,i)=>String(notizen[i]||'').trim()); else delete d.__messN;
 }
-function messUndoMerken(id){ undoPush({typ:'mess',part:id,prev:{m:messWerte(id).slice(),a:messAus(id),z:messZyk(id)}}); }
+function messUndoMerken(id){ undoPush({typ:'mess',part:id,prev:{m:messWerte(id).slice(),a:messAus(id),z:messZyk(id),n:messNotizen(id)}}); }
 /* „12,3" — ausgeschlossene in Klammern: „(25,8)" */
 function messText(id,trenner){ const a=messAus(id); return messWerte(id).map((x,i)=>a[i]?'('+sekText(x)+')':sekText(x)).join(trenner); }
 /* CSV: wie messText, dazu die Zyklus-Nummer der Ablauf-Messung: „12,3#1|(31,0)#1|8,0" */
-function messCsv(id){ const z=messZyk(id), a=messAus(id); return messWerte(id).map((x,i)=>(a[i]?'('+sekText(x)+')':sekText(x))+(z[i]?'#'+z[i]:'')).join('|'); }
+/* … und die Notiz hinter „~" (URL-kodiert, damit | ; # nicht stören): „12,3#1~Material%20gesucht" */
+function messCsv(id){ const z=messZyk(id), a=messAus(id), n=messNotizen(id); return messWerte(id).map((x,i)=>(a[i]?'('+sekText(x)+')':sekText(x))+(z[i]?'#'+z[i]:'')+(n[i]?'~'+encodeURIComponent(n[i]):'')).join('|'); }
 function messSpalteAn(){ return parts.some(p=>messWerte(p.id).length>0); }
 function messSpalteSichtbar(){ return uiMode==='advanced' && messSpalteAn(); }
 const sekText=x=>(Math.round(x*10)/10).toFixed(1).replace('.',',');
@@ -4415,11 +4488,11 @@ function messLaufPruefen(){
   }
 }
 function messGeaendert(){ messUhrAn(); messAnsichtZeichnen(); clearTimeout(saveTmr); saveTmr=null; saveState(); }
-function messErfassen(id,sek,zyklus){
+function messErfassen(id,sek,zyklus,notiz){
   if(!data[id]) return false;
   if(sek<0.5){ toast('Unter 0,5 s – nicht gespeichert'); return false; }
   messUndoMerken(id);
-  messSetzen(id,messWerte(id).concat([sek]),messAus(id).concat([false]),messZyk(id).concat([zyklus||0]));
+  messSetzen(id,messWerte(id).concat([sek]),messAus(id).concat([false]),messZyk(id).concat([zyklus||0]),messNotizen(id).concat([notiz||'']));
   markDirty(); messNachfuehren(id);
   return true;
 }
@@ -4439,22 +4512,24 @@ function messStart(){
   let id=sicht.some(p=>p.id===activePart) ? activePart : (sicht[0]?sicht[0].id:null);
   if(messModus==='ablauf'){ id=messErsterAb(id); if(!id){ toast('⚠ Ab hier gibt es keinen Schritt zum Messen'); return; } }
   if(!id||!data[id]){ toast('⚠ Erst einen Prozessschritt wählen'); return; }
-  messLauf={id,start:jetzt,pauseMs:0,pauseStart:null,grund:'',notiz:'',zyklus:messModus==='ablauf'?naechsteZyklusNr():0,startId:id,verlauf:[],danach:null};
-  messZyklusEnde=null;
+  messLauf={id,start:jetzt,pauseMs:0,pauseStart:null,grund:'',notiz:'',mnotiz:'',zyklus:messModus==='ablauf'?naechsteZyklusNr():0,startId:id,verlauf:[],danach:null};
+  messZyklusEnde=null; messNotizOffen=false;
   if(activePart!==id) selectPart(id);
   messGeaendert();
 }
 function messWeiterZu(naechst,jetzt){
   if(naechst){
-    Object.assign(messLauf,{id:naechst,start:jetzt,pauseMs:0,pauseStart:null,danach:null});
+    Object.assign(messLauf,{id:naechst,start:jetzt,pauseMs:0,pauseStart:null,danach:null,mnotiz:''});
+    messNotizOffen=false;
     selectPart(naechst);
   } else zyklusBeenden(false);
 }
 function messFertig(){
   if(!messLauf||messLauf.pauseStart) return;
   const jetzt=Date.now(), sek=Math.round(messSek()*10)/10, id=messLauf.id;
-  const ok=messErfassen(id,sek,messLauf.zyklus);
+  const ok=messErfassen(id,sek,messLauf.zyklus,(messLauf.mnotiz||'').trim());
   if(messModus==='einzeln'){
+    messNotizOffen=false;
     messLauf=null; messGeaendert();
     if(ok) toast('✓ '+sekText(sek)+' s · „'+partName(id)+'" ('+messGueltig(id).length+'. Messung, Ø '+sekText(messMittel(id))+' s)',3000);
     return;
@@ -4478,7 +4553,8 @@ function messStopp(){
   if(!messLauf) return;
   if(messLauf.pauseStart) pauseErfassen();
   const sek=Math.round(messSek()*10)/10, id=messLauf.id;
-  const ok=messErfassen(id,sek,messLauf.zyklus);
+  const ok=messErfassen(id,sek,messLauf.zyklus,(messLauf.mnotiz||'').trim());
+  messNotizOffen=false;
   if(messModus==='ablauf'){ messLauf.verlauf.push({id,sek:ok?sek:null,skip:!ok}); zyklusBeenden(true); }
   else messLauf=null;
   messGeaendert();
@@ -4490,6 +4566,7 @@ function messVerwerfen(){
   if(sek>5 && !confirm('Laufende Messung ('+sekText(sek)+' s) verwerfen?')) return;
   if(messLauf.pauseStart) pauseErfassen();
   if(messModus==='ablauf' && messLauf.verlauf.length) zyklusBeenden(true); else messLauf=null;
+  messNotizOffen=false;
   messGeaendert();
   toast('Messung verworfen');
 }
@@ -4504,6 +4581,17 @@ function messNeuerZyklus(){ const s=messZyklusEnde&&messZyklusEnde.startId; mess
 function messEndeSchliessen(){ messZyklusEnde=null; messGeaendert(); }
 function messGrund(g){ if(!messLauf||!messLauf.pauseStart) return; messLauf.grund=messLauf.grund===g?'':g; messGeaendert(); }
 function messNotiz(v){ if(messLauf&&messLauf.pauseStart){ messLauf.notiz=v; saveSoon(); } }
+/* Notiz zur laufenden Messung — die Uhr läuft beim Tippen weiter; gespeichert wird sie mit „Fertig"/„Stopp" */
+let messNotizOffen=false;
+let messTastatur=false;   // Hinweis auf die Tasten zeigen, sobald eine benutzt wurde
+function messMNotiz(v){ if(messLauf){ messLauf.mnotiz=v; saveSoon(); } }
+function messNotizZeigen(){
+  if(!messLauf) return;
+  messNotizOffen=true; messAnsichtZeichnen();
+  const f=document.getElementById('maMNotiz'); if(f) f.focus();
+}
+/* Enter im Notizfeld: Feld verlassen, damit Leertaste/Taster wieder die Messung steuern */
+function messNotizTaste(e,el){ if(e.key==='Enter'||e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); el.blur(); } }
 /* Antippen in der Liste: ohne Messung wählt es den Schritt; während einer Ablauf-Messung legt es fest,
    womit es nach „Fertig" weitergeht (nochmal antippen hebt das auf) */
 function messZeileTipp(id){
@@ -4530,7 +4618,8 @@ function messAnsichtZeichnen(){
   const st=id&&data[id]?String(data[id].__extra1||'').trim():'';
   const zustand=!lauf?'bereit':(lauf.pauseStart?'pause':'laeuft');
   const m=id?messGueltig(id):[];
-  const bisher=m.length ? 'bisher '+m.slice(-4).map(sekText).join(' · ')+' s'+(m.length>4?' …':'')+' · Ø '+sekText(messMittel(id))+' s ('+m.length+'×)' : 'noch nicht gemessen';
+  const bed=id?messBedarf(m.length,messStreuung(id)):null;
+  const bisher=m.length ? 'bisher '+m.slice(-4).map(sekText).join(' · ')+' s'+(m.length>4?' …':'')+' · Ø '+sekText(messMittel(id))+' s ('+m.length+'×)'+(bed?' · '+messBedarfText(bed):(m.length===1?' · ab 2 Messungen: Bedarf für ±'+messGenau+' %':'')) : 'noch nicht gemessen';
   let status;
   if(messModus==='ablauf'){
     const l=messSchritte(), s=lauf?lauf.startId:messErsterAb(id), i0=Math.max(0,l.findIndex(p=>p.id===s));
@@ -4549,6 +4638,12 @@ function messAnsichtZeichnen(){
       <div class="ma-uhr" id="maUhr">${stoppFormat(messSek())}</div>
       <div class="ma-bisher">${nichtMessbar?'Überschrift – der Ablauf beginnt beim nächsten Schritt':escHtml(bisher)}</div>
     </div>`;
+  if(zustand==='laeuft'){
+    const nt=lauf.mnotiz||'';
+    h+=(messNotizOffen||nt)
+      ? `<div class="ma-mnotiz">${ic('notiz')}<input type="text" id="maMNotiz" maxlength="200" placeholder="Notiz zu dieser Messung – die Uhr läuft weiter" value="${escAttr(nt)}" oninput="messMNotiz(this.value)" onkeydown="messNotizTaste(event,this)"/></div>`
+      : `<div class="ma-mnotiz zu"><button class="tbtn" onclick="messNotizZeigen()">${ic('notiz')}Notiz zur Messung</button></div>`;
+  }
   if(zustand==='pause'){
     h+=`<div class="ma-pause">
       <div class="ma-pause-kopf">${ic('pause')}Unterbrechung <b id="maPauseUhr">${stoppFormat((Date.now()-lauf.pauseStart)/1000)}</b><a onclick="openGruende()">Gründe bearbeiten</a></div>
@@ -4583,7 +4678,7 @@ function messAnsichtZeichnen(){
     h+=`<div class="ma-knoepfe"><button class="gross blau" onclick="messStart()"${!id||nichtMessbar&&!messErsterAb(id)?' disabled':''}>${ic('play')}${messModus==='ablauf'?'Zyklus starten':'Messung starten'}</button></div>`;
   } else if(zustand==='laeuft'){
     h+=`<div class="ma-knoepfe">
-      <button class="gelb" onclick="messPause()">${ic('pause')}Pause</button>
+      <button class="gelb" onclick="messPause()" aria-label="Pause" title="Pause">${ic('pause')}Pause</button>
       ${messModus==='ablauf'?`<button onclick="messUeberspringen()" title="Schritt entfällt – ohne Messung weiter" aria-label="Überspringen">${ic('skip')}</button>`:''}
       <button onclick="messStopp()" title="Speichern und anhalten">${ic('stopp')}Stopp</button>
       <button class="rot" onclick="messVerwerfen()" title="Laufende Messung verwerfen" aria-label="Verwerfen">✕</button>
@@ -4596,6 +4691,7 @@ function messAnsichtZeichnen(){
       <button class="gross blau" onclick="messWeiter()">${ic('play')}Weiter</button>
     </div>`;
   }
+  h+=`<div class="ma-tasten${messTastatur?' an':''}">Tastatur/Taster: <b>Leertaste</b>, <b>Enter</b>, <b>→</b> oder <b>Bild↓</b> = ${zustand==='bereit'?'Start':(zustand==='pause'?'Weiter':'Fertig')} · <b>P</b>/<b>Bild↑</b> = Pause${messModus==='ablauf'?' · <b>S</b> = überspringen':''} · <b>Esc</b> = verwerfen</div>`;
   const scrollAlt=(document.getElementById('maListe')||{}).scrollTop||0;
   el.innerHTML=h;
   const liste=document.getElementById('maListe');
@@ -4633,21 +4729,41 @@ function openMessPopup(id,anchor){
   pop.classList.remove('versch-pop');
   document.getElementById('colPopupTitle').textContent='Messungen: '+partName(id);
   const m=messWerte(id), aus=messAus(id);
-  body.innerHTML=m.length ? `<div class="mess-chips">${m.map((x,i)=>messChip(x,i,aus[i])).join('')}</div>
+  const nz=messNotizen(id);
+  body.innerHTML=m.length ? `<div class="mess-chips">${m.map((x,i)=>messChip(x,i,aus[i],null,nz[i])).join('')}</div>${messNotizListe(id)}
       <div class="vp-info" style="margin-top:6px">${messGueltig(id).length?'Ø '+sekText(messMittel(id))+' s = '+disp2(messMittel(id)/SEK_JE_MIND)+' '+ul():'Alle Messungen ausgeschlossen'} · MTM ${disp2(calcTotal(id))} ${ul()}</div>
-      <div class="vp-info">Wert antippen: aus der Auswertung nehmen / wieder aufnehmen · ✕ löscht</div>
+      <div class="vp-info">Wert antippen: aus der Auswertung nehmen / wieder aufnehmen · ✎ Notiz · ✕ löscht</div>
       <div class="col-popup-actions"><button class="tbtn" id="messAlleWeg">Alle löschen</button></div>`
     : '<div class="leer-hinweis">Noch nicht gemessen.</div>';
-  body.querySelectorAll('.mess-chip button').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); messLoeschen(id,+b.dataset.i,anchor); }));
+  body.querySelectorAll('.mess-chip button[data-i]').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); messLoeschen(id,+b.dataset.i,anchor); }));
+  body.querySelectorAll('.mess-chip button[data-n]').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); messNotizAendern(id,+b.dataset.n,anchor); }));
   body.querySelectorAll('.mess-chip .mc-wert').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); messUmschalten(id,+b.dataset.i,anchor); }));
   const alle=document.getElementById('messAlleWeg'); if(alle) alle.addEventListener('click',e=>{ e.stopPropagation(); messLoeschen(id,-1,anchor); });
   pop.classList.add('open');
   positionPopup(pop,anchor);
 }
-function messChip(x,i,aus,onclickId){
+function messChip(x,i,aus,onclickId,notiz){
   const klick=onclickId?` onclick="messUmschalten('${onclickId}',${i})"`:'';
   const weg=onclickId?` onclick="messLoeschen('${onclickId}',${i})"`:` data-i="${i}"`;
-  return `<span class="mess-chip${aus?' aus':''}"><span class="mc-wert" data-i="${i}"${klick} title="${aus?'Ausgeschlossen – antippen, um wieder mitzuzählen':'Antippen, um aus der Auswertung zu nehmen'}">${sekText(x)}${onclickId?'':' s'}</span><button${weg} title="Messung löschen" aria-label="Messung löschen">✕</button></span>`;
+  const nk=onclickId?` onclick="messNotizAendern('${onclickId}',${i})"`:` data-n="${i}"`;
+  const tip=(aus?'Ausgeschlossen – antippen, um wieder mitzuzählen':'Antippen, um aus der Auswertung zu nehmen')+(notiz?'\nNotiz: '+notiz:'');
+  return `<span class="mess-chip${aus?' aus':''}${notiz?' hat-notiz':''}"><span class="mc-wert" data-i="${i}"${klick} title="${escAttr(tip)}">${sekText(x)}${onclickId?'':' s'}</span><button class="mc-notiz"${nk} title="${notiz?escAttr('Notiz: '+notiz+' – antippen zum Ändern'):'Notiz hinzufügen'}" aria-label="Notiz">${ic('notiz')}</button><button${weg} title="Messung löschen" aria-label="Messung löschen">✕</button></span>`;
+}
+/* Notizen eines Schritts als Liste unter den Messwerten: „3. 25,8 s – Material gesucht" */
+function messNotizListe(id){
+  const n=messNotizen(id), m=messWerte(id), l=n.map((t,i)=>t?`<li><b>${i+1}.</b> ${sekText(m[i])} s – ${escHtml(t)}</li>`:'').join('');
+  return l?`<ul class="mess-notizen">${l}</ul>`:'';
+}
+function messNotizAendern(id,i,anchor){
+  const m=messWerte(id); if(i<0||i>=m.length) return;
+  const n=messNotizen(id), alt=n[i]||'';
+  const neu=prompt('Notiz zur '+(i+1)+'. Messung ('+sekText(m[i])+' s) von „'+partName(id)+'":',alt);
+  if(neu===null || neu.trim()===alt) return;
+  messUndoMerken(id);
+  n[i]=neu.trim(); messSetzen(id,m.slice(),messAus(id),messZyk(id),n);
+  markDirty(); messNachfuehren(id);
+  toast(n[i]?'✓ Notiz gespeichert':'Notiz entfernt');
+  messPopupErneuern(id,anchor);
 }
 function messPopupErneuern(id,anchor){
   const td=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"] td.mess');
@@ -4660,7 +4776,8 @@ function messPopupErneuern(id,anchor){
 function messLoeschen(id,i,anchor){
   const m=messWerte(id).slice(), a=messAus(id), z=messZyk(id); if(!m.length) return;
   messUndoMerken(id);
-  if(i<0) messSetzen(id,[],[],[]); else { m.splice(i,1); a.splice(i,1); z.splice(i,1); messSetzen(id,m,a,z); }
+  const n=messNotizen(id);
+  if(i<0) messSetzen(id,[],[],[],[]); else { m.splice(i,1); a.splice(i,1); z.splice(i,1); n.splice(i,1); messSetzen(id,m,a,z,n); }
   markDirty(); messNachfuehren(id);
   toast(i<0?'Alle Messungen gelöscht – ↩ Undo holt sie zurück':'Messung gelöscht – ↩ Undo holt sie zurück');
   messPopupErneuern(id,anchor);
@@ -4669,7 +4786,7 @@ function messLoeschen(id,i,anchor){
 function messUmschalten(id,i,anchor){
   const m=messWerte(id), a=messAus(id); if(i<0||i>=m.length) return;
   messUndoMerken(id);
-  a[i]=!a[i]; messSetzen(id,m.slice(),a,messZyk(id));
+  a[i]=!a[i]; messSetzen(id,m.slice(),a,messZyk(id),messNotizen(id));
   markDirty(); messNachfuehren(id);
   toast(a[i]?sekText(m[i])+' s ausgeschlossen – zählt nicht mehr mit':sekText(m[i])+' s zählt wieder mit');
   messPopupErneuern(id,anchor);
@@ -4681,10 +4798,26 @@ function messDaten(liste){
     /* Streuung: Variationskoeffizient (Standardabweichung ÷ Mittelwert), ab zwei gültigen Messungen */
     const sd=n>1 ? Math.sqrt(g.reduce((x,v)=>x+(v-avg)*(v-avg),0)/(n-1)) : null;
     const vk=sd!=null&&avg>0 ? sd/avg*100 : null;
+    const b=messBedarf(n,vk);
     return {p,m,aus,n,avg,ist,mtm,abw:n?ist-mtm:null,lg:ist>0?mtm/ist*100:null,
-      min:n?Math.min(...g):null,max:n?Math.max(...g):null,vk};
+      min:n?Math.min(...g):null,max:n?Math.max(...g):null,vk,notizen:messNotizen(p.id),noetig:b?b.noetig:null,fehlt:b?b.fehlt:null};
   });
 }
+/* Wie viele Messungen braucht ein Schritt? Statistische Absicherung des Mittelwerts:
+   n' = (t · v / E)²  — v = Streuung (Variationskoeffizient in %), E = gewünschte Genauigkeit in % (±5 oder ±10),
+   t = Student-t für 95 % Sicherheit mit n−1 Freiheitsgraden. Ab zwei Messungen berechenbar. */
+let messGenau=5;
+const T95=[0,12.71,4.30,3.18,2.78,2.57,2.45,2.36,2.31,2.26,2.23,2.20,2.18,2.16,2.14,2.13,2.12,2.11,2.10,2.09,2.09];
+function tWert95(df){ return df<1?null:(df<T95.length?T95[df]:(df<30?2.05:(df<60?2.01:1.98))); }
+function messBedarf(n,vk){
+  if(n<2||vk==null) return null;
+  const noetig=Math.max(2,Math.ceil(Math.pow(tWert95(n-1)*vk/messGenau,2)));
+  return {noetig,fehlt:Math.max(0,noetig-n)};
+}
+function messBedarfText(b){ return !b?'':(b.fehlt>99?'streut stark – Ausreißer prüfen':(b.fehlt?'noch '+b.fehlt+' für ±'+messGenau+' %':'±'+messGenau+' % erreicht')); }
+/* In Tabellen: +7 oder ✓ — sehr große Zahlen deuten auf Ausreißer, nicht auf echten Bedarf */
+function messFehltText(f){ return f==null?'–':(f>99?'> 99':(f?'+'+f:'✓')); }
+function setMessGenau(v){ messGenau=+v===10?10:5; saveSoon(); renderMess(); messAnsichtZeichnen(); }
 /* Ampel der Streuung: unter 10 % ruhig, bis 20 % auffällig, darüber unruhig (Ausreißer prüfen) */
 function streuStufe(vk){ return vk==null?'':(vk<10?'gruen':(vk<20?'gelb':'rot')); }
 function streuText(vk){ return vk==null?'–':vk.toFixed(0)+' %'; }
@@ -4719,9 +4852,17 @@ function pauseLoeschen(i){
   unterbrechungen.splice(i,1); markDirty(); renderMess(); messAnsichtZeichnen();
   toast('Unterbrechung gelöscht – ↩ Undo holt sie zurück');
 }
+/* Streuung (Variationskoeffizient in %) der gültigen Messungen eines Schritts */
+function messStreuung(id){
+  const g=messGueltig(id), n=g.length; if(n<2) return null;
+  const avg=g.reduce((a,b)=>a+b,0)/n; if(!(avg>0)) return null;
+  return Math.sqrt(g.reduce((x,v)=>x+(v-avg)*(v-avg),0)/(n-1))/avg*100;
+}
 function messKennzahlen(d){
   const g=d.filter(e=>e.n), mtm=g.reduce((x,e)=>x+e.mtm,0), ist=g.reduce((x,e)=>x+e.ist,0);
-  return {mtm,ist,schritte:g.length,n:d.reduce((x,e)=>x+e.n,0),aus:d.reduce((x,e)=>x+e.m.length-e.n,0),lg:ist>0?mtm/ist*100:null};
+  const mitB=d.filter(e=>e.fehlt!=null);
+  return {mtm,ist,schritte:g.length,n:d.reduce((x,e)=>x+e.n,0),aus:d.reduce((x,e)=>x+e.m.length-e.n,0),lg:ist>0?mtm/ist*100:null,
+    fehlt:mitB.filter(e=>e.fehlt<=99).reduce((x,e)=>x+e.fehlt,0),offen:mitB.filter(e=>e.fehlt>0&&e.fehlt<=99).length,streut:mitB.filter(e=>e.fehlt>99).length,erreicht:mitB.filter(e=>e.fehlt===0).length,ohneB:d.filter(e=>e.fehlt==null).length};
 }
 function renderMess(){
   const w=document.getElementById('messWrap'), liste=anaParts(), d=messDaten(liste), pz=pausenDaten(liste);
@@ -4735,25 +4876,30 @@ function renderMess(){
       <div class="ana-kpi"><span class="ana-kpi-lbl">MTM (gemessene Schritte)</span><span class="ana-kpi-val">${disp2(k.mtm)} ${u}</span></div>
       <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessen (Ø)</span><span class="ana-kpi-val">${disp2(k.ist)} ${u}</span></div>
       <div class="ana-kpi" title="MTM-Zeit ÷ gemessene Zeit × 100 %"><span class="ana-kpi-lbl">Leistungsgrad</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ gemessen</span></div>
+      <div class="ana-kpi" title="Messungen, die für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit) noch fehlen"><span class="ana-kpi-lbl">Noch nötig für ±${messGenau} %</span>
+        <span class="ana-kpi-val${k.offen||!k.erreicht||k.streut?'':' ok'}">${k.offen?k.fehlt+' Messungen':(k.erreicht&&!k.streut?'✓ erreicht':'–')}</span>
+        <span class="ana-kpi-sub">${k.offen?'bei '+k.offen+' Schritt'+(k.offen===1?'':'en'):''}${k.offen&&k.erreicht?' · ':''}${k.erreicht?k.erreicht+' genau genug':''}${k.ohneB?((k.offen||k.erreicht)?' · ':'')+k.ohneB+' mit nur 1 Messung':''}${k.streut?((k.offen||k.erreicht||k.ohneB)?' · ':'')+k.streut+(k.streut===1?' streut':' streuen')+' stark – Ausreißer prüfen':''}</span></div>
     </div>
+    <div class="mess-genau">Genauigkeit des Mittelwerts <select onchange="setMessGenau(this.value)"><option value="5"${messGenau===5?' selected':''}>±5 %</option><option value="10"${messGenau===10?' selected':''}>±10 %</option></select> bei 95 % Sicherheit</div>
     <div class="tbl-scroll"><table class="takt-tbl mess-tbl">
-      <thead><tr><th>#</th><th>Prozessschritt</th><th>Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th title="Variationskoeffizient: Standardabweichung ÷ Mittelwert">Streuung</th><th>Ø gemessen [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+      <thead><tr><th>#</th><th>Prozessschritt</th><th>Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th title="Variationskoeffizient: Standardabweichung ÷ Mittelwert">Streuung</th><th title="Weitere Messungen für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit)">Noch nötig</th><th>Ø gemessen [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
       <tbody>${d.map(e=>`<tr>
         <td>${nr.get(e.p.id)}</td>
         <td class="tk-name">${escHtml(e.p.name)}</td>
-        <td class="tk-name"><div class="mess-chips">${e.m.map((x,i)=>messChip(x,i,e.aus[i],escAttr(e.p.id))).join('')}</div></td>
+        <td class="tk-name"><div class="mess-chips">${e.m.map((x,i)=>messChip(x,i,e.aus[i],escAttr(e.p.id),e.notizen[i])).join('')}</div>${messNotizListe(e.p.id)}</td>
         <td>${e.n?sekText(e.avg):'–'}</td>
         <td>${e.n?sekText(e.min)+'–'+sekText(e.max):'–'}</td>
         <td><span class="streu ${streuStufe(e.vk)}">${streuText(e.vk)}</span></td>
+        <td class="${e.fehlt?'tk-pos':''}" title="${e.noetig==null?'Ab zwei Messungen berechenbar':'Nötig insgesamt: '+e.noetig}">${messFehltText(e.fehlt)}</td>
         <td>${e.n?disp2(e.ist):'–'}</td>
         <td>${disp2(e.mtm)}</td>
         <td class="${e.abw>1e-9?'tk-pos':(e.abw<-1e-9?'tk-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td>
         <td>${pct(e.lg)}</td>
       </tr>`).join('')}
-      <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td></td><td></td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
+      <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td></td><td></td><td>${k.fehlt?'+'+k.fehlt:''}</td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
         <td>${(k.ist-k.mtm>0?'+':'')+disp2(k.ist-k.mtm)}</td><td>${pct(k.lg)}</td></tr></tbody>
     </table></div>
-    <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✕ löscht. MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 % — über 100 % war die Messung schneller als die MTM-Vorgabe. Abw. = gemessen − MTM (rot: länger als MTM). Streuung = Standardabweichung ÷ Mittelwert: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span> – dann Ausreißer prüfen.</div>`
+    <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✎ Notiz zur Messung · ✕ löscht. MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 % — über 100 % war die Messung schneller als die MTM-Vorgabe. Abw. = gemessen − MTM (rot: länger als MTM). Streuung = Standardabweichung ÷ Mittelwert: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span> – dann Ausreißer prüfen. Noch nötig = weitere Messungen, bis der Mittelwert mit 95 % Sicherheit auf ±${messGenau} % genau ist: n = (t · Streuung ÷ ${messGenau} %)².</div>`
     +messZyklenHtml(liste)+pausenHtml(pz,nr);
 }
 function messZyklenHtml(liste){
@@ -5044,7 +5190,7 @@ function doCount(key){
   const next = mode==='add' ? cur+1 : Math.max(0,cur-1);
   if(next===cur) return;
   data[p][key]=next;
-  undoPush({part:p,key,prev:cur});
+  undoPush({part:p,key,prev:cur,neu:next});
   updGrid(); zaehlerZeigen(p,key); markDirty();
   const btn=document.getElementById('cb_'+key);
   /* Rückmeldung neu anstoßen, auch bei schnellem Mehrfachtippen auf dieselbe Kachel. Zwei Frames
@@ -5062,7 +5208,39 @@ function updateLastAction(){
   const el=document.getElementById('lastActionIndicator');
   if(el) el.textContent=lastActionText?'↳ '+lastActionText:'';
 }
-function undoPush(e){ undoStack.push(e); if(undoStack.length>50) undoStack.shift(); }
+function undoPush(e){ if(!e.zeit) e.zeit=Date.now(); undoStack.push(e); if(undoStack.length>50) undoStack.shift(); }
+/* Beschriftung eines Undo-Eintrags für den Verlauf */
+function undoText(e){
+  const nm=id=>{ const n=partName(id); return n?'„'+n+'"':'(gelöschter Schritt)'; };
+  if(e.typ==='stand') return e.text||'Änderung';
+  if(e.typ==='mess') return 'Messung · '+nm(e.part);
+  if(e.typ==='reihenfolge') return 'Reihenfolge der Schritte';
+  if(e.typ==='name') return 'Name '+nm(e.part)+' (vorher „'+e.prev+'")';
+  if(e.typ==='geloescht') return 'Schritt „'+e.schritt.name+'" gelöscht';
+  if(e.typ==='schritt') return 'Eingefügt in '+nm(e.part);
+  if(e.typ==='einfuegen') return e.ids.length===1?'Schritt angelegt':e.ids.length+' Schritte eingefügt';
+  const c=COLS.find(x=>x.key===e.key);
+  if(c) return c.label+' · '+nm(e.part)+(typeof e.neu==='number'?' ('+(e.neu>e.prev?'+':'−')+Math.abs(e.neu-e.prev)+')':'');
+  const feld={__level:'Level',__note:'Notiz',__teile:'Teile',__mess:'Messung'}[e.key]||colLabel(String(e.key).replace(/^__/,''))||'Feld';
+  return feld+' · '+nm(e.part);
+}
+function openUndoVerlauf(){ undoVerlaufZeichnen(); document.getElementById('undoModal').classList.add('open'); }
+function closeUndoVerlauf(){ document.getElementById('undoModal').classList.remove('open'); }
+function undoVerlaufZeichnen(){
+  const b=document.getElementById('undoBody'), l=undoStack.slice().reverse();
+  const uhr=t=>t?new Date(t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'';
+  b.innerHTML=!l.length ? '<div class="leer-hinweis">Noch nichts, was sich rückgängig machen ließe.</div>'
+    : `<div class="vp-info" style="margin-bottom:8px">Neueste oben. „Bis hier" nimmt diesen Eintrag und alle darüber zurück. Es werden die letzten 50 Änderungen gemerkt – nach dem Neuladen beginnt der Verlauf neu.</div>
+      <ol class="undo-liste">${l.map((e,k)=>`<li><span class="ul-zeit">${uhr(e.zeit)}</span><span class="ul-text">${escHtml(undoText(e))}</span>
+        <button class="tbtn" onclick="undoBis(${k})">${ic('undo')}${k===0?'Rückgängig':'Bis hier ('+(k+1)+')'}</button></li>`).join('')}</ol>`;
+}
+function undoBis(k){
+  const n=Math.min(k+1,undoStack.length);
+  if(n>3 && !confirm(n+' Änderungen rückgängig machen?')) return;
+  for(let i=0;i<n;i++){ if(!undoStack.length) break; undoLast(); }
+  if(n>1) toast('↩ '+n+' Änderungen rückgängig gemacht');
+  undoVerlaufZeichnen();
+}
 /* ── Undo für alles, was kein Zähler ist ──
    Ein „Stand" hält alles fest, was zum Projekt gehört (nicht Anzeige-Einstellungen wie Filter oder
    Spaltenbreiten). Wird vor einer Änderung gemerkt; Undo setzt ihn als Ganzes zurück. */
@@ -5111,7 +5289,7 @@ function undoLast(){
   }
   if(last.typ==='mess'){
     if(!data[last.part]){ toast('⚠ Prozessschritt nicht mehr vorhanden'); return; }
-    messSetzen(last.part,last.prev.m,last.prev.a,last.prev.z||[]);
+    messSetzen(last.part,last.prev.m,last.prev.a,last.prev.z||[],last.prev.n||[]);
     if(messLauf){ for(let j=messLauf.verlauf.length-1;j>=0;j--){ const v=messLauf.verlauf[j]; if(v.id===last.part && !v.skip){ messLauf.verlauf.splice(j,1); break; } } }
     messNachfuehren(last.part); markDirty();
     lastActionText='↩ Rückgängig: Messung · '+partName(last.part); toast(lastActionText); updateLastAction();
@@ -6326,6 +6504,7 @@ document.addEventListener('keydown',e=>{
   else if(offen('pasteModal')) closePaste();
   else if(offen('sichModal')) closeSicherungen();
   else if(offen('grundModal')) closeGruende();
+  else if(offen('undoModal')) closeUndoVerlauf();
   else if(offen('expModal')) closeExpModal();
   else if(lwOffen()) closeLw();
   else if(offen('mtmModal')) closeMtm();
@@ -6352,7 +6531,7 @@ let speicherWarnung=0;
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, messModus, messLauf, unterbrechungen, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, messModus, messLauf, unterbrechungen, messGenau, taktZeitbasis, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
                   ungesichert: hasUnsavedChanges, projektId,
                   saved: new Date().toISOString() };
     if(!speicherSchreiben(LS_KEY,state)) throw new Error('voll');
@@ -6559,6 +6738,8 @@ function loadState(){
     if(typeof s.anaTopNach==='string') anaTopNach=s.anaTopNach;   // ungültig → anaTopGueltig() fällt auf Prozessschritte zurück
     if(typeof s.taktSoll==='number' && s.taktSoll>=0) taktSoll=s.taktSoll;
     if(typeof s.taktMitVz==='boolean') taktMitVz=s.taktMitVz;
+    messGenau=s.messGenau===10?10:5;
+    taktZeitbasis=s.taktZeitbasis==='mess'?'mess':'mtm';
     taktSzenario=taktSzenPruefen(s.taktSzenario);
     mtmCustom=mtmCustomPruefen(s.mtmCustom);
     mtmCustomGE=mtmCustomGePruefen(s.mtmCustomGE);
@@ -6993,14 +7174,15 @@ function xlsxSheetZeitmessung(){
   rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Zeitmessung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
   rows+=`<row r="${rn}">${xc(1,rn,'Stoppuhr-Messungen gegen MTM (ohne Verteilzeit) · Leistungsgrad = MTM ÷ gemessen × 100 % · Werte in Klammern ausgeschlossen · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
   rn++;
-  const kopf=['Nr.','Prozessschritt',colLabel('extra1'),'Messungen','Einzelwerte [s]','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]','min [s]','max [s]','Streuung [%]'];
+  const kopf=['Nr.','Prozessschritt',colLabel('extra1'),'Messungen','Einzelwerte [s]','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]','min [s]','max [s]','Streuung [%]','Noch nötig (±'+messGenau+' %)','Notizen'];
   rows+=`<row r="${rn}" ht="26" customHeight="1">${kopf.map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
   const nr=new Map(parts.map((p,i)=>[p.id,i+1]));
   d.forEach(e=>{
     rows+=`<row r="${rn}">${xc(1,rn,nr.get(e.p.id),33,true)}${xc(2,rn,e.p.name,33)}${xc(3,rn,data[e.p.id].__extra1||'',33)}${xc(4,rn,e.n,33,true)}`
       +`${xc(5,rn,messText(e.p.id,' / '),33)}${xc(6,rn,e.n?xn(e.avg):'',32,!!e.n)}${xc(7,rn,e.n?xn(e.ist*fU):'',32,!!e.n)}${xc(8,rn,xn(e.mtm*fU),32,true)}`
       +`${xc(9,rn,e.abw==null?'':xn(e.abw*fU),32,e.abw!=null)}${xc(10,rn,e.lg==null?'':e.lg.toFixed(1),39,e.lg!=null)}`
-      +`${xc(11,rn,e.n?xn(e.min):'',32,!!e.n)}${xc(12,rn,e.n?xn(e.max):'',32,!!e.n)}${xc(13,rn,e.vk==null?'':e.vk.toFixed(1),39,e.vk!=null)}</row>`;rn++;
+      +`${xc(11,rn,e.n?xn(e.min):'',32,!!e.n)}${xc(12,rn,e.n?xn(e.max):'',32,!!e.n)}${xc(13,rn,e.vk==null?'':e.vk.toFixed(1),39,e.vk!=null)}`
+      +`${xc(14,rn,e.fehlt==null?'':e.fehlt,33,e.fehlt!=null)}${xc(15,rn,e.notizen.map((t,i)=>t?(i+1)+'. '+t:'').filter(Boolean).join(' · '),33)}</row>`;rn++;
   });
   rows+=`<row r="${rn}">${xc(1,rn,'',35)}${xc(2,rn,'∑ Gemessene Schritte',35)}${xc(3,rn,'',35)}${xc(4,rn,k.n,36,true)}${xc(5,rn,'',35)}${xc(6,rn,'',35)}`
     +`${xc(7,rn,xn(k.ist*fU),36,true)}${xc(8,rn,xn(k.mtm*fU),36,true)}${xc(9,rn,xn((k.ist-k.mtm)*fU),36,true)}${xc(10,rn,k.lg==null?'':k.lg.toFixed(1),36,k.lg!=null)}</row>`;rn++;
@@ -7022,9 +7204,9 @@ function xlsxSheetZeitmessung(){
   }
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<dimension ref="A1:M${rn}"/>
+<dimension ref="A1:O${rn}"/>
 <sheetFormatPr defaultRowHeight="12"/>
-<cols><col min="1" max="1" width="7" customWidth="1"/><col min="2" max="2" width="40" customWidth="1"/><col min="3" max="4" width="11" customWidth="1"/><col min="5" max="5" width="30" customWidth="1"/><col min="6" max="13" width="13" customWidth="1"/></cols>
+<cols><col min="1" max="1" width="7" customWidth="1"/><col min="2" max="2" width="40" customWidth="1"/><col min="3" max="4" width="11" customWidth="1"/><col min="5" max="5" width="30" customWidth="1"/><col min="6" max="14" width="13" customWidth="1"/><col min="15" max="15" width="40" customWidth="1"/></cols>
 <sheetData>${rows}</sheetData>
 </worksheet>`;
 }
@@ -7554,6 +7736,40 @@ function toggleMehrMenue(e){ if(e) e.stopPropagation(); document.getElementById(
 function closeMehrMenue(){ const m=document.getElementById('mehrMenue'); if(m) m.classList.remove('open'); }
 document.addEventListener('click',e=>{ if(!e.target.closest('#mehrBtn')) closeMehrMenue(); });
 
+/* Mess-Ansicht mit Tastatur oder Bluetooth-Taster (Präsentations-Klicker senden Bild↓/Bild↑ oder →/←):
+   Leertaste · Enter · → · Bild↓ = Hauptaktion (Start / Fertig / Weiter) · P · Bild↑ = Pause/Weiter ·
+   S = Überspringen · Esc = Verwerfen. Läuft vor den Zähl-Kürzeln (Capture) und hält sie in der Zeitaufnahme an. */
+function messTasteErlaubt(){
+  if(!zeitAktiv()) return false;
+  if(document.getElementById('startScreen').classList.contains('open')) return false;
+  if(document.querySelector('.modal-bg.open, #colPopup.open, #notePopup.open, #mehrMenue.open')) return false;
+  return true;
+}
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  if(!messTasteErlaubt()) return;
+  const tag=(document.activeElement&&document.activeElement.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  const k=e.key, kl=k.length===1?k.toLowerCase():k;
+  const haupt=[' ','Enter','ArrowRight','PageDown'].includes(k), pause=kl==='p'||k==='PageUp', skip=kl==='s', weg=k==='Escape';
+  if(!haupt&&!pause&&!skip&&!weg){
+    /* übrige Buchstaben/Ziffern würden sonst im Hintergrund Kategorien zählen */
+    if(k.length===1) e.stopImmediatePropagation();
+    return;
+  }
+  e.preventDefault(); e.stopImmediatePropagation();
+  if(e.repeat) return;
+  if(!messTastatur){ messTastatur=true; messAnsichtZeichnen(); }
+  const lauf=messLauf;
+  if(haupt){
+    if(!lauf){ if(messZyklusEnde) messNeuerZyklus(); else messStart(); }
+    else if(lauf.pauseStart) messWeiter();
+    else messFertig();
+  } else if(pause){
+    if(lauf&&lauf.pauseStart) messWeiter(); else if(lauf) messPause();
+  } else if(skip){ if(lauf) messUeberspringen(); }
+  else if(weg){ if(lauf) messVerwerfen(); }
+},true);
 /* Tastatur-Shortcuts für Kategorien (1-9,0,q,w,e,r,t,z,u,i,o,p,a,s,d,f,g,h,j,k,l) */
 document.addEventListener('keydown', e=>{
   /* Mit Cmd/Strg/Alt gehört die Taste dem Browser (Cmd+R lädt neu, Cmd+Z, Cmd+A …) — sonst zählte

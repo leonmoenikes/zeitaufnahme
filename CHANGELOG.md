@@ -18,6 +18,22 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Zeitaufnahme: Taster, Notizen, Messbedarf
+- **Tastatur und Bluetooth-Taster** in der Mess-Ansicht: Leertaste, Enter, → oder Bild↓ = Start /
+  Fertig / Weiter · P oder Bild↑ = Pause/Weiter · S = Überspringen · Esc = Verwerfen. Präsentations-
+  Klicker funktionieren damit direkt. In der Zeitaufnahme zählen Buchstabentasten keine Kategorien mehr.
+- **Notiz je Messung:** „Notiz zur Messung" während der Messung – die Uhr läuft weiter, gespeichert
+  wird mit „Fertig"/„Stopp". Nachträglich über ✎ am Messwert änderbar (Tabelle und Auswertung).
+  In Auswertung, Druck, Excel und CSV enthalten (CSV: `12,3#1~Notiz`).
+- **Wie viele Messungen noch?** Spalte „Noch nötig" und Kennzahl in der Auswertung, Hinweis in der
+  Mess-Ansicht: weitere Messungen für einen auf ±5 % genauen Mittelwert bei 95 % Sicherheit
+  (umstellbar auf ±10 %). Sehr starke Streuung wird als „Ausreißer prüfen" gemeldet.
+- **Taktabgleich auf Basis der Messungen:** Umschalter MTM | Gemessen. Ungemessene Schritte gehen
+  mit ihrer MTM-Zeit ein; ein Hinweis zeigt, wie viele Schritte gemessen sind (auch je Station).
+- **Undo-Verlauf** (Menü ⋯): die letzten 50 Änderungen mit Uhrzeit; „Bis hier" nimmt mehrere auf
+  einmal zurück.
+- Handy: Die Knopfleiste der Mess-Ansicht passt jetzt in die Breite („Fertig → #n" war abgeschnitten).
+
 ### Bedienung
 
 - **Projektname bearbeitbar:** Der Stift neben dem Projektnamen (oder ein Klick auf den Namen)

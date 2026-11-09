@@ -171,7 +171,8 @@ body.beginner-mode .start-proj .tbtn,body.beginner-mode .sich-row .tbtn{min-heig
 .start-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--text3);font-size:var(--fs-xs);}
 .start-divider::before,.start-divider::after{content:'';flex:1;height:1px;background:var(--border);}
 .proj-label{font-size:var(--fs-s);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
-.last-action{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.last-action{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .6s;}
+.last-action.an{opacity:1;transition:none;}
 .export-indicator{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;margin:0 2px;}
 
 /* ── LEGEND ── */
@@ -1977,7 +1978,17 @@ function colValue(part,fk){
 /* Anzeigewert in der Filterliste; ein Schritt ohne Teile zählt bei den Teile-Spalten als „(leer)" */
 function fltWert(x){ return (x===''||x===null||x===undefined)?'(leer)':String(x); }
 function fltWerte(v){ return Array.isArray(v) ? (v.length?v.map(fltWert):['(leer)']) : [fltWert(v)]; }
+/* Neu angelegte Schritte bleiben sichtbar, auch wenn der Filter sie ausblenden würde — bis der Filter
+   geändert wird (Vergleich über die Filter-Signatur) */
+let filterAusnahme={sig:'',ids:new Set()};
+function filterSig(){ return JSON.stringify(colFilters,(k,v)=>v instanceof Set?[...v].sort():v); }
+function filterAusnahmeSetzen(id){
+  const sig=filterSig();
+  if(filterAusnahme.sig!==sig) filterAusnahme={sig,ids:new Set()};
+  filterAusnahme.ids.add(id);
+}
 function partPassesFilters(part){
+  if(filterAusnahme.ids.size && filterAusnahme.ids.has(part.id) && filterAusnahme.sig===filterSig()) return true;
   for(const fk in colFilters){
     const f=colFilters[fk];
     const v=colValue(part,fk);
@@ -5204,9 +5215,17 @@ function doCount(key){
   lastActionText=catLabel+' · '+partName(p)+(next>cur?' (+1)':' (−1)');
   updateLastAction();
 }
+/* Letzte Aktion in der Leiste des aktiven Schritts: klar beschriftet, verblasst nach einigen Sekunden.
+   Der volle Text bleibt als Tooltip erhalten. */
+let lastActionTmr=null;
 function updateLastAction(){
-  const el=document.getElementById('lastActionIndicator');
-  if(el) el.textContent=lastActionText?'↳ '+lastActionText:'';
+  const el=document.getElementById('lastActionIndicator'); if(!el) return;
+  clearTimeout(lastActionTmr);
+  if(!lastActionText){ el.textContent=''; el.title=''; el.classList.remove('an'); return; }
+  const t=lastActionText.startsWith('↩ Rückgängig: ') ? 'Rückgängig gemacht: '+lastActionText.slice(14) : 'Zuletzt: '+lastActionText;
+  el.textContent=t; el.title=t;
+  el.classList.add('an');
+  lastActionTmr=setTimeout(()=>el.classList.remove('an'),5000);
 }
 function undoPush(e){ if(!e.zeit) e.zeit=Date.now(); undoStack.push(e); if(undoStack.length>50) undoStack.shift(); }
 /* Beschriftung eines Undo-Eintrags für den Verlauf */
@@ -5358,7 +5377,7 @@ function undoLast(){
   if(last.key==='__mess') messNachfuehren(last.part);
   else if(COLS.some(c=>c.key===last.key)) zaehlerZeigen(last.part,last.key); else { schrittNeuZeichnen(last.part); updateActiveBar(); }
   markDirty();
-  const nm=partName(last.part)||'(gelöschter Prozessschritt)';
+  const nm=undoText(last);   // z. B. „Press button · „Schritt" (+1)" statt nur des Schrittnamens
   toast('↩ Rückgängig: '+nm);
   lastActionText='↩ Rückgängig: '+nm;
   updateLastAction();
@@ -5515,22 +5534,32 @@ function addPart(){
   const name=answer.trim()||suggestion;
   const id=newPartId();
   const newPart={id,name};
+  /* Unter dem aktiven Schritt einfügen — hat er Unterschritte (z. B. eine Überschrift), hinter dem
+     ganzen Block. Level und Station vom aktiven Schritt übernehmen; unter einer Überschrift (Level 1)
+     eine Stufe tiefer, damit der neue Schritt kein Kopf wird. */
   const activeIdx=parts.findIndex(p=>p.id===activePart);
+  let pos=parts.length, lvl=1, st='';
   if(activeIdx>=0){
-    parts.splice(activeIdx+1,0,newPart);
-  } else {
-    parts.push(newPart);
+    const a=parts[activeIdx].id, al=lvlVon(a);
+    pos=schrittBlock(a,true)[1];
+    lvl=al<=1 ? 2 : al;
+    st=String(data[a].__extra1||'').trim() || (pos-1>activeIdx ? String(data[parts[pos-1].id].__extra1||'').trim() : '');
   }
+  parts.splice(pos,0,newPart);
   initPart(id);
+  data[id].__level=lvl;
+  if(st) data[id].__extra1=st;
   undoPush({typ:'einfuegen',ids:[id]});
-  if(!activePart) activePart=id;
-  const nach=activeIdx>=0 ? zeileNachSchritt(parts[activeIdx].id) : null;
-  if(activeIdx>=0 && nach && !hasAnyFilter()){
-    nach.before(...schrittZeilen(newPart,tabKontext()));
-    nummernNachfuehren(); updateTeileAllBtn();
-  } else renderBody();
+  const imFilter=hasAnyFilter() && !partPassesFilters(newPart);
+  if(imFilter) filterAusnahmeSetzen(id);
+  if(hasAnyFilter() || !schrittEinsetzen(id)) renderBody();
+  else { nummernNachfuehren(); updateTeileAllBtn(); }
+  selectPart(id);
+  /* Neuen Schritt zeigen: hinscrollen und kurz aufleuchten lassen */
+  const tr=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]');
+  if(tr){ tr.scrollIntoView({block:'center',behavior:'smooth'}); tr.classList.remove('such-hit'); requestAnimationFrame(()=>tr.classList.add('such-hit')); setTimeout(()=>tr.classList.remove('such-hit'),1800); }
   markDirty();
-  toast('✓ "'+name+'" hinzugefügt'+(existingNames.includes(name)?' – Name gibt es bereits':''));
+  toast('✓ „'+name+'" angelegt als #'+(pos+1)+(st?' · '+st:'')+(existingNames.includes(name)?' – Name gibt es bereits':'')+(imFilter?' – trotz Filter sichtbar, bis der Filter geändert wird':''),imFilter?5000:2500);
 }
 function delPart(id){
   const name=partName(id);

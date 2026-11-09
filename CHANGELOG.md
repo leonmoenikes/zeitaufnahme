@@ -32,6 +32,11 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   mit ihrer MTM-Zeit ein; ein Hinweis zeigt, wie viele Schritte gemessen sind (auch je Station).
 - **Undo-Verlauf** (Menü ⋯): die letzten 50 Änderungen mit Uhrzeit; „Bis hier" nimmt mehrere auf
   einmal zurück.
+- **„+ Schritt“ nachvollziehbar:** Der neue Schritt kommt unter den aktiven (gelb markierten) Schritt –
+  hat der Unterschritte, hinter den ganzen Block. Er übernimmt Level und Station des aktiven Schritts
+  (unter einer Überschrift: Level 2), wird selbst aktiv, die Tabelle scrollt hin und er leuchtet kurz
+  auf. Die Meldung nennt Nummer und Station. Bei aktivem Filter bleibt er sichtbar, bis der Filter
+  geändert wird (vorher verschwand er sofort).
 - Anzeige der letzten Aktion (Leiste des aktiven Schritts) klarer beschriftet – „Zuletzt: …“ bzw.
   „Rückgängig gemacht: …“ mit Kategorie und Schritt – und nach 5 Sekunden ausgeblendet.
 - Handy: Die Knopfleiste der Mess-Ansicht passt jetzt in die Breite („Fertig → #n" war abgeschnitten).

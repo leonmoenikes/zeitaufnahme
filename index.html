@@ -171,7 +171,8 @@ body.beginner-mode .start-proj .tbtn,body.beginner-mode .sich-row .tbtn{min-heig
 .start-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--text3);font-size:var(--fs-xs);}
 .start-divider::before,.start-divider::after{content:'';flex:1;height:1px;background:var(--border);}
 .proj-label{font-size:var(--fs-s);color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
-.last-action{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.last-action{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .6s;}
+.last-action.an{opacity:1;transition:none;}
 .export-indicator{font-size:var(--fs-xs);color:var(--text3);white-space:nowrap;margin:0 2px;}
 
 /* ── LEGEND ── */
@@ -5204,9 +5205,17 @@ function doCount(key){
   lastActionText=catLabel+' · '+partName(p)+(next>cur?' (+1)':' (−1)');
   updateLastAction();
 }
+/* Letzte Aktion in der Leiste des aktiven Schritts: klar beschriftet, verblasst nach einigen Sekunden.
+   Der volle Text bleibt als Tooltip erhalten. */
+let lastActionTmr=null;
 function updateLastAction(){
-  const el=document.getElementById('lastActionIndicator');
-  if(el) el.textContent=lastActionText?'↳ '+lastActionText:'';
+  const el=document.getElementById('lastActionIndicator'); if(!el) return;
+  clearTimeout(lastActionTmr);
+  if(!lastActionText){ el.textContent=''; el.title=''; el.classList.remove('an'); return; }
+  const t=lastActionText.startsWith('↩ Rückgängig: ') ? 'Rückgängig gemacht: '+lastActionText.slice(14) : 'Zuletzt: '+lastActionText;
+  el.textContent=t; el.title=t;
+  el.classList.add('an');
+  lastActionTmr=setTimeout(()=>el.classList.remove('an'),5000);
 }
 function undoPush(e){ if(!e.zeit) e.zeit=Date.now(); undoStack.push(e); if(undoStack.length>50) undoStack.shift(); }
 /* Beschriftung eines Undo-Eintrags für den Verlauf */
@@ -5358,7 +5367,7 @@ function undoLast(){
   if(last.key==='__mess') messNachfuehren(last.part);
   else if(COLS.some(c=>c.key===last.key)) zaehlerZeigen(last.part,last.key); else { schrittNeuZeichnen(last.part); updateActiveBar(); }
   markDirty();
-  const nm=partName(last.part)||'(gelöschter Prozessschritt)';
+  const nm=undoText(last);   // z. B. „Press button · „Schritt" (+1)" statt nur des Schrittnamens
   toast('↩ Rückgängig: '+nm);
   lastActionText='↩ Rückgängig: '+nm;
   updateLastAction();

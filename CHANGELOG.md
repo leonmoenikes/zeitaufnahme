@@ -56,6 +56,24 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
   hinzufügen“, Zeiten, Bausteine, Laufwege, Sollzeit/Verteilzeit/Stundensatz, Soll-Taktzeit,
   Spaltenüberschriften, Projektname und alle Szenario-Änderungen.
 
+### Behoben (Review)
+
+- **Laufende Messung geschützt:** CSV-Import, „Aus Excel einfügen“, Wiederherstellen eines
+  Sicherungsstands und Projekt öffnen brachen eine laufende Messung bisher stillschweigend ab –
+  jetzt kommt ein Hinweis, die Messung erst zu beenden.
+- **Undo während einer Messung:** Entfernt Undo den gerade gemessenen Schritt, endet die Messung mit
+  Hinweis (bisher lief sie ins Leere). Undo einer Messung nimmt auch den Eintrag „✓“ im laufenden
+  Zyklus zurück.
+- **„Aus Excel einfügen · ersetzen“** legt vorher einen Sicherungsstand an und lässt sich mit Undo
+  zurücknehmen (bisher wurde der Undo-Verlauf gelöscht).
+- **Unterbrechungen nach Import:** Ein Import in das laufende Projekt übernimmt die
+  Unterbrechungen der Datei; alte Einträge ohne passenden Schritt blieben bisher im Speicher.
+- **Speicherwarnung:** Kann das Gerät nicht speichern, kommt die Warnung einmal (dann höchstens
+  alle 5 Minuten) statt bei jeder Zählung.
+- **Mess-Ansicht mit Tabellenfilter:** zeigt einen Hinweis „Tabellenfilter aktiv: n von N
+  Schritten“ mit „Filter aufheben“. Die Karte zeigt ohne laufende Messung den Schritt, mit dem
+  „Start“ tatsächlich beginnt – auch wenn der markierte Schritt ausgefiltert ist.
+
 ### Bausteine
 
 - **„Ø Ölen / Fetten“ neu aufgebaut:** Grundelement #36 besteht jetzt aus LAMOPE, LAMOPW und LAMOPZ

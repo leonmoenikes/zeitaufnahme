@@ -18,6 +18,19 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Stationszeiten von Hand
+- **Taktabgleich: dritte Zeitbasis „Station gemessen“.** Wurde in der Linie nicht je Schritt, sondern je
+  Station gestoppt, lassen sich die Durchläufe dort je Station eintragen – in Sekunden („83,5“),
+  min:s („1:23,5“) oder „1,4 min“, mehrere Werte auf einmal mit Leerzeichen. Der Mittelwert der
+  gültigen Durchläufe ersetzt in Tabelle und Balken die MTM-Summe der Station; Stationen ohne
+  Stationszeit bleiben bei MTM (Hinweis „x von y Stationen gemessen“).
+- Vergleichstabelle je Station: Einzelwerte, n, Ø, min–max, Streuung, Ø gemessen, MTM, Abweichung
+  und Leistungsgrad; Ausreißer per Antippen ausschließen, ✕ löscht, Undo nimmt alles zurück.
+- Stationszeiten gehören zum Projekt: gespeichert, in Sicherungsständen, im CSV (`__STMESS__`),
+  im Druck und im Excel-Blatt „Zeitmessung“. Je Gruppierungsspalte eigene Werte.
+- Das Szenario rechnet weiterhin mit MTM je Schritt (eine Stationszeit lässt sich nicht auf
+  verschobene Schritte aufteilen); der Hinweis sagt das.
+
 ### Zeitaufnahme: Taster, Notizen, Messbedarf
 - **Tastatur und Bluetooth-Taster** in der Mess-Ansicht: Leertaste, Enter, → oder Bild↓ = Start /
   Fertig / Weiter · P oder Bild↑ = Pause/Weiter · S = Überspringen · Esc = Verwerfen. Präsentations-

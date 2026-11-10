@@ -941,6 +941,12 @@ body.beginner-mode .ana-scope-note .takt-chk input{width:22px;height:22px;}
 .takt-chk{cursor:pointer;}
 .takt-chk input{width:18px;height:18px;margin:0;}
 .takt-view{margin-left:auto;}
+.st-tbl td.st-chips{text-align:left;font-family:var(--sans);min-width:200px;}
+.st-tbl td.st-eingabe{white-space:nowrap;}
+.st-in{width:96px;height:36px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-s);padding:0 8px;color:var(--text);font-family:var(--mono);font-size:var(--fs-s);text-align:right;}
+.st-in:focus{outline:none;border-color:var(--accent);}
+.st-add{min-height:36px;padding:0 8px;margin-left:4px;vertical-align:middle;}
+.st-tbl tr.st-verwaist td{color:var(--text3);}
 .ana-kpi-sub{display:block;font-size:var(--fs-xs);color:var(--text3);margin-top:3px;font-family:var(--mono);}
 .takt-note{font-size:var(--fs-xs);padding:8px 10px;border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:var(--r-s);margin:8px 0;color:var(--warn-text);}
 .takt-szen{margin-top:20px;}
@@ -1392,6 +1398,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
           <div class="toggle-group takt-basis" title="Zeitbasis: MTM-Vorgabe oder Ø der Stoppuhr-Messungen">
             <button class="tg-btn" id="taktBasisMtm" onclick="setTaktZeitbasis('mtm')">MTM</button>
             <button class="tg-btn" id="taktBasisMess" onclick="setTaktZeitbasis('mess')"><svg class="ic"><use href="#i-uhr"/></svg>Gemessen</button>
+            <button class="tg-btn" id="taktBasisStation" onclick="setTaktZeitbasis('station')" title="Gestoppte Zeit je Station (von Hand eingetragen)"><svg class="ic"><use href="#i-uhr"/></svg>Station gemessen</button>
           </div>
           <div class="toggle-group takt-view">
             <button class="tg-btn" id="taktViewIst" onclick="setTaktAnsicht('ist')">Ist</button>
@@ -1399,6 +1406,7 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
           </div>
         </div>
         <div id="taktBasisHinweis" class="takt-basis-hinweis"></div>
+        <div id="taktStMessWrap"></div>
         <div id="taktKpiWrap"></div>
         <div class="takt-grid">
         <div id="taktTableWrap"></div>
@@ -2281,7 +2289,7 @@ function printAnalysis(){
 
   /* Taktabgleich: Balken direkt in der Tabelle, das spart auf Papier eine zweite Grafik */
   const mitT=taktSoll>0;
-  const vzTxt=(taktZeitbasis==='mess'?' auf Basis der Messungen ('+taktBasisText(fParts)+')':' auf MTM-Basis')+((taktMitVz&&verteilzeitFactor)?' inkl. '+verteilzeitFactor+' % Verteilzeit':'');
+  const vzTxt=(taktZeitbasis==='mess'?' auf Basis der Messungen ('+taktBasisText(fParts)+')':(taktZeitbasis==='station'?' auf Basis der Stationszeiten ('+taktBasisText(fParts)+')':' auf MTM-Basis'))+((taktMitVz&&verteilzeitFactor)?' inkl. '+verteilzeitFactor+' % Verteilzeit':'');
   const noStations = takt.n===0;
   const prBar=(e,d,scale,ghost)=>{
     const cls=e.ohne?' pr-ohne':(mitT?(e.minD>taktSoll+1e-9?' pr-over':''):(e===d.engpass?' pr-max':''));
@@ -2321,6 +2329,19 @@ function printAnalysis(){
        <p class="pr-hint">Zeiten${vzTxt}. Ø je ${escHtml(stLbl)}: ${takt.avgMinD.toFixed(2)} minD${takt.ohne?' („'+escHtml(takt.ohne.name)+'" zählt nicht mit)':''} · Bandwirkungsgrad = Σ Zeiten ÷ (Anzahl × längste ${escHtml(stLbl)})
          · ${mitT?'rot = über der Soll-Taktzeit · gestrichelt = Takt':'rot = Engpass'} · senkrechte Linie = Mittelwert</p>`;
 
+  /* Stationszeiten von Hand: gemessen gegen MTM je Station */
+  let stSec='';
+  if(stMessHat()){
+    const sd=stMessDaten(fParts).filter(r=>!r.verwaist), gem=sd.filter(r=>r.n), sMtm=gem.reduce((x,r)=>x+r.mtm,0), sIst=gem.reduce((x,r)=>x+r.ist,0);
+    const pc=v=>v==null?'–':v.toFixed(0)+' %';
+    stSec=`<div class="pr-sec pr-keep"><h2>Stationszeiten – gemessen gegen MTM je ${escHtml(stLbl)}</h2>
+      <table class="pr-tbl"><thead><tr><th>${escHtml(stLbl)}</th><th class="pr-txt">Durchläufe [s]</th><th>n</th><th>Ø [s]</th><th>min–max [s]</th><th>Streuung</th><th>Ø gem. [minD]</th><th>MTM [minD]</th><th>Abw. [minD]</th><th>Leistungsgrad</th></tr></thead>
+      <tbody>${sd.map(r=>`<tr><td class="pr-txt">${escHtml(r.name)}</td><td class="pr-txt">${r.w.map((x,i)=>r.a[i]?'('+sekText(x)+')':sekText(x)).join(' / ')||'–'}</td><td>${r.n||'–'}</td><td>${r.n?sekText(r.avg):'–'}</td><td>${r.n?sekText(r.min)+'–'+sekText(r.max):'–'}</td><td>${streuText(r.vk)}</td>
+        <td>${r.ist!=null?r.ist.toFixed(2):'–'}</td><td>${r.mtm.toFixed(2)}</td><td class="${r.abw>1e-9?'pr-pos':(r.abw<-1e-9?'pr-neg':'')}">${r.abw==null?'–':(r.abw>0?'+':'')+r.abw.toFixed(2)}</td><td>${pc(r.lg)}</td></tr>`).join('')}
+        ${gem.length?`<tr class="pr-sum"><td class="pr-txt">∑ gemessene ${escHtml(taktMehrzahl())} (${gem.length})</td><td></td><td></td><td></td><td></td><td></td><td>${sIst.toFixed(2)}</td><td>${sMtm.toFixed(2)}</td><td>${(sIst-sMtm>0?'+':'')+(sIst-sMtm).toFixed(2)}</td><td>${pc(sIst>0?sMtm/sIst*100:null)}</td></tr>`:''}
+      </tbody></table>
+      <p class="pr-hint">Zeiten${(taktMitVz&&verteilzeitFactor)?' inkl. '+verteilzeitFactor+' % Verteilzeit':''}. Durchläufe von Hand je ${escHtml(stLbl)} gestoppt; Werte in Klammern sind ausgeschlossen. Leistungsgrad = MTM ÷ gemessen × 100 %.</p></div>`;
+  }
   /* Szenario: nur wenn es eines für diese Gruppierung gibt und es etwas verändert */
   const szenP=taktSzenAktiv();
   const fIds=new Set(fParts.map(pt=>pt.id));
@@ -2328,9 +2349,10 @@ function printAnalysis(){
   let szenSec='';
   if(szenP && (szenMoves.length || szenP.extra.length)){
     const sd=taktData(szenP);
-    const istBy=new Map(takt.list.map(e=>[e.ohne?'':e.name,e]));
-    const liste=taktVergleichsListe(sd,takt);
-    const sc=Math.max(sd.maxMinD, takt.maxMinD, sd.ohne?sd.ohne.minD:0, takt.ohne?takt.ohne.minD:0, taktSoll, 0.0001);
+    const taktS=taktZeitbasis==='station' ? taktData(null,null,true) : takt;   // Vergleich je Schritt
+    const istBy=new Map(taktS.list.map(e=>[e.ohne?'':e.name,e]));
+    const liste=taktVergleichsListe(sd,taktS);
+    const sc=Math.max(sd.maxMinD, taktS.maxMinD, sd.ohne?sd.ohne.minD:0, taktS.ohne?taktS.ohne.minD:0, taktSoll, 0.0001);
     const vgl=(lbl,a,b)=>`<tr><td class="pr-txt">${lbl}</td><td>${a}</td><td>${b}</td></tr>`;
     const bwgT=d=>d.bwg==null?'–':(d.bwg*100).toFixed(1)+'%';
     const engT=d=>d.engpass?escHtml(d.engpass.name)+' · '+d.maxMinD.toFixed(2):'–';
@@ -2340,9 +2362,9 @@ function printAnalysis(){
       <div class="pr-cols">
         <table class="pr-tbl" style="flex:0 0 46%">
           <thead><tr><th>Kennzahl</th><th>Ist</th><th>Szenario</th></tr></thead>
-          <tbody>${vgl('Engpass [minD]',engT(takt),engT(sd))}${vgl('Bandwirkungsgrad',bwgT(takt),bwgT(sd))}
-            ${vgl('Abstimmungsverlust',takt.bwg==null?'–':((1-takt.bwg)*100).toFixed(1)+'%',sd.bwg==null?'–':((1-sd.bwg)*100).toFixed(1)+'%')}
-            ${vgl(escHtml(taktMehrzahl()),takt.n,sd.n)}${mitT?vgl('über Takt',takt.ueberTakt,sd.ueberTakt):''}</tbody>
+          <tbody>${vgl('Engpass [minD]',engT(taktS),engT(sd))}${vgl('Bandwirkungsgrad',bwgT(taktS),bwgT(sd))}
+            ${vgl('Abstimmungsverlust',taktS.bwg==null?'–':((1-taktS.bwg)*100).toFixed(1)+'%',sd.bwg==null?'–':((1-sd.bwg)*100).toFixed(1)+'%')}
+            ${vgl(escHtml(taktMehrzahl()),taktS.n,sd.n)}${mitT?vgl('über Takt',taktS.ueberTakt,sd.ueberTakt):''}</tbody>
         </table>
         <table class="pr-tbl">
           <thead><tr><th>Verschobener Prozessschritt</th><th>von</th><th>nach</th><th>Zeit [minD]</th></tr></thead>
@@ -2476,6 +2498,7 @@ function printAnalysis(){
       <h2>Taktabgleich – Zeit je ${escHtml(stLbl)}</h2>
       ${taktBody}
     </div>
+    ${stSec}
     ${szenSec}
     ${tjSec}
     ${messSec}
@@ -2594,13 +2617,95 @@ function taktFaktor(){ return taktMitVz ? 1+(verteilzeitFactor||0)/100 : 1; }
 let taktZeitbasis='mtm';
 function taktGemessen(id){ return taktZeitbasis==='mess' && messGueltig(id).length>0; }
 function taktZeit(id){ return taktGemessen(id) ? messMittel(id)/SEK_JE_MIND : calcTotal(id); }
-function setTaktZeitbasis(b){ taktZeitbasis=b==='mess'?'mess':'mtm'; saveSoon(); renderTaktabgleich(); }
+function setTaktZeitbasis(b){ taktZeitbasis=(b==='mess'||b==='station')?b:'mtm'; saveSoon(); renderTaktabgleich(); }
 function taktBasisText(liste){
+  if(taktZeitbasis==='station'){
+    const st=taktData(null,liste,true).stations, g=st.filter(e=>stMessGueltig(e.name).length).length;
+    return 'Stationszeiten: '+g+' von '+st.length+' '+taktMehrzahl()+' gemessen'+(g<st.length?' – die übrigen mit MTM je Schritt':'');
+  }
   if(taktZeitbasis!=='mess') return '';
   const l=(liste||anaParts()).filter(p=>lvlVon(p.id)>1||calcTotal(p.id)>0||messWerte(p.id).length), g=l.filter(p=>taktGemessen(p.id)).length;
   return 'Gemessen: '+g+' von '+l.length+' Schritten'+(g<l.length?' – die übrigen mit MTM':'');
 }
 function taktBasis(p){ return ((data[p.id]||{})['__'+taktGroupKey]||'').trim(); }
+/* ── Stationszeiten von Hand ──
+   Gestoppt wurde je Station (ganzer Durchlauf), nicht je Schritt. Je Gruppierungsspalte und Stationsname:
+   w = Durchläufe in Sekunden, a = ausgeschlossen (Ausreißer). Gehört zum Projekt (Undo, Speichern, CSV). */
+let stationMess={};
+function stMessPruefen(o){
+  const r={}; if(!o||typeof o!=='object') return r;
+  Object.keys(o).forEach(gk=>{
+    if(!OPT_COLS.some(c=>!c.own&&c.key===gk)) return;
+    const g=o[gk]; if(!g||typeof g!=='object') return;
+    Object.keys(g).forEach(nm=>{
+      const e=g[nm]||{}, roh=Array.isArray(e.w)?e.w:[];
+      const w=[], a=[];
+      roh.forEach((x,i)=>{ const v=Math.round(Number(x)*10)/10; if(isFinite(v)&&v>0){ w.push(v); a.push(!!(Array.isArray(e.a)&&e.a[i])); } });
+      if(w.length && nm.trim()){ r[gk]=r[gk]||{}; r[gk][nm.trim()]={w,a}; }
+    });
+  });
+  return r;
+}
+function stMessEintrag(name){ const g=stationMess[taktGroupKey]; return g&&g[name]?g[name]:{w:[],a:[]}; }
+function stMessGueltig(name){ const e=stMessEintrag(name); return e.w.filter((_,i)=>!e.a[i]); }
+function stMessMittel(name){ const g=stMessGueltig(name); return g.length?g.reduce((a,b)=>a+b,0)/g.length:0; }
+function stMessStreuung(name){ const g=stMessGueltig(name), n=g.length; if(n<2) return null; const m=g.reduce((a,b)=>a+b,0)/n; return m>0?Math.sqrt(g.reduce((x,v)=>x+(v-m)*(v-m),0)/(n-1))/m*100:null; }
+function stMessNamen(){ const g=stationMess[taktGroupKey]||{}; return Object.keys(g).filter(n=>g[n].w.length); }
+function stMessHat(){ return stMessNamen().length>0; }
+function stMessSetzen(name,w,a){
+  if(!stationMess[taktGroupKey]) stationMess[taktGroupKey]={};
+  if(w.length) stationMess[taktGroupKey][name]={w:w.slice(),a:w.map((_,i)=>!!a[i])};
+  else { delete stationMess[taktGroupKey][name]; if(!Object.keys(stationMess[taktGroupKey]).length) delete stationMess[taktGroupKey]; }
+}
+/* Eingabe: Sekunden („83,5"), Minuten:Sekunden („1:23,5") oder Minuten mit Dezimalstellen („1,4 min");
+   mehrere Werte durch Leerzeichen, Semikolon oder Zeilenumbruch getrennt */
+function stZeitLesen(t){
+  t=String(t||'').trim().toLowerCase(); if(!t) return null;
+  let m=t.match(/^(\d+):(\d{1,2}(?:[.,]\d+)?)$/); if(m) return +m[1]*60+parseFloat(m[2].replace(',','.'));
+  m=t.match(/^(\d+(?:[.,]\d+)?)\s*(s|sek|min|m)?$/); if(!m) return null;
+  const v=parseFloat(m[1].replace(',','.')); if(!(v>0)) return null;
+  return (m[2]==='min'||m[2]==='m') ? v*60 : v;
+}
+function stZeitenLesen(txt){ return String(txt||'').split(/[\s;|]+/).filter(Boolean).map(stZeitLesen); }
+function stMessHinzu(name,txt){
+  const v=stZeitenLesen(txt); if(!v.length) return false;
+  if(v.some(x=>x==null)){ toast('⚠ Zeit nicht lesbar – Sekunden („83,5"), Minuten:Sekunden („1:23,5") oder „1,4 min"; mehrere Werte mit Leerzeichen',5000); return false; }
+  undoStand('Stationszeit „'+name+'" eingetragen');
+  const e=stMessEintrag(name);
+  stMessSetzen(name,e.w.concat(v.map(x=>Math.round(x*10)/10)),e.a.concat(v.map(()=>false)));
+  markDirty(); renderTaktabgleich();
+  toast('✓ '+v.length+' Wert'+(v.length===1?'':'e')+' für „'+name+'" · Ø '+sekText(stMessMittel(name))+' s');
+  return true;
+}
+function stMessUmschalten(name,i){
+  const e=stMessEintrag(name); if(i<0||i>=e.w.length) return;
+  undoStand('Stationszeit „'+name+'" '+(e.a[i]?'wieder aufgenommen':'ausgeschlossen'));
+  const a=e.a.slice(); a[i]=!a[i]; stMessSetzen(name,e.w,a);
+  markDirty(); renderTaktabgleich();
+  toast(a[i]?sekText(e.w[i])+' s ausgeschlossen – zählt nicht mehr mit':sekText(e.w[i])+' s zählt wieder mit');
+}
+function stMessLoeschen(name,i){
+  const e=stMessEintrag(name); if(!e.w.length) return;
+  if(i<0 && !confirm('Alle '+e.w.length+' Stationszeiten von „'+name+'" löschen?')) return;
+  undoStand('Stationszeit „'+name+'" gelöscht');
+  const w=e.w.slice(), a=e.a.slice();
+  if(i<0){ w.length=0; a.length=0; } else { w.splice(i,1); a.splice(i,1); }
+  stMessSetzen(name,w,a);
+  markDirty(); renderTaktabgleich();
+  toast('Gelöscht – ↩ Undo holt es zurück');
+}
+/* Vergleichszeilen: je Station MTM (Summe der Schritte) gegen Ø der Stationszeiten */
+function stMessDaten(liste){
+  const d=taktData(null,liste,true), f=taktFaktor();
+  const rows=d.stations.map(e=>({name:e.name,rows:e.rows,mtm:e.minD}));
+  const da=new Set(rows.map(r=>r.name));
+  stMessNamen().forEach(n=>{ if(!da.has(n)) rows.push({name:n,rows:0,mtm:0,verwaist:true}); });
+  return rows.map(r=>{
+    const e=stMessEintrag(r.name), g=stMessGueltig(r.name), n=g.length, avg=stMessMittel(r.name), ist=n?avg/SEK_JE_MIND*f:null;
+    return {...r,w:e.w,a:e.a,n,avg,min:n?Math.min(...g):null,max:n?Math.max(...g):null,vk:stMessStreuung(r.name),ist,
+      abw:ist!=null?ist-r.mtm:null,lg:ist>0?r.mtm/ist*100:null};
+  });
+}
 /* Ein Szenario gehört zu der Spalte, in der es angelegt wurde */
 function taktSzenAktiv(){ return taktSzenario && taktSzenario.groupKey===taktGroupKey ? taktSzenario : null; }
 function taktStation(p,szen){ return (szen && taktHas(szen.moves,p.id)) ? szen.moves[p.id] : taktBasis(p); }
@@ -2620,7 +2725,8 @@ function taktSzenPruefen(o){
   return {groupKey:o.groupKey,moves,extra};
 }
 
-function taktData(szen,liste){
+/* nurSchritte: Stationszeiten nicht einsetzen (Szenario und Vergleich rechnen immer je Schritt) */
+function taktData(szen,liste,nurSchritte){
   const f=taktFaktor();
   const map=new Map();
   let ohne=null;
@@ -2635,6 +2741,9 @@ function taktData(szen,liste){
     e.parts.push(p);
   });
   if(szen) szen.extra.forEach(n=>station(n));   // neu angelegte Stationen auch leer zeigen
+  /* Stationszeiten von Hand: die gestoppte Zeit ersetzt die Summe der Schritte — nur in der Ist-Verteilung,
+     ein Szenario verschiebt Schritte und kann die Stationszeit nicht aufteilen */
+  if(taktZeitbasis==='station' && !szen && !nurSchritte) map.forEach(e=>{ const g=stMessGueltig(e.name); if(g.length){ e.minD=stMessMittel(e.name)/SEK_JE_MIND*f; e.stGem=g.length; } });
   /* Feste Reihenfolge wie in der Tabelle, neue Stationen hinten — sonst springen die Zeilen,
      sobald im Szenario der erste Schritt einer Station woanders hin wandert. */
   const reihe=taktStationNamen(szen);
@@ -2666,6 +2775,42 @@ function taktVergleichsListe(cur,ist){
   const weg=ist.stations.filter(e=>!da.has(e.name))
     .map(e=>({name:e.name,rows:0,teile:0,minD:0,min:0,share:0,dev:null,ausl:null,parts:[],entfaellt:true}));
   return cur.stations.concat(weg, cur.ohne?[cur.ohne]:[]);
+}
+/* Block „Stationszeiten erfassen": je Station die Durchläufe als Chips, Eingabefeld, Kennzahlen gegen MTM */
+function stMessZeichnen(){
+  const w=document.getElementById('taktStMessWrap'); if(!w) return;
+  if(taktZeitbasis!=='station' || taktAnsicht==='szenario'){ w.innerHTML=''; return; }
+  const d=stMessDaten(), stLbl=taktGroupLabel(), mitVz=taktMitVz&&(verteilzeitFactor||0)>0;
+  if(!d.length){ w.innerHTML='<div class="leer-hinweis">Noch keine '+escHtml(stLbl)+' vergeben – Spalte „'+escHtml(stLbl)+'" befüllen.</div>'; return; }
+  const pct=v=>v==null?'–':v.toFixed(0)+' %';
+  const chips=r=>r.w.map((x,i)=>`<span class="mess-chip${r.a[i]?' aus':''}"><span class="mc-wert" data-act="um" data-st="${escAttr(r.name)}" data-i="${i}" title="${r.a[i]?'Ausgeschlossen – antippen, um wieder mitzuzählen':'Antippen, um aus der Auswertung zu nehmen'}">${sekText(x)}</span><button data-act="weg" data-st="${escAttr(r.name)}" data-i="${i}" title="Wert löschen" aria-label="Wert löschen">✕</button></span>`).join('');
+  const gem=d.filter(r=>r.n), sMtm=gem.reduce((x,r)=>x+r.mtm,0), sIst=gem.reduce((x,r)=>x+r.ist,0);
+  w.innerHTML=`<div class="ana-chart-head"><span class="ana-chart-title">Stationszeiten erfassen – gemessen gegen MTM</span>
+      <span class="takt-hint">je Durchlauf in Sekunden („83,5"), min:s („1:23,5") oder „1,4 min" · mehrere Werte mit Leerzeichen · Enter übernimmt</span></div>
+    <div class="tbl-scroll"><table class="takt-tbl st-tbl">
+      <thead><tr><th>${escHtml(stLbl)}</th><th>Durchläufe [s]</th><th>Neuer Wert</th><th>n</th><th>Ø [s]</th><th>min–max [s]</th><th title="Standardabweichung ÷ Mittelwert">Streuung</th><th>Ø gem. [minD]${mitVz?' inkl. VZ':''}</th><th>MTM [minD]${mitVz?' inkl. VZ':''}</th><th>Abw. [minD]</th><th title="MTM ÷ gemessen × 100 %">Leistungsgrad</th></tr></thead>
+      <tbody>${d.map(r=>`<tr${r.verwaist?' class="st-verwaist"':''}>
+        <td class="tk-name">${escHtml(r.name)}${r.verwaist?' <span class="takt-hint">nicht mehr in der Tabelle</span>':` <small class="takt-gem">${r.rows} Schritt${r.rows===1?'':'e'}</small>`}</td>
+        <td class="st-chips"><div class="mess-chips">${chips(r)}</div></td>
+        <td class="st-eingabe">${r.verwaist?`<button class="tbtn" data-act="alle" data-st="${escAttr(r.name)}">${ic('x')}Löschen</button>`:`<input type="text" class="st-in" inputmode="decimal" placeholder="s oder m:ss" data-st="${escAttr(r.name)}" aria-label="Stationszeit ${escAttr(r.name)}"/><button class="tbtn st-add" data-act="add" data-st="${escAttr(r.name)}" title="Wert übernehmen">${ic('plus')}</button>`}</td>
+        <td>${r.n||'–'}</td><td>${r.n?sekText(r.avg):'–'}</td><td>${r.n?sekText(r.min)+'–'+sekText(r.max):'–'}</td>
+        <td><span class="streu ${streuStufe(r.vk)}">${streuText(r.vk)}</span></td>
+        <td>${r.ist!=null?r.ist.toFixed(2):'–'}</td><td>${r.verwaist?'–':r.mtm.toFixed(2)}</td>
+        <td class="${r.abw>1e-9?'tk-pos':(r.abw<-1e-9?'tk-neg':'')}">${r.abw==null?'–':(r.abw>0?'+':'')+r.abw.toFixed(2)}</td>
+        <td>${pct(r.lg)}</td></tr>`).join('')}
+      ${gem.length?`<tr class="tk-sum"><td class="tk-name">∑ gemessene ${escHtml(taktMehrzahl())} (${gem.length})</td><td colspan="6"></td><td>${sIst.toFixed(2)}</td><td>${sMtm.toFixed(2)}</td><td class="${sIst-sMtm>1e-9?'tk-pos':(sIst-sMtm<-1e-9?'tk-neg':'')}">${(sIst-sMtm>0?'+':'')+(sIst-sMtm).toFixed(2)}</td><td>${pct(sIst>0?sMtm/sIst*100:null)}</td></tr>`:''}
+      </tbody></table></div>
+    <div class="takt-fuss">Ø der gültigen Durchläufe ersetzt in Tabelle und Balken die MTM-Summe der ${escHtml(stLbl)}; ohne Stationszeit bleibt MTM. Wert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✕ löscht. Leistungsgrad = MTM ÷ gemessen × 100 % – über 100 % war die Station schneller als die MTM-Vorgabe. Streuung: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span>.</div>`;
+  const uebernehmen=inp=>{ if(stMessHinzu(inp.dataset.st,inp.value)){ const f=document.querySelector('#taktStMessWrap .st-in[data-st="'+CSS.escape(inp.dataset.st)+'"]'); if(f) f.focus(); } };
+  w.querySelectorAll('.st-in').forEach(inp=>inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); uebernehmen(inp); } }));
+  w.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act]'); if(!b) return;
+    const st=b.dataset.st, i=+b.dataset.i;
+    if(b.dataset.act==='add') uebernehmen(w.querySelector('.st-in[data-st="'+CSS.escape(st)+'"]'));
+    else if(b.dataset.act==='um') stMessUmschalten(st,i);
+    else if(b.dataset.act==='weg') stMessLoeschen(st,i);
+    else if(b.dataset.act==='alle') stMessLoeschen(st,-1);
+  });
 }
 /* Alle Stationen, auf die sich verschieben lässt — auch solche, deren Schritte gerade ausgefiltert sind */
 function taktStationNamen(szen){
@@ -2797,7 +2942,7 @@ function renderTaktabgleich(){
   const vz=verteilzeitFactor||0;
   const mitVz=taktMitVz&&vz>0;
   document.getElementById('taktTitle').textContent='Zeit je '+stLbl+' – Taktabgleich';
-  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [minD]'+(taktZeitbasis==='mess'?' · gemessen':'')+(mitVz?' inkl. '+vz+' % Verteilzeit':'');
+  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [minD]'+(taktZeitbasis==='mess'?' · gemessen':(taktZeitbasis==='station'?' · Stationszeiten':''))+(mitVz?' inkl. '+vz+' % Verteilzeit':'');
   const sel=document.getElementById('taktGroupSel');
   sel.innerHTML=OPT_COLS.filter(o=>!o.own).map(o=>
     `<option value="${o.key}"${o.key===taktGroupKey?' selected':''}>${escHtml(colLabel(o.key))}</option>`).join('');
@@ -2813,11 +2958,14 @@ function renderTaktabgleich(){
   const szen=taktSzenAktiv();
   const inSzen=taktAnsicht==='szenario';
   const nMoves=taktMoves(szen).length;
-  document.getElementById('taktBasisMtm').className='tg-btn'+(taktZeitbasis==='mess'?'':' on-mode');
+  document.getElementById('taktBasisMtm').className='tg-btn'+(taktZeitbasis==='mtm'?' on-mode':'');
   document.getElementById('taktBasisMess').className='tg-btn'+(taktZeitbasis==='mess'?' on-mode':'');
+  document.getElementById('taktBasisStation').className='tg-btn'+(taktZeitbasis==='station'?' on-mode':'');
   const bh=document.getElementById('taktBasisHinweis'), btx=taktBasisText();
-  bh.innerHTML=btx?ic('uhr')+escHtml(btx)+(messSpalteAn()?'':' – noch nichts gemessen (Einfach → Zeitaufnahme)'):'';
+  bh.innerHTML=btx?ic('uhr')+escHtml(btx)+(taktZeitbasis==='mess'&&!messSpalteAn()?' – noch nichts gemessen (Einfach → Zeitaufnahme)':'')
+    +(taktZeitbasis==='station'&&taktAnsicht==='szenario'?' – das Szenario rechnet mit MTM je Schritt':''):'';
   bh.style.display=btx?'':'none';
+  stMessZeichnen();
   document.getElementById('taktViewIst').className='tg-btn'+(inSzen?'':' on-mode');
   document.getElementById('taktViewSzen').className='tg-btn'+(inSzen?' on-mode':'');
   document.getElementById('taktViewSzen').innerHTML=ic('szenario')+'Szenario'+(nMoves?' ('+nMoves+')':(szen&&szen.extra.length?' •':''));
@@ -2832,10 +2980,12 @@ function renderTaktabgleich(){
     tw.innerHTML='<div class="leer-hinweis">Keine Prozessschritte vorhanden.</div>';
     return;
   }
+  /* Im Szenario-Vergleich beide Seiten je Schritt rechnen — Stationszeiten gelten nur für die Ist-Verteilung */
+  const istVgl=(inSzen && taktZeitbasis==='station') ? taktData(null,null,true) : ist;
   const cur=inSzen ? taktData(szen) : ist;
   const vergleich=inSzen && !!szen;   // Ist-Werte nur daneben zeigen, wenn es ein Szenario gibt
-  const rowsList=inSzen ? taktVergleichsListe(cur,ist) : cur.list;
-  const istBy=new Map(ist.list.map(e=>[e.ohne?'':e.name,e]));
+  const rowsList=inSzen ? taktVergleichsListe(cur,istVgl) : cur.list;
+  const istBy=new Map(istVgl.list.map(e=>[e.ohne?'':e.name,e]));
 
   /* Kennzahlen */
   const istSub=txt=>vergleich?`<span class="ana-kpi-sub">Ist: ${txt}</span>`:'';
@@ -2844,17 +2994,17 @@ function renderTaktabgleich(){
   const over=taktSoll>0 && cur.maxMinD>taktSoll+1e-9;
   kw.innerHTML=`<div class="ana-kpi-row">
     <div class="ana-kpi" title="Station mit der längsten Zeit${taktSoll>0?' — rot, wenn über der Soll-Taktzeit':''}">
-      <span class="ana-kpi-lbl">Engpass [minD]</span><span class="ana-kpi-val${over?' over':''}">${engTxt(cur)}</span>${istSub(engTxt(ist))}</div>
+      <span class="ana-kpi-lbl">Engpass [minD]</span><span class="ana-kpi-val${over?' over':''}">${engTxt(cur)}</span>${istSub(engTxt(istVgl))}</div>
     <div class="ana-kpi" title="Σ Stationszeiten ÷ (Anzahl Stationen × längste Station)">
       <span class="ana-kpi-lbl">Bandwirkungsgrad</span><span class="ana-kpi-val">${bwgTxt(cur)}</span>
-      <span class="ana-kpi-sub">Abstimmungsverlust ${cur.bwg==null?'–':((1-cur.bwg)*100).toFixed(1)+'%'}</span>${istSub(bwgTxt(ist))}</div>
+      <span class="ana-kpi-sub">Abstimmungsverlust ${cur.bwg==null?'–':((1-cur.bwg)*100).toFixed(1)+'%'}</span>${istSub(bwgTxt(istVgl))}</div>
     <div class="ana-kpi">
       <span class="ana-kpi-lbl">${escHtml(taktMehrzahl())}${taktSoll>0?' · über Takt':''}</span>
-      <span class="ana-kpi-val${cur.ueberTakt?' over':''}">${cur.n}${taktSoll>0?' · '+cur.ueberTakt:''}</span>${istSub(ist.n+(taktSoll>0?' · '+ist.ueberTakt:''))}</div>
+      <span class="ana-kpi-val${cur.ueberTakt?' over':''}">${cur.n}${taktSoll>0?' · '+cur.ueberTakt:''}</span>${istSub(istVgl.n+(taktSoll>0?' · '+istVgl.ueberTakt:''))}</div>
   </div>`;
 
   /* Tabelle */
-  const noStationOnly=ist.n===0 && !inSzen;
+  const noStationOnly=istVgl.n===0 && !inSzen;
   const hint=noStationOnly
     ? `<div class="leer-hinweis">Noch keine Einträge vergeben – Spalte „${escHtml(stLbl)}" über „Spalten" einblenden und befüllen, oder im Szenario über „+ ${escHtml(stLbl)}" anlegen.</div>` : '';
   const mitT=taktSoll>0;
@@ -2866,7 +3016,7 @@ function renderTaktabgleich(){
     const auslCls=e.ausl!=null&&e.ausl>100+1e-9?'tk-pos':'';
     rows+=`<tr>
       <td class="tk-name">${escHtml(e.name)}${e.entfaellt?' <span class="takt-hint">entfällt</span>':''}</td>
-      <td>${e.rows}${taktZeitbasis==='mess'&&!e.entfaellt?` <small class="takt-gem" title="davon gemessen">gem. ${e.gem}</small>`:''}</td>
+      <td>${e.rows}${taktZeitbasis==='mess'&&!e.entfaellt?` <small class="takt-gem" title="davon gemessen">gem. ${e.gem}</small>`:''}${e.stGem?` <small class="takt-gem" title="Ø aus ${e.stGem} Stationszeit(en)">⏱ ${e.stGem}×</small>`:''}</td>
       ${vergleich?`<td>${ie?ie.minD.toFixed(2):'–'}</td>`:`<td>${e.teile}</td>`}
       <td>${e.entfaellt?'–':e.minD.toFixed(2)}</td>
       ${vergleich?`<td class="${d>1e-9?'tk-pos':(d<-1e-9?'tk-neg':'')}">${Math.abs(d)<1e-9?'':(d>0?'+':'')+d.toFixed(2)}</td>`:`<td>${e.min.toFixed(2)}</td>`}
@@ -2878,7 +3028,7 @@ function renderTaktabgleich(){
   rows+=`<tr class="tk-sum">
     <td class="tk-name">∑ Gesamt</td>
     <td>${cur.list.reduce((s,e)=>s+e.rows,0)}</td>
-    ${vergleich?`<td>${ist.total.toFixed(2)}</td>`:`<td>${cur.list.reduce((s,e)=>s+e.teile,0)}</td>`}
+    ${vergleich?`<td>${istVgl.total.toFixed(2)}</td>`:`<td>${cur.list.reduce((s,e)=>s+e.teile,0)}</td>`}
     <td>${cur.total.toFixed(2)}</td>
     ${vergleich?'<td></td>':`<td>${(cur.total*MIND_FACTOR).toFixed(2)}</td>`}
     ${vergleich?'':'<td>100,0%</td>'}<td></td>${mitT?'<td></td>':''}
@@ -2892,7 +3042,7 @@ function renderTaktabgleich(){
     <div class="takt-fuss">Ø je ${escHtml(stLbl)}: ${cur.avgMinD.toFixed(2)} minD${cur.ohne?' · „'+escHtml(cur.ohne.name)+'" zählt nicht als '+escHtml(stLbl):''}${mitT?' · Auslastung = Zeit ÷ Soll-Taktzeit':''}</div>`;
 
   /* Balken: Maßstab reicht bis zur längsten Station, zum Takt oder zum Ist-Wert im Vergleich */
-  const scale=Math.max(cur.maxMinD, cur.ohne?cur.ohne.minD:0, vergleich?ist.maxMinD:0, taktSoll, 0.0001);
+  const scale=Math.max(cur.maxMinD, cur.ohne?cur.ohne.minD:0, vergleich?istVgl.maxMinD:0, taktSoll, 0.0001);
   const pct=v=>(v/scale*100).toFixed(1);
   cw.innerHTML='<div class="takt-bars'+(mitT?' mit-takt':'')+'">'+rowsList.map(e=>{
     const ie=istBy.get(e.ohne?'':e.name);
@@ -3257,7 +3407,7 @@ function startNewProject(){
   sollzeit=0;
   verteilzeitFactor=0;
   hourlyRate=0;
-  taktSoll=0; taktSzenario=null; taktAnsicht='ist'; taktOffen=null;
+  taktSoll=0; taktSzenario=null; taktAnsicht='ist'; taktOffen=null; stationMess={};
   messLauf=null; messZyklusEnde=null; unterbrechungen=[]; messUhrAn();
   lwParams={...LW_DEF};
   lastExportTime=null;
@@ -3691,7 +3841,7 @@ function csvV4Lesen(rows,einfuegen){
     description:meta.__DESC__?(werte('__DESC__')[0]||'').trim():undefined,
     sollzeit:zahlOpt('__SOLLZEIT__'), verteilzeit:zahlOpt('__VERTEILZEIT__'), stundensatz:zahlOpt('__STUNDENSATZ__'),
     colLabels:colLabelsParsed, mtmCustom:jsonMeta('__MTMCUSTOM__'), mtmCustomGE:jsonMeta('__MTMGE__'),
-    takt:taktParsed, szenario:szenParsed, lwParams:lwParamRaw, lwTrigger, pausen,
+    takt:taktParsed, szenario:szenParsed, lwParams:lwParamRaw, lwTrigger, pausen, stationMess:jsonMeta('__STMESS__'),
     format:meta.__FORMAT__?(parseInt(wert('__FORMAT__'))||CSV_FORMAT):CSV_FORMAT, teileFehler:0,
     v4:{unbekannt, waisen, ohneName, teilWerte, zuordnungFehlt, nTeile, nurTeile, feld, nKat:kat.length}};
 }
@@ -5265,7 +5415,7 @@ function undoBis(k){
    Spaltenbreiten). Wird vor einer Änderung gemerkt; Undo setzt ihn als Ganzes zurück. */
 function projektStand(){
   return JSON.stringify({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,
-    taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject,activePart,unterbrechungen});
+    taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject,activePart,unterbrechungen,stationMess});
 }
 /* quelle: gleichartige Änderungen kurz hintereinander (Tippen in einem Feld) ergeben einen Undo-Schritt */
 function undoStand(text,quelle,vorher){
@@ -5286,6 +5436,7 @@ function standZuruecksetzen(json){
   const st=JSON.parse(json);
   ({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject}=st);
   unterbrechungen=Array.isArray(st.unterbrechungen)?st.unterbrechungen:[];
+  stationMess=stMessPruefen(st.stationMess);
   activePart=parts.some(p=>p.id===st.activePart) ? st.activePart : (parts[0]?parts[0].id:null);
   Object.keys(teileOffen).forEach(id=>{ if(!data[id]) delete teileOffen[id]; });
   if(rowClipboard && !data[rowClipboard.sourceId]) rowClipboard=null;
@@ -6560,7 +6711,7 @@ let speicherWarnung=0;
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, messModus, messLauf, unterbrechungen, messGenau, taktZeitbasis, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, messModus, messLauf, unterbrechungen, messGenau, taktZeitbasis, stationMess, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
                   ungesichert: hasUnsavedChanges, projektId,
                   saved: new Date().toISOString() };
     if(!speicherSchreiben(LS_KEY,state)) throw new Error('voll');
@@ -6768,7 +6919,8 @@ function loadState(){
     if(typeof s.taktSoll==='number' && s.taktSoll>=0) taktSoll=s.taktSoll;
     if(typeof s.taktMitVz==='boolean') taktMitVz=s.taktMitVz;
     messGenau=s.messGenau===10?10:5;
-    taktZeitbasis=s.taktZeitbasis==='mess'?'mess':'mtm';
+    taktZeitbasis=(s.taktZeitbasis==='mess'||s.taktZeitbasis==='station')?s.taktZeitbasis:'mtm';
+    stationMess=stMessPruefen(s.stationMess);
     taktSzenario=taktSzenPruefen(s.taktSzenario);
     mtmCustom=mtmCustomPruefen(s.mtmCustom);
     mtmCustomGE=mtmCustomGePruefen(s.mtmCustomGE);
@@ -7222,6 +7374,15 @@ function xlsxSheetZeitmessung(){
     rows+=`<row r="${rn}">${['Zyklus','Schritte','Zeit [s]','Zeit ['+u+']'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
     zy.forEach(e=>{ rows+=`<row r="${rn}">${xc(1,rn,e.nr,33,true)}${xc(2,rn,e.n,33,true)}${xc(3,rn,xn(e.sek),32,true)}${xc(4,rn,xn(e.sek/SEK_JE_MIND*fU),32,true)}</row>`;rn++; });
   }
+  /* Stationszeiten von Hand */
+  if(stMessHat()){
+    const sd=stMessDaten(parts).filter(r=>!r.verwaist), stLbl=taktGroupLabel(), fV=taktFaktor();
+    rn++; rows+=`<row r="${rn}">${xc(1,rn,'Stationszeiten – gemessen gegen MTM je '+stLbl+((taktMitVz&&verteilzeitFactor)?' (inkl. '+verteilzeitFactor+' % Verteilzeit)':''),40)}</row>`;rn++;
+    rows+=`<row r="${rn}">${[stLbl,'Durchläufe [s]','n','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]','min [s]','max [s]','Streuung [%]'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+    sd.forEach(r=>{ rows+=`<row r="${rn}">${xc(1,rn,r.name,33)}${xc(2,rn,r.w.map((x,i)=>r.a[i]?'('+sekText(x)+')':sekText(x)).join(' / '),33)}${xc(3,rn,r.n,33,true)}${xc(4,rn,r.n?xn(r.avg):'',32,!!r.n)}`
+      +`${xc(5,rn,r.ist!=null?xn(r.ist*fU):'',32,r.ist!=null)}${xc(6,rn,xn(r.mtm*fU),32,true)}${xc(7,rn,r.abw==null?'':xn(r.abw*fU),32,r.abw!=null)}${xc(8,rn,r.lg==null?'':r.lg.toFixed(1),39,r.lg!=null)}`
+      +`${xc(9,rn,r.n?xn(r.min):'',32,!!r.n)}${xc(10,rn,r.n?xn(r.max):'',32,!!r.n)}${xc(11,rn,r.vk==null?'':r.vk.toFixed(1),39,r.vk!=null)}</row>`;rn++; });
+  }
   /* Unterbrechungen */
   const pz=pausenDaten(parts);
   if(pz.liste.length){
@@ -7320,7 +7481,7 @@ function doExportXlsx(){
   closeExpModal();
   try{
     const blatt1=xlsxSheetArbeitsablauf(), blatt2=xlsxSheetTeileliste();
-    const mitMess=messSpalteAn()||unterbrechungen.length>0;
+    const mitMess=messSpalteAn()||unterbrechungen.length>0||stMessHat();
     /* Excel schreibt zu jedem Autofilter den versteckten Namen _xlnm._FilterDatabase;
        LibreOffice übernimmt den Filter nur mit ihm (ohne ging er beim Öffnen verloren). */
     const abs=r=>r.replace(/([A-Z]+)(\d+)/g,'$$$1$$$2');
@@ -7416,6 +7577,7 @@ function csvProjektV4(){
     ['__LWPARAM__',...LW_KEYS.map(k=>k+'|'+zahlDe(lwParams[k]))],
     ['__LW__',...csvJsonZellen(lwCsv)],
     ...(pausenCsv?[['__PAUSEN__',...csvJsonZellen(pausenCsv)]]:[]),
+    ...(Object.keys(stationMess).length?[['__STMESS__',...csvJsonZellen(stationMess)]]:[]),
   ];
   return '\uFEFF'+[...meta,csvKopfV4(),...csvDatenV4()].map(csvZeile).join('\n');
 }
@@ -7646,6 +7808,7 @@ function importUebernehmen(parsed,start,dateiname){
   taktSzenario=parsed.szenario||null; taktAnsicht='ist'; taktOffen=null;
   messLauf=null; messZyklusEnde=null; messUhrAn();
   unterbrechungen=parsed.pausen||[];   // die Schritte sind neu — alte Unterbrechungen hätten keinen Bezug mehr
+  stationMess=stMessPruefen(parsed.stationMess);
   teileOffen={}; colFilters={};   // Filter gehören zum vorigen Stand — sie blendeten sonst Zeilen aus
   if(start || parsed.lwParams!==undefined) lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
   if(parsed.lwTrigger) Object.keys(parsed.lwTrigger).forEach(id=>{ if(data[id]) data[id].__lw=parsed.lwTrigger[id]; });

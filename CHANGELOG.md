@@ -18,6 +18,23 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Taktabgleich in zwei Reitern, Leistungsgrad
+- **„Taktabgleich MTM“:** reine MTM-Zeiten je Station mit Soll-Taktzeit, Verteilzeit und Szenario
+  (Prozessschritte verschieben). Der Umschalter MTM | Gemessen | Station gemessen entfällt.
+- **„Taktabgleich Zeitaufnahme“ (neu):** je Station die gemessene Zeit – die gestoppte Stationszeit,
+  sonst die Summe der einzeln gemessenen Schritte; ungemessene Schritte zählen mit MTM (grau). Spalte
+  „Grundlage“ zeigt, woher die Zeit stammt. Engpass, Bandwirkungsgrad, Auslastung gegen die Soll-Taktzeit;
+  MTM auf Wunsch als Vergleich (Spalten und gestrichelter Balken). Darunter die Erfassung der Stationszeiten.
+- **Leistungsgrad je Projekt, Standard 115 %:** gemessene Zeiten werden auf Normalleistung umgerechnet –
+  Normalzeit = gemessene Zeit × Leistungsgrad – und erst dann mit MTM verglichen. Gilt für
+  Schritt-Messungen und Stationszeiten, einstellbar im Reiter „Taktabgleich Zeitaufnahme“ und
+  „Zeitmessung“ (50–200 %, Undo). Die Stoppuhr zeigt weiter die echte Zeit; die Tabellenspalte heißt
+  jetzt „⏱ Normalzeit“. Gespeichert im Projekt, in der CSV (`__LEISTUNGSGRAD__`), Druck und Excel;
+  Dateien ohne Angabe bekommen 115 %.
+- Die bisherige Kennzahl „Leistungsgrad“ (MTM ÷ gemessen) heißt jetzt **„MTM-Erfüllung“**
+  (MTM ÷ Normalzeit).
+- Druck und Excel-Blatt „Zeitmessung“: neuer Abschnitt „Taktabgleich Zeitaufnahme“.
+
 ### Behoben (Code-Review)
 - **Stationszeiten:** Ein Klick auf ✕ löschte mehrere Werte, Antippen zum Ausschließen wirkte nicht
   (der Klick wurde nach jedem Neuzeichnen mehrfach ausgeführt).

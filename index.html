@@ -863,7 +863,9 @@ body.beginner-mode .ana-scope-note .takt-chk input{width:22px;height:22px;}
 .ana-kpi-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
 .ana-kpi{flex:1;min-width:96px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;}
 /* ── AUSWERTUNGS-REITER & TAKTABGLEICH ── */
-.ana-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border);}
+.ana-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.ana-tabs::-webkit-scrollbar{display:none;}
+.ana-tab{white-space:nowrap;flex-shrink:0;}
 .ana-tab{
   background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;
   padding:7px 12px;font-size:var(--fs-m);color:var(--text3);cursor:pointer;
@@ -941,6 +943,11 @@ body.beginner-mode .ana-scope-note .takt-chk input{width:22px;height:22px;}
 .takt-chk{cursor:pointer;}
 .takt-chk input{width:18px;height:18px;margin:0;}
 .takt-view{margin-left:auto;}
+.tz-tbl td.tz-grund{font-weight:400;color:var(--text2);font-size:var(--fs-xs);}
+.tz-tbl tr.tz-mtm td{color:var(--text3);}
+.mess-genau label{display:inline-flex;align-items:center;gap:6px;}
+.mess-genau .lg-in{width:72px;padding:6px 8px;font-size:var(--fs-s);}
+.mess-genau-tr{width:1px;height:20px;background:var(--border2);margin:0 6px;}
 .st-tbl td.st-chips{text-align:left;font-family:var(--sans);min-width:200px;}
 .st-tbl td.st-eingabe{white-space:nowrap;}
 .st-in{width:96px;height:36px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-s);padding:0 8px;color:var(--text);font-family:var(--mono);font-size:var(--fs-s);text-align:right;}
@@ -1309,7 +1316,8 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
     <div class="mbody">
       <div class="ana-tabs">
         <button class="ana-tab on" id="anaTabUeb" onclick="setAnaTab('ueberblick')">Übersicht</button>
-        <button class="ana-tab" id="anaTabTakt" onclick="setAnaTab('takt')">Taktabgleich</button>
+        <button class="ana-tab" id="anaTabTakt" onclick="setAnaTab('takt')">Taktabgleich MTM</button>
+        <button class="ana-tab" id="anaTabTaktZ" onclick="setAnaTab('taktz')">Taktabgleich Zeitaufnahme</button>
         <button class="ana-tab" id="anaTabTeile" onclick="setAnaTab('teile')">Teile je Station</button>
         <button class="ana-tab" id="anaTabMess" onclick="setAnaTab('mess')">Zeitmessung</button>
       </div>
@@ -1395,18 +1403,11 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
             <span class="punit">minD</span><span class="punit" id="taktSollSek"></span>
           </label>
           <label class="takt-ctl-item takt-chk"><input type="checkbox" id="taktVzChk" onchange="setTaktMitVz(this.checked)"/><span id="taktVzLbl">mit Verteilzeit</span></label>
-          <div class="toggle-group takt-basis" title="Zeitbasis: MTM-Vorgabe oder Ø der Stoppuhr-Messungen">
-            <button class="tg-btn" id="taktBasisMtm" onclick="setTaktZeitbasis('mtm')">MTM</button>
-            <button class="tg-btn" id="taktBasisMess" onclick="setTaktZeitbasis('mess')"><svg class="ic"><use href="#i-uhr"/></svg>Gemessen</button>
-            <button class="tg-btn" id="taktBasisStation" onclick="setTaktZeitbasis('station')" title="Gestoppte Zeit je Station (von Hand eingetragen)"><svg class="ic"><use href="#i-uhr"/></svg>Station gemessen</button>
-          </div>
           <div class="toggle-group takt-view">
             <button class="tg-btn" id="taktViewIst" onclick="setTaktAnsicht('ist')">Ist</button>
             <button class="tg-btn" id="taktViewSzen" onclick="setTaktAnsicht('szenario')"><svg class="ic"><use href="#i-szenario"/></svg>Szenario</button>
           </div>
         </div>
-        <div id="taktBasisHinweis" class="takt-basis-hinweis"></div>
-        <div id="taktStMessWrap"></div>
         <div id="taktKpiWrap"></div>
         <div class="takt-grid">
         <div id="taktTableWrap"></div>
@@ -1418,6 +1419,36 @@ body.beginner-mode .note-popup-name input{height:44px;font-size:var(--fs-l);}
         </div>
         </div>
         <div id="taktSzenWrap"></div>
+      </div>
+
+      <!-- Taktabgleich Zeitaufnahme: gemessene Zeiten je Station, normalisiert mit dem Leistungsgrad -->
+      <div id="anaPanelTaktZ" style="display:none;">
+        <div class="ana-chart-head">
+          <span class="ana-chart-title" id="tzTitel">Zeit je Station – Taktabgleich Zeitaufnahme</span>
+          <span class="takt-hint">Gruppiert nach Spalte <select class="takt-sel" id="tzGroupSel" onchange="setTaktGroup(this.value)"></select></span>
+        </div>
+        <div class="takt-ctl">
+          <label class="takt-ctl-item" title="Leistungsgrad der Werker bei der Aufnahme — Normalzeit = gemessene Zeit × Leistungsgrad">Leistungsgrad
+            <input type="number" step="1" min="50" max="200" inputmode="decimal" class="takt-in" id="tzLgInput" onchange="setLeistungsgrad(this.value)"/>
+            <span class="punit">%</span>
+          </label>
+          <label class="takt-ctl-item">Soll-Taktzeit
+            <input type="number" step="any" min="0" inputmode="decimal" class="takt-in" id="tzSollInput" placeholder="–" onchange="setTaktSoll(this.value)"/>
+            <span class="punit">minD</span>
+          </label>
+          <label class="takt-ctl-item takt-chk"><input type="checkbox" id="tzVzChk" onchange="setTaktMitVz(this.checked)"/><span id="tzVzLbl">mit Verteilzeit</span></label>
+          <label class="takt-ctl-item takt-chk takt-view"><input type="checkbox" id="tzMtmChk" onchange="setTzMtm(this.checked)"/>MTM zum Vergleich</label>
+        </div>
+        <div id="tzHinweis" class="takt-basis-hinweis"></div>
+        <div id="tzKpiWrap"></div>
+        <div class="takt-grid">
+        <div id="tzTableWrap"></div>
+        <div class="takt-chart-col">
+        <div class="ana-chart-head mt5"><span class="ana-chart-title" id="tzChartTitel">Normalzeit je Station [minD]</span></div>
+        <div id="tzChartWrap"></div>
+        </div>
+        </div>
+        <div id="taktStMessWrap" class="mt5"></div>
       </div>
 
       <div id="anaPanelMess" style="display:none;"><div id="messWrap"></div></div>
@@ -2290,7 +2321,7 @@ function printAnalysis(){
 
   /* Taktabgleich: Balken direkt in der Tabelle, das spart auf Papier eine zweite Grafik */
   const mitT=taktSoll>0;
-  const vzTxt=(taktZeitbasis==='mess'?' auf Basis der Messungen ('+taktBasisText(fParts)+')':(taktZeitbasis==='station'?' auf Basis der Stationszeiten ('+taktBasisText(fParts)+')':' auf MTM-Basis'))+((taktMitVz&&verteilzeitFactor)?' inkl. '+verteilzeitFactor+' % Verteilzeit':'');
+  const vzTxt=' auf MTM-Basis'+((taktMitVz&&verteilzeitFactor)?' inkl. '+verteilzeitFactor+' % Verteilzeit':'');
   const noStations = takt.n===0;
   const prBar=(e,d,scale,ghost)=>{
     const cls=e.ohne?' pr-ohne':(mitT?(e.minD>taktSoll+1e-9?' pr-over':''):(e===d.engpass?' pr-max':''));
@@ -2330,18 +2361,24 @@ function printAnalysis(){
        <p class="pr-hint">Zeiten${vzTxt}. Ø je ${escHtml(stLbl)}: ${takt.avgMinD.toFixed(2)} minD${takt.ohne?' („'+escHtml(takt.ohne.name)+'" zählt nicht mit)':''} · Bandwirkungsgrad = Σ Zeiten ÷ (Anzahl × längste ${escHtml(stLbl)})
          · ${mitT?'rot = über der Soll-Taktzeit · gestrichelt = Takt':'rot = Engpass'} · senkrechte Linie = Mittelwert</p>`;
 
-  /* Stationszeiten von Hand: gemessen gegen MTM je Station */
+  /* Taktabgleich Zeitaufnahme: Normalzeit je Station gegen MTM */
   let stSec='';
-  if(stMessHat()){
-    const sd=stMessDaten(fParts).filter(r=>!r.verwaist), gem=sd.filter(r=>r.n), sMtm=gem.reduce((x,r)=>x+r.mtm,0), sIst=gem.reduce((x,r)=>x+r.ist,0);
+  const tzd=taktZData(fParts);
+  if(tzd.gemessen){
     const pc=v=>v==null?'–':v.toFixed(0)+' %';
-    stSec=`<div class="pr-sec pr-keep"><h2>Stationszeiten – gemessen gegen MTM je ${escHtml(stLbl)}</h2>
-      <table class="pr-tbl"><thead><tr><th>${escHtml(stLbl)}</th><th class="pr-txt">Durchläufe [s]</th><th>n</th><th>Ø [s]</th><th>min–max [s]</th><th>Streuung</th><th>Ø gem. [minD]</th><th>MTM [minD]</th><th>Abw. [minD]</th><th>Leistungsgrad</th></tr></thead>
-      <tbody>${sd.map(r=>`<tr><td class="pr-txt">${escHtml(r.name)}</td><td class="pr-txt">${r.w.map((x,i)=>r.a[i]?'('+sekText(x)+')':sekText(x)).join(' / ')||'–'}</td><td>${r.n||'–'}</td><td>${r.n?sekText(r.avg):'–'}</td><td>${r.n?sekText(r.min)+'–'+sekText(r.max):'–'}</td><td>${streuText(r.vk)}</td>
-        <td>${r.ist!=null?r.ist.toFixed(2):'–'}</td><td>${r.mtm.toFixed(2)}</td><td class="${r.abw>1e-9?'pr-pos':(r.abw<-1e-9?'pr-neg':'')}">${r.abw==null?'–':(r.abw>0?'+':'')+r.abw.toFixed(2)}</td><td>${pc(r.lg)}</td></tr>`).join('')}
-        ${gem.length?`<tr class="pr-sum"><td class="pr-txt">∑ gemessene ${escHtml(taktMehrzahl())} (${gem.length})</td><td></td><td></td><td></td><td></td><td></td><td>${sIst.toFixed(2)}</td><td>${sMtm.toFixed(2)}</td><td>${(sIst-sMtm>0?'+':'')+(sIst-sMtm).toFixed(2)}</td><td>${pc(sIst>0?sMtm/sIst*100:null)}</td></tr>`:''}
+    stSec=`<div class="pr-sec pr-keep"><h2>Taktabgleich Zeitaufnahme – Normalzeit je ${escHtml(stLbl)}</h2>
+      <div class="pr-kpis" style="margin-bottom:7px">
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Leistungsgrad</span><span class="pr-kpi-val">${leistungsgrad} %</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Engpass [minD]</span><span class="pr-kpi-val${taktSoll>0&&tzd.maxMinD>taktSoll+1e-9?' over':''}">${tzd.engpass?escHtml(tzd.engpass.name)+' · '+tzd.maxMinD.toFixed(2):'–'}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Bandwirkungsgrad</span><span class="pr-kpi-val">${tzd.bwg==null?'–':(tzd.bwg*100).toFixed(1)+'%'}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">MTM-Erfüllung (gemessene)</span><span class="pr-kpi-val">${pc(tzd.erf)}</span></div>
+      </div>
+      <table class="pr-tbl"><thead><tr><th>${escHtml(stLbl)}</th><th class="pr-txt">Grundlage</th><th class="pr-txt">Durchläufe [s]</th><th>Normalzeit [minD]</th><th>MTM [minD]</th><th>Abw. [minD]</th><th>MTM-Erfüllung</th>${taktSoll>0?'<th>Auslastung</th>':''}</tr></thead>
+      <tbody>${tzd.list.map(e=>`<tr><td class="pr-txt">${escHtml(e.name)}</td><td class="pr-txt">${escHtml(tzGrundlage(e))}</td><td class="pr-txt">${e.quelle==='station'?e.w.map((x,i)=>e.a[i]?'('+sekText(x)+')':sekText(x)).join(' / '):''}</td>
+        <td>${e.minD.toFixed(2)}</td><td>${e.mtm.toFixed(2)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+e.abw.toFixed(2)}</td><td>${pc(e.erf)}</td>${taktSoll>0?`<td class="${e.ausl!=null&&e.ausl>100+1e-9?'pr-pos':''}">${taktPct(e.ausl)}</td>`:''}</tr>`).join('')}
+        <tr class="pr-sum"><td class="pr-txt">∑ Gesamt</td><td></td><td></td><td>${tzd.total.toFixed(2)}</td><td>${tzd.mtmTotal.toFixed(2)}</td><td></td><td></td>${taktSoll>0?'<td></td>':''}</tr>
       </tbody></table>
-      <p class="pr-hint">Zeiten${(taktMitVz&&verteilzeitFactor)?' inkl. '+verteilzeitFactor+' % Verteilzeit':''}. Durchläufe von Hand je ${escHtml(stLbl)} gestoppt; Werte in Klammern sind ausgeschlossen. Leistungsgrad = MTM ÷ gemessen × 100 %.</p></div>`;
+      <p class="pr-hint">Normalzeit = gemessene Zeit × Leistungsgrad ${leistungsgrad} %${(taktMitVz&&verteilzeitFactor)?', inkl. '+verteilzeitFactor+' % Verteilzeit (auch MTM)':''}. Je ${escHtml(stLbl)} gilt die gestoppte Stationszeit, sonst die Summe der gemessenen Schritte; ungemessene Schritte mit MTM. MTM-Erfüllung = MTM ÷ Normalzeit × 100 % (nur bei gemessenen Anteilen). Werte in Klammern sind ausgeschlossen.</p></div>`;
   }
   /* Szenario: nur wenn es eines für diese Gruppierung gibt und es etwas verändert */
   const szenP=taktSzenAktiv();
@@ -2350,7 +2387,7 @@ function printAnalysis(){
   let szenSec='';
   if(szenP && (szenMoves.length || szenP.extra.length)){
     const sd=taktData(szenP);
-    const taktS=taktZeitbasis==='station' ? taktData(null,null,true) : takt;   // Vergleich je Schritt
+    const taktS=takt;
     const istBy=new Map(taktS.list.map(e=>[e.ohne?'':e.name,e]));
     const liste=taktVergleichsListe(sd,taktS);
     const sc=Math.max(sd.maxMinD, taktS.maxMinD, sd.ohne?sd.ohne.minD:0, taktS.ohne?taktS.ohne.minD:0, taktSoll, 0.0001);
@@ -2436,17 +2473,17 @@ function printAnalysis(){
       <div class="pr-kpis" style="margin-bottom:7px">
         <div class="pr-kpi"><span class="pr-kpi-lbl">Gemessene Schritte</span><span class="pr-kpi-val">${mk.schritte} von ${fParts.length} · ${mk.n} Messungen</span></div>
         <div class="pr-kpi"><span class="pr-kpi-lbl">MTM (gemessene Schritte)</span><span class="pr-kpi-val">${disp2(mk.mtm)} ${u}</span></div>
-        <div class="pr-kpi"><span class="pr-kpi-lbl">Gemessen (Ø)</span><span class="pr-kpi-val">${disp2(mk.ist)} ${u}</span></div>
-        <div class="pr-kpi"><span class="pr-kpi-lbl">Leistungsgrad</span><span class="pr-kpi-val">${mpct(mk.lg)}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">Normalzeit (× ${leistungsgrad} %)</span><span class="pr-kpi-val">${disp2(mk.ist)} ${u}</span></div>
+        <div class="pr-kpi"><span class="pr-kpi-lbl">MTM-Erfüllung</span><span class="pr-kpi-val">${mpct(mk.lg)}</span></div>
       </div>
       <table class="pr-tbl">
-        <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th>Streuung</th><th>Noch nötig (±${messGenau} %)</th><th>Ø gem. [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+        <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th>Streuung</th><th>Noch nötig (±${messGenau} %)</th><th>Normalzeit [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>MTM-Erfüllung</th></tr></thead>
         <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${messText(e.p.id,' / ')}${e.notizen.some(Boolean)?'<br><i>'+e.notizen.map((t,i)=>t?(i+1)+'. '+escHtml(t):'').filter(Boolean).join(' · ')+'</i>':''}</td><td>${e.n?sekText(e.avg):'–'}</td><td>${e.n?sekText(e.min)+'–'+sekText(e.max):'–'}</td><td>${streuText(e.vk)}</td><td>${messFehltText(e.fehlt)}</td>
           <td>${e.n?disp2(e.ist):'–'}</td><td>${disp2(e.mtm)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td><td>${mpct(e.lg)}</td></tr>`).join('')}
           <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td></td><td></td><td>${mk.fehlt?'+'+mk.fehlt:''}</td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
         </tbody>
       </table>
-      <p class="pr-hint">MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 %. Werte in Klammern sind ausgeschlossen und zählen nicht mit. Noch nötig = weitere Messungen für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit).</p>
+      <p class="pr-hint">MTM ohne Verteilzeit. Normalzeit = Ø gemessen × Leistungsgrad ${leistungsgrad} %. MTM-Erfüllung = MTM ÷ Normalzeit × 100 %. Werte in Klammern sind ausgeschlossen und zählen nicht mit. Noch nötig = weitere Messungen für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit).</p>
     </div>`;
   const prZyk=messZyklen(fParts), prPz=pausenDaten(fParts);
   const zykSec=!prZyk.length?'':`<div class="pr-sec pr-keep"><h2>Zyklen (Ablauf-Messung)</h2>
@@ -2566,17 +2603,20 @@ function setAnaTab(t){
   document.getElementById('anaTabTakt').className='ana-tab'+(t==='takt'?' on':'');
   document.getElementById('anaPanelUeberblick').style.display=(t==='ueberblick')?'':'none';
   document.getElementById('anaPanelTakt').style.display=(t==='takt')?'':'none';
+  document.getElementById('anaTabTaktZ').className='ana-tab'+(t==='taktz'?' on':'');
+  document.getElementById('anaPanelTaktZ').style.display=(t==='taktz')?'':'none';
   document.getElementById('anaTabTeile').className='ana-tab'+(t==='teile'?' on':'');
   document.getElementById('anaPanelTeile').style.display=(t==='teile')?'':'none';
   document.getElementById('anaTabTeile').textContent='Teile je '+taktGroupLabel();
   document.getElementById('anaTabMess').className='ana-tab'+(t==='mess'?' on':'');
   document.getElementById('anaPanelMess').style.display=(t==='mess')?'':'none';
   if(t==='takt') renderTaktabgleich();
+  if(t==='taktz') renderTaktZ();
   if(t==='teile') renderTeileJeStation();
   if(t==='mess') renderMess();
 }
 /* Gruppierung und Ist/Szenario teilen sich Taktabgleich und „Teile je Station" */
-function taktNeuZeichnen(){ if(anaTab==='teile') renderTeileJeStation(); else renderTaktabgleich(); }
+function taktNeuZeichnen(){ if(anaTab==='teile') renderTeileJeStation(); else if(anaTab==='taktz') renderTaktZ(); else renderTaktabgleich(); }
 /* Zeiten je Gruppe ermitteln — durchgängig minD, unabhängig von der Anzeigeeinheit */
 function taktGroupLabel(){ return colLabel(taktGroupKey); }
 function taktEmptyLabel(){ return '(ohne '+taktGroupLabel()+')'; }
@@ -2613,21 +2653,28 @@ let taktZiele=[];          // Zielnamen der Sammel-Auswahl, Index im <select> �
 
 const taktHas=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 function taktFaktor(){ return taktMitVz ? 1+(verteilzeitFactor||0)/100 : 1; }
-/* Zeitbasis des Taktabgleichs: MTM oder gemessen (Ø der gültigen Messungen). Ungemessene Schritte
-   gehen bei „Gemessen" mit ihrer MTM-Zeit ein, damit keine Station künstlich leer wirkt. */
-let taktZeitbasis='mtm';
-function taktGemessen(id){ return taktZeitbasis==='mess' && messGueltig(id).length>0; }
-function taktZeit(id){ return taktGemessen(id) ? messMittel(id)/SEK_JE_MIND : calcTotal(id); }
-function setTaktZeitbasis(b){ taktZeitbasis=(b==='mess'||b==='station')?b:'mtm'; saveSoon(); renderTaktabgleich(); }
-function taktBasisText(liste){
-  if(taktZeitbasis==='station'){
-    const st=taktData(null,liste,true).stations, g=st.filter(e=>stMessGueltig(e.name).length).length;
-    return 'Stationszeiten: '+g+' von '+st.length+' '+taktMehrzahl()+' gemessen'+(g<st.length?' – die übrigen mit MTM je Schritt':'');
-  }
-  if(taktZeitbasis!=='mess') return '';
-  const l=(liste||anaParts()).filter(p=>lvlVon(p.id)>1||calcTotal(p.id)>0||messWerte(p.id).length), g=l.filter(p=>taktGemessen(p.id)).length;
-  return 'Gemessen: '+g+' von '+l.length+' Schritten'+(g<l.length?' – die übrigen mit MTM':'');
+/* Taktabgleich MTM rechnet nur mit MTM; die gemessenen Zeiten zeigt der Reiter „Taktabgleich Zeitaufnahme" */
+function taktZeit(id){ return calcTotal(id); }
+/* ── Leistungsgrad ──
+   Leistungsgrad der Werker während der Aufnahme (projektbezogen, Standard 115 %). Gemessene Zeiten
+   werden damit auf Normalleistung umgerechnet, damit sie mit MTM (Normalleistung = 100 %) vergleichbar
+   sind: Normalzeit = gemessene Zeit × Leistungsgrad ÷ 100. Die Stoppuhr selbst zeigt die echte Zeit. */
+const LG_STD=115;
+let leistungsgrad=LG_STD;
+function lgPruefen(v,std){ const n=Number(v); return (isFinite(n)&&n>=50&&n<=200) ? Math.round(n*10)/10 : std; }
+function lgF(){ return leistungsgrad/100; }
+function messNormal(id){ return messMittel(id)*lgF(); }   // Normalzeit eines Schritts in Sekunden
+function setLeistungsgrad(v){
+  const n=lgPruefen(String(v).replace(',','.'),null);
+  if(n===null){ toast('⚠ Leistungsgrad zwischen 50 und 200 % eingeben'); renderAnalysis(); return; }
+  if(n===leistungsgrad) return;
+  undoStand('Leistungsgrad '+leistungsgrad+' → '+n+' %');
+  leistungsgrad=n;
+  markDirty(); renderBody(); renderAnalysis();
+  toast('✓ Leistungsgrad '+n+' % – gemessene Zeiten × '+(n/100).toFixed(2).replace('.',','));
 }
+let tzMtm=true;   // im Reiter „Taktabgleich Zeitaufnahme" MTM zum Vergleich zeigen (Anzeige, auf dem Gerät)
+function setTzMtm(on){ tzMtm=!!on; saveSoon(); renderTaktZ(); }
 function taktBasis(p){ return ((data[p.id]||{})['__'+taktGroupKey]||'').trim(); }
 /* ── Stationszeiten von Hand ──
    Gestoppt wurde je Station (ganzer Durchlauf), nicht je Schritt. Je Gruppierungsspalte und Stationsname:
@@ -2677,7 +2724,7 @@ function stMessHinzu(name,txt){
   undoStand('Stationszeit „'+name+'" eingetragen');
   const e=stMessEintrag(name);
   stMessSetzen(name,e.w.concat(v.map(x=>Math.round(x*10)/10)),e.a.concat(v.map(()=>false)));
-  markDirty(); renderTaktabgleich();
+  markDirty(); renderTaktZ();
   toast('✓ '+v.length+' Wert'+(v.length===1?'':'e')+' für „'+name+'" · Ø '+sekText(stMessMittel(name))+' s');
   return true;
 }
@@ -2685,7 +2732,7 @@ function stMessUmschalten(name,i){
   const e=stMessEintrag(name); if(i<0||i>=e.w.length) return;
   undoStand('Stationszeit „'+name+'" '+(e.a[i]?'wieder aufgenommen':'ausgeschlossen'));
   const a=e.a.slice(); a[i]=!a[i]; stMessSetzen(name,e.w,a);
-  markDirty(); renderTaktabgleich();
+  markDirty(); renderTaktZ();
   toast(a[i]?sekText(e.w[i])+' s ausgeschlossen – zählt nicht mehr mit':sekText(e.w[i])+' s zählt wieder mit');
 }
 function stMessLoeschen(name,i){
@@ -2695,7 +2742,7 @@ function stMessLoeschen(name,i){
   const w=e.w.slice(), a=e.a.slice();
   if(i<0){ w.length=0; a.length=0; } else { w.splice(i,1); a.splice(i,1); }
   stMessSetzen(name,w,a);
-  markDirty(); renderTaktabgleich();
+  markDirty(); renderTaktZ();
   toast('Gelöscht – ↩ Undo holt es zurück');
 }
 /* Vergleichszeilen: je Station MTM (Summe der Schritte) gegen Ø der Stationszeiten */
@@ -2714,7 +2761,7 @@ function stMessDaten(liste){
   const rows=[...map.values()].filter(e=>e.sichtbar>0);
   stMessNamen().forEach(n=>{ if(!map.has(n)) rows.push({name:n,rows:0,sichtbar:0,mtm:0,verwaist:true}); });
   return rows.map(r=>{
-    const e=stMessEintrag(r.name), g=stMessGueltig(r.name), n=g.length, avg=stMessMittel(r.name), ist=n?avg/SEK_JE_MIND*f:null;
+    const e=stMessEintrag(r.name), g=stMessGueltig(r.name), n=g.length, avg=stMessMittel(r.name), ist=n?avg*lgF()/SEK_JE_MIND*f:null;   // ist = Normalzeit
     return {...r,w:e.w,a:e.a,n,avg,min:n?Math.min(...g):null,max:n?Math.max(...g):null,vk:stMessStreuung(r.name),ist,
       abw:ist!=null&&!r.verwaist?ist-r.mtm:null,lg:ist>0&&!r.verwaist?r.mtm/ist*100:null};   // verwaist: kein MTM zum Vergleichen
   });
@@ -2738,8 +2785,7 @@ function taktSzenPruefen(o){
   return {groupKey:o.groupKey,moves,extra};
 }
 
-/* nurSchritte: Stationszeiten nicht einsetzen (Szenario und Vergleich rechnen immer je Schritt) */
-function taktData(szen,liste,nurSchritte){
+function taktData(szen,liste){
   const f=taktFaktor();
   const map=new Map();
   let ohne=null;
@@ -2750,13 +2796,9 @@ function taktData(szen,liste,nurSchritte){
     e.rows++;                 // Prozessschritte
     e.teile+=stepQty(p.id);   // angepackte Teile (Summe der Mengen)
     e.minD+=taktZeit(p.id)*f;   // kanonisch in minD
-    if(taktGemessen(p.id)) e.gem++;
     e.parts.push(p);
   });
   if(szen) szen.extra.forEach(n=>station(n));   // neu angelegte Stationen auch leer zeigen
-  /* Stationszeiten von Hand: die gestoppte Zeit ersetzt die Summe der Schritte — nur in der Ist-Verteilung,
-     ein Szenario verschiebt Schritte und kann die Stationszeit nicht aufteilen */
-  if(taktZeitbasis==='station' && !szen && !nurSchritte) map.forEach(e=>{ const g=stMessGueltig(e.name); if(g.length){ e.minD=stMessMittel(e.name)/SEK_JE_MIND*f; e.stGem=g.length; } });
   /* Feste Reihenfolge wie in der Tabelle, neue Stationen hinten — sonst springen die Zeilen,
      sobald im Szenario der erste Schritt einer Station woanders hin wandert. */
   const reihe=taktStationNamen(szen);
@@ -2789,31 +2831,128 @@ function taktVergleichsListe(cur,ist){
     .map(e=>({name:e.name,rows:0,teile:0,minD:0,min:0,share:0,dev:null,ausl:null,parts:[],entfaellt:true}));
   return cur.stations.concat(weg, cur.ohne?[cur.ohne]:[]);
 }
+/* ── Taktabgleich Zeitaufnahme ──
+   Je Station die gemessene Zeit, auf Normalleistung umgerechnet (× Leistungsgrad):
+   · gestoppte Stationszeit (Ø der gültigen Durchläufe) — hat Vorrang, MTM dann über ALLE Schritte der Station
+   · sonst Summe der gemessenen Schritte (Ø je Schritt); ungemessene Schritte mit ihrer MTM-Zeit
+   · nichts gemessen: nur MTM (grau). Verteilzeit wie im Taktabgleich MTM auf beide Seiten. */
+function taktZData(liste){
+  const f=taktFaktor(), lg=lgF(), sicht=liste||anaParts();
+  const map=new Map(); let ohne=null;
+  const neu=(name,o)=>({name,rows:0,relevant:0,gemSchritte:0,minD:0,mtm:0,ohne:!!o});
+  const rel=p=>lvlVon(p.id)>1||calcTotal(p.id)>0||messWerte(p.id).length>0;
+  sicht.forEach(p=>{
+    const st=taktBasis(p);
+    let e; if(st){ e=map.get(st); if(!e){ e=neu(st); map.set(st,e); } } else e=ohne||(ohne=neu(taktEmptyLabel(),true));
+    e.rows++; const mtm=calcTotal(p.id)*f; e.mtm+=mtm;
+    if(rel(p)) e.relevant++;
+    if(messGueltig(p.id).length){ e.gemSchritte++; e.minD+=messMittel(p.id)*lg/SEK_JE_MIND*f; } else e.minD+=mtm;
+  });
+  map.forEach(e=>{
+    const g=stMessGueltig(e.name), st=stMessEintrag(e.name);
+    if(g.length){
+      e.quelle='station'; e.n=g.length; e.w=st.w; e.a=st.a; e.avg=stMessMittel(e.name); e.vk=stMessStreuung(e.name);
+      e.minD=e.avg*lg/SEK_JE_MIND*f;
+      e.mtm=parts.filter(p=>taktBasis(p)===e.name).reduce((x,p)=>x+calcTotal(p.id)*f,0);   // gestoppt wurde die ganze Station
+    } else e.quelle=e.gemSchritte?'schritte':'mtm';
+  });
+  if(ohne) ohne.quelle=ohne.gemSchritte?'schritte':'mtm';
+  const reihe=taktStationNamen(null), pos=nm=>{ const i=reihe.indexOf(nm); return i<0?1e9:i; };
+  const stations=[...map.values()].sort((a,b)=>pos(a.name)-pos(b.name));
+  const n=stations.length, stTotal=stations.reduce((x,e)=>x+e.minD,0);
+  const maxMinD=n?Math.max(...stations.map(e=>e.minD)):0, engpass=n?stations.find(e=>e.minD===maxMinD):null;
+  const avgMinD=n?stTotal/n:0;
+  const list=ohne?stations.concat([ohne]):stations;
+  list.forEach(e=>{
+    const gem=e.quelle!=='mtm';
+    e.abw=gem?e.minD-e.mtm:null; e.erf=gem&&e.minD>0?e.mtm/e.minD*100:null;
+    e.dev=e.ohne?null:e.minD-avgMinD; e.ausl=(taktSoll>0&&!e.ohne)?e.minD/taktSoll*100:null;
+  });
+  const gemList=list.filter(e=>e.quelle!=='mtm');
+  const gZ=gemList.reduce((x,e)=>x+e.minD,0), gM=gemList.reduce((x,e)=>x+e.mtm,0);
+  return {list,stations,ohne,n,total:list.reduce((x,e)=>x+e.minD,0),mtmTotal:list.reduce((x,e)=>x+e.mtm,0),stTotal,avgMinD,maxMinD,engpass,
+    bwg:(n&&maxMinD>0)?stTotal/(n*maxMinD):null, ueberTakt:taktSoll>0?stations.filter(e=>e.minD>taktSoll+1e-9).length:0,
+    gemessen:gemList.length, nStation:list.filter(e=>e.quelle==='station').length, erf:gZ>0?gM/gZ*100:null};
+}
+function tzGrundlage(e){
+  if(e.quelle==='station') return '⏱ Stationszeit ('+e.n+'×)';
+  if(e.quelle==='schritte') return 'Schritte gemessen '+e.gemSchritte+' von '+e.relevant+(e.gemSchritte<e.relevant?', Rest MTM':'');
+  return 'nur MTM';
+}
+function renderTaktZ(){
+  const stLbl=taktGroupLabel(), vz=verteilzeitFactor||0, mitVz=taktMitVz&&vz>0, mitT=taktSoll>0;
+  document.getElementById('tzTitel').textContent='Zeit je '+stLbl+' – Taktabgleich Zeitaufnahme';
+  document.getElementById('tzChartTitel').textContent='Normalzeit je '+stLbl+' [minD]'+(mitVz?' inkl. '+vz+' % Verteilzeit':'');
+  document.getElementById('tzGroupSel').innerHTML=OPT_COLS.filter(o=>!o.own).map(o=>
+    `<option value="${o.key}"${o.key===taktGroupKey?' selected':''}>${escHtml(colLabel(o.key))}</option>`).join('');
+  const li=document.getElementById('tzLgInput'); if(document.activeElement!==li) li.value=String(leistungsgrad);
+  const si=document.getElementById('tzSollInput'); if(document.activeElement!==si) si.value=taktSoll>0?String(mtmR6(taktSoll)):'';
+  document.getElementById('tzVzChk').checked=taktMitVz;
+  document.getElementById('tzVzLbl').textContent='mit Verteilzeit ('+vz+' %'+(vz?'':' – in der Übersicht einstellen')+')';
+  document.getElementById('tzMtmChk').checked=tzMtm;
+  const d=taktZData(), h=document.getElementById('tzHinweis');
+  const kw=document.getElementById('tzKpiWrap'), tw=document.getElementById('tzTableWrap'), cw=document.getElementById('tzChartWrap');
+  const nGes=d.list.reduce((x,e)=>x+e.relevant,0), nGem=d.list.reduce((x,e)=>x+(e.quelle==='schritte'?e.gemSchritte:0),0);
+  h.innerHTML=ic('uhr')+'Normalzeit = gemessene Zeit × Leistungsgrad '+leistungsgrad+' % · '
+    +(d.gemessen ? d.nStation+' von '+d.n+' '+escHtml(taktMehrzahl())+' mit Stationszeit'+(nGem?' · '+nGem+' Schritte einzeln gemessen':'')+' · Ungemessenes zählt mit MTM'
+      : 'noch nichts gemessen – unten Stationszeiten eintragen oder im Einfach-Modus → „Zeitaufnahme" je Schritt messen');
+  stMessZeichnen();
+  if(!d.list.length){ kw.innerHTML=''; cw.innerHTML=''; tw.innerHTML='<div class="leer-hinweis">Keine Prozessschritte vorhanden.</div>'; return; }
+  if(!d.n){ kw.innerHTML=''; cw.innerHTML=''; tw.innerHTML=`<div class="leer-hinweis">Noch keine Einträge in der Spalte „${escHtml(stLbl)}" – dort die ${escHtml(taktMehrzahl())} vergeben.</div>`; return; }
+  const pct=v=>v==null?'–':v.toFixed(0)+' %';
+  const over=mitT && d.maxMinD>taktSoll+1e-9;
+  kw.innerHTML=`<div class="ana-kpi-row">
+    <div class="ana-kpi" title="Station mit der längsten Normalzeit"><span class="ana-kpi-lbl">Engpass [minD]</span><span class="ana-kpi-val${over?' over':''}">${d.engpass?escHtml(d.engpass.name)+' · '+d.maxMinD.toFixed(2):'–'}</span>${d.engpass?`<span class="ana-kpi-sub">${escHtml(tzGrundlage(d.engpass))}</span>`:''}</div>
+    <div class="ana-kpi" title="Σ Stationszeiten ÷ (Anzahl Stationen × längste Station)"><span class="ana-kpi-lbl">Bandwirkungsgrad</span><span class="ana-kpi-val">${d.bwg==null?'–':(d.bwg*100).toFixed(1)+'%'}</span><span class="ana-kpi-sub">Abstimmungsverlust ${d.bwg==null?'–':((1-d.bwg)*100).toFixed(1)+'%'}</span></div>
+    <div class="ana-kpi"><span class="ana-kpi-lbl">${escHtml(taktMehrzahl())}${mitT?' · über Takt':''}</span><span class="ana-kpi-val${d.ueberTakt?' over':''}">${d.n}${mitT?' · '+d.ueberTakt:''}</span></div>
+    ${tzMtm?`<div class="ana-kpi" title="MTM ÷ Normalzeit über alle Stationen mit Messung"><span class="ana-kpi-lbl">MTM-Erfüllung</span><span class="ana-kpi-val">${pct(d.erf)}</span><span class="ana-kpi-sub">gemessene ${escHtml(taktMehrzahl())}</span></div>`:''}
+  </div>`;
+  const zk=mitVz?' inkl. VZ':'';
+  tw.innerHTML=`<table class="takt-tbl tz-tbl"><thead><tr><th>${escHtml(stLbl)}</th><th>Schritte</th><th>Grundlage</th><th>Normalzeit [minD]${zk}</th>
+      ${tzMtm?`<th>MTM [minD]${zk}</th><th>Abw. [minD]</th><th title="MTM ÷ Normalzeit × 100 %">MTM-Erfüllung</th>`:''}<th>Abw. vom Ø</th>${mitT?'<th>Auslastung</th>':''}</tr></thead>
+    <tbody>${d.list.map(e=>`<tr class="${e.quelle==='mtm'?'tz-mtm':''}">
+      <td class="tk-name">${escHtml(e.name)}</td><td>${e.rows}</td><td class="tk-name tz-grund">${escHtml(tzGrundlage(e))}</td>
+      <td>${e.minD.toFixed(2)}</td>
+      ${tzMtm?`<td>${e.mtm.toFixed(2)}</td><td class="${e.abw>1e-9?'tk-pos':(e.abw<-1e-9?'tk-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+e.abw.toFixed(2)}</td><td>${pct(e.erf)}</td>`:''}
+      <td class="${e.dev==null?'':(e.dev>0?'tk-pos':(e.dev<0?'tk-neg':''))}">${e.dev==null?'–':(e.dev>=0?'+':'')+e.dev.toFixed(2)}</td>
+      ${mitT?`<td class="${e.ausl!=null&&e.ausl>100+1e-9?'tk-pos':''}">${taktPct(e.ausl)}</td>`:''}</tr>`).join('')}
+      <tr class="tk-sum"><td class="tk-name">∑ Gesamt</td><td>${d.list.reduce((x,e)=>x+e.rows,0)}</td><td></td><td>${d.total.toFixed(2)}</td>${tzMtm?`<td>${d.mtmTotal.toFixed(2)}</td><td></td><td></td>`:''}<td></td>${mitT?'<td></td>':''}</tr></tbody></table>
+    <div class="takt-fuss">Ø je ${escHtml(stLbl)}: ${d.avgMinD.toFixed(2)} minD${d.ohne?' · „'+escHtml(d.ohne.name)+'" zählt nicht als '+escHtml(stLbl):''} · grau = noch nicht gemessen (nur MTM)${mitT?' · Auslastung = Normalzeit ÷ Soll-Taktzeit':''}</div>`;
+  const scale=Math.max(d.maxMinD, d.ohne?d.ohne.minD:0, tzMtm?Math.max(0,...d.list.map(e=>e.mtm)):0, taktSoll, 0.0001);
+  const pc=v=>(v/scale*100).toFixed(1);
+  cw.innerHTML='<div class="takt-bars'+(mitT?' mit-takt':'')+'">'+d.list.map(e=>{
+    const cls=e.ohne||e.quelle==='mtm'?' tk-ohne':(mitT?(e.minD>taktSoll+1e-9?' tk-over':''):(e===d.engpass?' tk-max':''));
+    return `<div class="takt-bar-row">
+      <span class="takt-bar-name" title="${escAttr(e.name+' · '+tzGrundlage(e))}">${escHtml(e.name)}</span>
+      <div class="takt-bar-track">
+        <div class="takt-bar-fill${cls}" style="width:${pc(e.minD)}%"></div>
+        ${tzMtm&&e.quelle!=='mtm'?`<div class="takt-bar-ghost" style="width:${pc(e.mtm)}%" title="MTM ${e.mtm.toFixed(2)} minD"></div>`:''}
+        ${d.n&&!e.ohne?`<div class="takt-bar-avg" style="left:${pc(d.avgMinD)}%" title="Mittelwert ${d.avgMinD.toFixed(2)} minD"></div>`:''}
+        ${mitT&&!e.ohne?`<div class="takt-bar-takt" style="left:calc(${pc(taktSoll)}% - 1px)" title="Soll-Taktzeit ${taktSoll.toFixed(2)} minD"></div>`:''}
+      </div>
+      <span class="takt-bar-val">${e.minD.toFixed(2)} minD${mitT&&e.ausl!=null?' · '+taktPct(e.ausl):''}</span>
+    </div>`;
+  }).join('')+'</div>'
+  +`<div class="takt-legend"><span>gelb │ Ø je ${escHtml(stLbl)}</span>${tzMtm?'<span>gestrichelter Rahmen = MTM</span>':''}<span>grauer Balken = nur MTM</span>${mitT?'<span>rot ┆ Soll-Taktzeit</span>':'<span>roter Balken = Engpass</span>'}</div>`;
+}
 /* Block „Stationszeiten erfassen": je Station die Durchläufe als Chips, Eingabefeld, Kennzahlen gegen MTM */
 function stMessZeichnen(){
   const w=document.getElementById('taktStMessWrap'); if(!w) return;
-  if(taktZeitbasis!=='station' || taktAnsicht==='szenario'){ w.innerHTML=''; return; }
-  const d=stMessDaten(), stLbl=taktGroupLabel(), mitVz=taktMitVz&&(verteilzeitFactor||0)>0;
+  const d=stMessDaten(), stLbl=taktGroupLabel();
   if(!d.length){ w.innerHTML='<div class="leer-hinweis">Noch keine '+escHtml(stLbl)+' vergeben – Spalte „'+escHtml(stLbl)+'" befüllen.</div>'; return; }
-  const pct=v=>v==null?'–':v.toFixed(0)+' %';
   const chips=r=>r.w.map((x,i)=>`<span class="mess-chip${r.a[i]?' aus':''}"><span class="mc-wert" data-act="um" data-st="${escAttr(r.name)}" data-i="${i}" title="${r.a[i]?'Ausgeschlossen – antippen, um wieder mitzuzählen':'Antippen, um aus der Auswertung zu nehmen'}">${sekText(x)}</span><button data-act="weg" data-st="${escAttr(r.name)}" data-i="${i}" title="Wert löschen" aria-label="Wert löschen">✕</button></span>`).join('');
-  const gem=d.filter(r=>r.n&&!r.verwaist), sMtm=gem.reduce((x,r)=>x+r.mtm,0), sIst=gem.reduce((x,r)=>x+r.ist,0);
-  w.innerHTML=`<div class="ana-chart-head"><span class="ana-chart-title">Stationszeiten erfassen – gemessen gegen MTM</span>
+  w.innerHTML=`<div class="ana-chart-head"><span class="ana-chart-title">Stationszeiten erfassen (ganze ${escHtml(stLbl)} gestoppt)</span>
       <span class="takt-hint">je Durchlauf in Sekunden („83,5"), min:s („1:23,5") oder „1,4 min" · mehrere Werte mit Leerzeichen · Enter übernimmt</span></div>
     <div class="tbl-scroll"><table class="takt-tbl st-tbl">
-      <thead><tr><th>${escHtml(stLbl)}</th><th>Durchläufe [s]</th><th>Neuer Wert</th><th>n</th><th>Ø [s]</th><th>min–max [s]</th><th title="Standardabweichung ÷ Mittelwert">Streuung</th><th>Ø gem. [minD]${mitVz?' inkl. VZ':''}</th><th>MTM [minD]${mitVz?' inkl. VZ':''}</th><th>Abw. [minD]</th><th title="MTM ÷ gemessen × 100 %">Leistungsgrad</th></tr></thead>
+      <thead><tr><th>${escHtml(stLbl)}</th><th>Durchläufe [s]</th><th>Neuer Wert</th><th>n</th><th>Ø [s]</th><th>min–max [s]</th><th title="Standardabweichung ÷ Mittelwert">Streuung</th></tr></thead>
       <tbody>${d.map(r=>`<tr${r.verwaist?' class="st-verwaist"':''}>
         <td class="tk-name">${escHtml(r.name)}${r.verwaist?' <span class="takt-hint">nicht mehr in der Tabelle</span>':` <small class="takt-gem">${r.rows} Schritt${r.rows===1?'':'e'}${r.sichtbar<r.rows?' (Filter zeigt '+r.sichtbar+')':''}</small>`}</td>
         <td class="st-chips"><div class="mess-chips">${chips(r)}</div></td>
         <td class="st-eingabe">${r.verwaist?`<button class="tbtn" data-act="alle" data-st="${escAttr(r.name)}">${ic('x')}Löschen</button>`:`<input type="text" class="st-in" inputmode="decimal" placeholder="s oder m:ss" data-st="${escAttr(r.name)}" aria-label="Stationszeit ${escAttr(r.name)}"/><button class="tbtn st-add" data-act="add" data-st="${escAttr(r.name)}" title="Wert übernehmen">${ic('plus')}</button>`}</td>
         <td>${r.n||'–'}</td><td>${r.n?sekText(r.avg):'–'}</td><td>${r.n?sekText(r.min)+'–'+sekText(r.max):'–'}</td>
-        <td><span class="streu ${streuStufe(r.vk)}">${streuText(r.vk)}</span></td>
-        <td>${r.ist!=null?r.ist.toFixed(2):'–'}</td><td>${r.verwaist?'–':r.mtm.toFixed(2)}</td>
-        <td class="${r.abw>1e-9?'tk-pos':(r.abw<-1e-9?'tk-neg':'')}">${r.abw==null?'–':(r.abw>0?'+':'')+r.abw.toFixed(2)}</td>
-        <td>${pct(r.lg)}</td></tr>`).join('')}
-      ${gem.length?`<tr class="tk-sum"><td class="tk-name">∑ gemessene ${escHtml(taktMehrzahl())} (${gem.length})</td><td colspan="6"></td><td>${sIst.toFixed(2)}</td><td>${sMtm.toFixed(2)}</td><td class="${sIst-sMtm>1e-9?'tk-pos':(sIst-sMtm<-1e-9?'tk-neg':'')}">${(sIst-sMtm>0?'+':'')+(sIst-sMtm).toFixed(2)}</td><td>${pct(sIst>0?sMtm/sIst*100:null)}</td></tr>`:''}
+        <td><span class="streu ${streuStufe(r.vk)}">${streuText(r.vk)}</span></td></tr>`).join('')}
       </tbody></table></div>
-    <div class="takt-fuss">Ø der gültigen Durchläufe ersetzt in Tabelle und Balken die MTM-Summe der ${escHtml(stLbl)}; ohne Stationszeit bleibt MTM. Wert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✕ löscht. Leistungsgrad = MTM ÷ gemessen × 100 % – über 100 % war die Station schneller als die MTM-Vorgabe. Streuung: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span>.</div>`;
+    <div class="takt-fuss">Ø der gültigen Durchläufe × Leistungsgrad ergibt die Normalzeit der ${escHtml(stLbl)} oben in der Tabelle; eine Stationszeit hat Vorrang vor den Schritt-Messungen. Wert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✕ löscht. Streuung: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span>.</div>`;
   const uebernehmen=inp=>{ if(stMessHinzu(inp.dataset.st,inp.value)){ const f=document.querySelector('#taktStMessWrap .st-in[data-st="'+CSS.escape(inp.dataset.st)+'"]'); if(f) f.focus(); } };
   w.querySelectorAll('.st-in').forEach(inp=>inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); uebernehmen(inp); } }));
   /* onclick statt addEventListener: das Element bleibt über jedes Neuzeichnen bestehen — mit
@@ -2840,9 +2979,9 @@ function setTaktSoll(v){
   const n=parseFloat(String(v).replace(',','.'));
   undoStand('Soll-Taktzeit geändert');
   taktSoll=(isNaN(n)||n<0) ? 0 : n;
-  markDirty(); renderTaktabgleich();
+  markDirty(); taktNeuZeichnen();
 }
-function setTaktMitVz(on){ undoStand('Taktabgleich mit/ohne Verteilzeit'); taktMitVz=!!on; markDirty(); renderTaktabgleich(); }
+function setTaktMitVz(on){ undoStand('Taktabgleich mit/ohne Verteilzeit'); taktMitVz=!!on; markDirty(); taktNeuZeichnen(); }
 function setTaktAnsicht(a){ taktAnsicht=a==='szenario'?'szenario':'ist'; taktNeuZeichnen(); }
 
 /* ── Szenario bearbeiten ── */
@@ -2956,8 +3095,8 @@ function renderTaktabgleich(){
   const stLbl=taktGroupLabel();
   const vz=verteilzeitFactor||0;
   const mitVz=taktMitVz&&vz>0;
-  document.getElementById('taktTitle').textContent='Zeit je '+stLbl+' – Taktabgleich';
-  document.getElementById('taktChartTitle').textContent='Zeit je '+stLbl+' [minD]'+(taktZeitbasis==='mess'?' · gemessen':(taktZeitbasis==='station'?' · Stationszeiten':''))+(mitVz?' inkl. '+vz+' % Verteilzeit':'');
+  document.getElementById('taktTitle').textContent='Zeit je '+stLbl+' – Taktabgleich MTM';
+  document.getElementById('taktChartTitle').textContent='MTM-Zeit je '+stLbl+' [minD]'+(mitVz?' inkl. '+vz+' % Verteilzeit':'');
   const sel=document.getElementById('taktGroupSel');
   sel.innerHTML=OPT_COLS.filter(o=>!o.own).map(o=>
     `<option value="${o.key}"${o.key===taktGroupKey?' selected':''}>${escHtml(colLabel(o.key))}</option>`).join('');
@@ -2973,14 +3112,6 @@ function renderTaktabgleich(){
   const szen=taktSzenAktiv();
   const inSzen=taktAnsicht==='szenario';
   const nMoves=taktMoves(szen).length;
-  document.getElementById('taktBasisMtm').className='tg-btn'+(taktZeitbasis==='mtm'?' on-mode':'');
-  document.getElementById('taktBasisMess').className='tg-btn'+(taktZeitbasis==='mess'?' on-mode':'');
-  document.getElementById('taktBasisStation').className='tg-btn'+(taktZeitbasis==='station'?' on-mode':'');
-  const bh=document.getElementById('taktBasisHinweis'), btx=taktBasisText();
-  bh.innerHTML=btx?ic('uhr')+escHtml(btx)+(taktZeitbasis==='mess'&&!messSpalteAn()?' – noch nichts gemessen (Einfach → Zeitaufnahme)':'')
-    +(taktZeitbasis==='station'&&taktAnsicht==='szenario'?' – das Szenario rechnet mit MTM je Schritt':''):'';
-  bh.style.display=btx?'':'none';
-  stMessZeichnen();
   document.getElementById('taktViewIst').className='tg-btn'+(inSzen?'':' on-mode');
   document.getElementById('taktViewSzen').className='tg-btn'+(inSzen?' on-mode':'');
   document.getElementById('taktViewSzen').innerHTML=ic('szenario')+'Szenario'+(nMoves?' ('+nMoves+')':(szen&&szen.extra.length?' •':''));
@@ -2995,8 +3126,7 @@ function renderTaktabgleich(){
     tw.innerHTML='<div class="leer-hinweis">Keine Prozessschritte vorhanden.</div>';
     return;
   }
-  /* Im Szenario-Vergleich beide Seiten je Schritt rechnen — Stationszeiten gelten nur für die Ist-Verteilung */
-  const istVgl=(inSzen && taktZeitbasis==='station') ? taktData(null,null,true) : ist;
+  const istVgl=ist;
   const cur=inSzen ? taktData(szen) : ist;
   const vergleich=inSzen && !!szen;   // Ist-Werte nur daneben zeigen, wenn es ein Szenario gibt
   const rowsList=inSzen ? taktVergleichsListe(cur,istVgl) : cur.list;
@@ -3031,7 +3161,7 @@ function renderTaktabgleich(){
     const auslCls=e.ausl!=null&&e.ausl>100+1e-9?'tk-pos':'';
     rows+=`<tr>
       <td class="tk-name">${escHtml(e.name)}${e.entfaellt?' <span class="takt-hint">entfällt</span>':''}</td>
-      <td>${e.rows}${taktZeitbasis==='mess'&&!e.entfaellt?` <small class="takt-gem" title="davon gemessen">gem. ${e.gem}</small>`:''}${e.stGem?` <small class="takt-gem" title="Ø aus ${e.stGem} Stationszeit(en)">⏱ ${e.stGem}×</small>`:''}</td>
+      <td>${e.rows}</td>
       ${vergleich?`<td>${ie?ie.minD.toFixed(2):'–'}</td>`:`<td>${e.teile}</td>`}
       <td>${e.entfaellt?'–':e.minD.toFixed(2)}</td>
       ${vergleich?`<td class="${d>1e-9?'tk-pos':(d<-1e-9?'tk-neg':'')}">${Math.abs(d)<1e-9?'':(d>0?'+':'')+d.toFixed(2)}</td>`:`<td>${e.min.toFixed(2)}</td>`}
@@ -3128,7 +3258,7 @@ function renderTaktabgleich(){
           <label class="takt-part-wahl"><input type="checkbox" class="takt-wahl-chk" data-pid="${escAttr(p.id)}"${taktAuswahl.has(p.id)?' checked':''} onchange="taktWahl(this)"/>
           <span class="takt-part-name" title="${escAttr(p.name)}">${escHtml(p.name)}</span></label>
           ${moved?`<span class="takt-part-from">↪ aus ${escHtml(basis||taktEmptyLabel())}</span>`:''}
-          <span class="takt-part-t">${(taktZeit(p.id)*f).toFixed(2)} minD${taktGemessen(p.id)?' <small title="gemessen">gem.</small>':''}</span>
+          <span class="takt-part-t">${(taktZeit(p.id)*f).toFixed(2)} minD</span>
           <select onchange="taktMove('${escAttr(p.id)}',this.value)" title="Ziel-${escAttr(stLbl)}">${optionen(ziel)}</select>
         </div>`;
       }).join('')+'</div>';
@@ -3301,6 +3431,7 @@ function renderAnalysis(){
     `<option value="${escAttr(o.k)}"${o.k===topOpt.k?' selected':''}>${escHtml(o.l)}</option>`).join('');
   renderAnaTopList('anaTopHigh',topParts(fParts,topOpt.k));
   if(anaTab==='takt') renderTaktabgleich();
+  if(anaTab==='taktz') renderTaktZ();
   if(anaTab==='teile') renderTeileJeStation();
   if(anaTab==='mess') renderMess();
 
@@ -3422,7 +3553,7 @@ function startNewProject(){
   sollzeit=0;
   verteilzeitFactor=0;
   hourlyRate=0;
-  taktSoll=0; taktSzenario=null; taktAnsicht='ist'; taktOffen=null; stationMess={};
+  taktSoll=0; taktSzenario=null; taktAnsicht='ist'; taktOffen=null; stationMess={}; leistungsgrad=LG_STD;
   messLauf=null; messZyklusEnde=null; unterbrechungen=[]; messUhrAn();
   lwParams={...LW_DEF};
   lastExportTime=null;
@@ -3860,6 +3991,7 @@ function csvV4Lesen(rows,einfuegen){
     /* Bringt die Datei eigene Kategorien mit, aber keine Herleitungen, gelten die des zuvor offenen Projekts nicht weiter */
     colLabels:colLabelsParsed, mtmCustom:jsonMeta('__MTMCUSTOM__')||(colsFromFile?{}:null), mtmCustomGE:jsonMeta('__MTMGE__')||(colsFromFile?{}:null),
     takt:taktParsed, szenario:szenParsed, lwParams:lwParamRaw, lwTrigger, pausen, stationMess:jsonMeta('__STMESS__'),
+    leistungsgrad:meta.__LEISTUNGSGRAD__?lgPruefen(zahlLesen(wert('__LEISTUNGSGRAD__')),undefined):undefined,
     format:meta.__FORMAT__?(parseInt(wert('__FORMAT__'))||CSV_FORMAT):CSV_FORMAT, teileFehler:0,
     v4:{unbekannt, waisen, ohneName, teilWerte, zuordnungFehlt, nTeile, nurTeile, feld, nKat:kat.length}};
 }
@@ -4189,7 +4321,7 @@ function buildHead(){
   const griff=k=>`<span class="col-griff" data-bk="${k}" title="Breite ziehen · Doppelklick: zurücksetzen"></span>`;
   h+=`<th class="cn" style="left:${L.cn}px;${hide('name')}">Prozessschritt${fltIco('name','Prozessschritt','set')}${griff('cn')}</th>`;
   /* Zeitaufnahme: „Ø gemessen" gleich hinter dem Prozessschritt, damit sie am iPad ohne Blättern sichtbar ist */
-  const messTh=`<th class="mess" title="Mittelwert der Stoppuhr-Messungen (×Anzahl) — antippen zeigt die Einzelwerte">⏱ Ø gem.<br>[${ul()}]</th>`;
+  const messTh=`<th class="mess" title="Normalzeit: Mittelwert der Stoppuhr-Messungen × Leistungsgrad ${leistungsgrad} % (×Anzahl) — antippen zeigt die Einzelwerte">⏱ Normalzeit<br>[${ul()}]</th>`;
   h+=`<th class="sachnr" style="${hide('sachnr')}">Sachnr.${fltIco('sachnr','Sachnummer','set')}${griff('sachnr')}</th>`;
   h+=`<th class="teilname" style="${hide('teilname')}">Bauteilbenennung${fltIco('teilname','Bauteilbenennung','set')}${griff('teilname')}</th>`;
   OPT_COLS.filter(o=>!o.own).forEach(o=>{
@@ -4588,13 +4720,13 @@ const sekText=x=>(Math.round(x*10)/10).toFixed(1).replace('.',',');
 function messZelleFuellen(td,id){
   const m=messWerte(id), g=messGueltig(id);
   if(!m.length){ td.textContent='–'; td.title='Noch nicht gemessen'; return; }
-  td.innerHTML=g.length ? disp2(messMittel(id)/SEK_JE_MIND)+'<small>×'+g.length+'</small>' : '<small>alle aus</small>';
-  td.title=m.length+' Messung(en): '+messText(id,' / ')+' s'+(g.length<m.length?' — in Klammern: ausgeschlossen':'')+(g.length?' · Ø '+sekText(messMittel(id))+' s':'');
+  td.innerHTML=g.length ? disp2(messNormal(id)/SEK_JE_MIND)+'<small>×'+g.length+'</small>' : '<small>alle aus</small>';
+  td.title=m.length+' Messung(en): '+messText(id,' / ')+' s'+(g.length<m.length?' — in Klammern: ausgeschlossen':'')+(g.length?' · Ø '+sekText(messMittel(id))+' s × Leistungsgrad '+leistungsgrad+' % = '+sekText(messNormal(id))+' s Normalzeit':'');
 }
 function messSummeFuellen(td,liste){
   const g=liste.filter(p=>messGueltig(p.id).length);
-  td.textContent=g.length?disp2(g.reduce((x,p)=>x+messMittel(p.id),0)/SEK_JE_MIND):'–';
-  td.title='Summe der Mittelwerte – '+g.length+' von '+liste.length+' Schritten gemessen';
+  td.textContent=g.length?disp2(g.reduce((x,p)=>x+messNormal(p.id),0)/SEK_JE_MIND):'–';
+  td.title='Summe der Normalzeiten (Ø × Leistungsgrad '+leistungsgrad+' %) – '+g.length+' von '+liste.length+' Schritten gemessen';
 }
 /* Nach einer neuen oder gelöschten Messung: Zelle und Summe nachführen; erscheint oder verschwindet
    die Spalte dadurch, die Tabelle neu aufbauen */
@@ -4911,7 +5043,7 @@ function openMessPopup(id,anchor){
   const m=messWerte(id), aus=messAus(id);
   const nz=messNotizen(id);
   body.innerHTML=m.length ? `<div class="mess-chips">${m.map((x,i)=>messChip(x,i,aus[i],null,nz[i])).join('')}</div>${messNotizListe(id)}
-      <div class="vp-info" style="margin-top:6px">${messGueltig(id).length?'Ø '+sekText(messMittel(id))+' s = '+disp2(messMittel(id)/SEK_JE_MIND)+' '+ul():'Alle Messungen ausgeschlossen'} · MTM ${disp2(calcTotal(id))} ${ul()}</div>
+      <div class="vp-info" style="margin-top:6px">${messGueltig(id).length?'Ø '+sekText(messMittel(id))+' s × '+leistungsgrad+' % = '+disp2(messNormal(id)/SEK_JE_MIND)+' '+ul()+' Normalzeit':'Alle Messungen ausgeschlossen'} · MTM ${disp2(calcTotal(id))} ${ul()}</div>
       <div class="vp-info">Wert antippen: aus der Auswertung nehmen / wieder aufnehmen · ✎ Notiz · ✕ löscht</div>
       <div class="col-popup-actions"><button class="tbtn" id="messAlleWeg">Alle löschen</button></div>`
     : '<div class="leer-hinweis">Noch nicht gemessen.</div>';
@@ -4974,7 +5106,8 @@ function messUmschalten(id,i,anchor){
 /* Auswertung „Zeitmessung": MTM gegen gemessen */
 function messDaten(liste){
   return (liste||anaParts()).filter(p=>messWerte(p.id).length).map(p=>{
-    const m=messWerte(p.id), aus=messAus(p.id), g=messGueltig(p.id), n=g.length, avg=messMittel(p.id), ist=avg/SEK_JE_MIND, mtm=calcTotal(p.id);
+    /* ist = Normalzeit in minD (Ø × Leistungsgrad), lg = MTM-Erfüllung (MTM ÷ Normalzeit) */
+    const m=messWerte(p.id), aus=messAus(p.id), g=messGueltig(p.id), n=g.length, avg=messMittel(p.id), ist=avg*lgF()/SEK_JE_MIND, mtm=calcTotal(p.id);
     /* Streuung: Variationskoeffizient (Standardabweichung ÷ Mittelwert), ab zwei gültigen Messungen */
     const sd=n>1 ? Math.sqrt(g.reduce((x,v)=>x+(v-avg)*(v-avg),0)/(n-1)) : null;
     const vk=sd!=null&&avg>0 ? sd/avg*100 : null;
@@ -5054,15 +5187,16 @@ function renderMess(){
   w.innerHTML=`<div class="ana-kpi-row">
       <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessene Schritte</span><span class="ana-kpi-val">${k.schritte} von ${liste.length}</span><span class="ana-kpi-sub">${k.n} Messungen${k.aus?' · '+k.aus+' ausgeschlossen':''}</span></div>
       <div class="ana-kpi"><span class="ana-kpi-lbl">MTM (gemessene Schritte)</span><span class="ana-kpi-val">${disp2(k.mtm)} ${u}</span></div>
-      <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessen (Ø)</span><span class="ana-kpi-val">${disp2(k.ist)} ${u}</span></div>
-      <div class="ana-kpi" title="MTM-Zeit ÷ gemessene Zeit × 100 %"><span class="ana-kpi-lbl">Leistungsgrad</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ gemessen</span></div>
+      <div class="ana-kpi" title="Ø gemessen × Leistungsgrad"><span class="ana-kpi-lbl">Normalzeit</span><span class="ana-kpi-val">${disp2(k.ist)} ${u}</span><span class="ana-kpi-sub">gemessen × ${leistungsgrad} %</span></div>
+      <div class="ana-kpi" title="MTM-Zeit ÷ Normalzeit × 100 %"><span class="ana-kpi-lbl">MTM-Erfüllung</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ Normalzeit</span></div>
       <div class="ana-kpi" title="Messungen, die für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit) noch fehlen"><span class="ana-kpi-lbl">Noch nötig für ±${messGenau} %</span>
         <span class="ana-kpi-val${k.offen||!k.erreicht||k.streut?'':' ok'}">${k.offen?k.fehlt+' Messungen':(k.erreicht&&!k.streut?'✓ erreicht':'–')}</span>
         <span class="ana-kpi-sub">${k.offen?'bei '+k.offen+' Schritt'+(k.offen===1?'':'en'):''}${k.offen&&k.erreicht?' · ':''}${k.erreicht?k.erreicht+' genau genug':''}${k.ohneB?((k.offen||k.erreicht)?' · ':'')+k.ohneB+' mit nur 1 Messung':''}${k.streut?((k.offen||k.erreicht||k.ohneB)?' · ':'')+k.streut+(k.streut===1?' streut':' streuen')+' stark – Ausreißer prüfen':''}</span></div>
     </div>
-    <div class="mess-genau">Genauigkeit des Mittelwerts <select onchange="setMessGenau(this.value)"><option value="5"${messGenau===5?' selected':''}>±5 %</option><option value="10"${messGenau===10?' selected':''}>±10 %</option></select> bei 95 % Sicherheit</div>
+    <div class="mess-genau"><label title="Normalzeit = gemessene Zeit × Leistungsgrad">Leistungsgrad <input type="number" class="takt-in lg-in" min="50" max="200" step="1" inputmode="decimal" value="${leistungsgrad}" onchange="setLeistungsgrad(this.value)"/> %</label>
+      <span class="mess-genau-tr"></span>Genauigkeit des Mittelwerts <select onchange="setMessGenau(this.value)"><option value="5"${messGenau===5?' selected':''}>±5 %</option><option value="10"${messGenau===10?' selected':''}>±10 %</option></select> bei 95 % Sicherheit</div>
     <div class="tbl-scroll"><table class="takt-tbl mess-tbl">
-      <thead><tr><th>#</th><th>Prozessschritt</th><th>Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th title="Variationskoeffizient: Standardabweichung ÷ Mittelwert">Streuung</th><th title="Weitere Messungen für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit)">Noch nötig</th><th>Ø gemessen [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>Leistungsgrad</th></tr></thead>
+      <thead><tr><th>#</th><th>Prozessschritt</th><th>Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th title="Variationskoeffizient: Standardabweichung ÷ Mittelwert">Streuung</th><th title="Weitere Messungen für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit)">Noch nötig</th><th title="Ø × Leistungsgrad ${leistungsgrad} %">Normalzeit [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th title="MTM ÷ Normalzeit × 100 %">MTM-Erfüllung</th></tr></thead>
       <tbody>${d.map(e=>`<tr>
         <td>${nr.get(e.p.id)}</td>
         <td class="tk-name">${escHtml(e.p.name)}</td>
@@ -5079,7 +5213,7 @@ function renderMess(){
       <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td></td><td></td><td>${k.fehlt?'+'+k.fehlt:''}</td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
         <td>${(k.ist-k.mtm>0?'+':'')+disp2(k.ist-k.mtm)}</td><td>${pct(k.lg)}</td></tr></tbody>
     </table></div>
-    <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✎ Notiz zur Messung · ✕ löscht. MTM ohne Verteilzeit. Leistungsgrad = MTM-Zeit ÷ gemessene Zeit × 100 % — über 100 % war die Messung schneller als die MTM-Vorgabe. Abw. = gemessen − MTM (rot: länger als MTM). Streuung = Standardabweichung ÷ Mittelwert: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span> – dann Ausreißer prüfen. Noch nötig = weitere Messungen, bis der Mittelwert mit 95 % Sicherheit auf ±${messGenau} % genau ist: n = (t · Streuung ÷ ${messGenau} %)².</div>`
+    <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✎ Notiz zur Messung · ✕ löscht. MTM ohne Verteilzeit. Normalzeit = Ø gemessen × Leistungsgrad ${leistungsgrad} % (auf Normalleistung umgerechnet, wie MTM). MTM-Erfüllung = MTM ÷ Normalzeit × 100 % — über 100 % liegt der Schritt unter der MTM-Vorgabe. Abw. = Normalzeit − MTM (rot: länger als MTM). Streuung = Standardabweichung ÷ Mittelwert: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span> – dann Ausreißer prüfen. Noch nötig = weitere Messungen, bis der Mittelwert mit 95 % Sicherheit auf ±${messGenau} % genau ist: n = (t · Streuung ÷ ${messGenau} %)².</div>`
     +messZyklenHtml(liste)+pausenHtml(pz,nr);
 }
 function messZyklenHtml(liste){
@@ -5434,7 +5568,7 @@ function undoBis(k){
    Spaltenbreiten). Wird vor einer Änderung gemerkt; Undo setzt ihn als Ganzes zurück. */
 function projektStand(){
   return JSON.stringify({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,
-    taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject,activePart,unterbrechungen,stationMess});
+    taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject,activePart,unterbrechungen,stationMess,leistungsgrad});
 }
 /* quelle: gleichartige Änderungen kurz hintereinander (Tippen in einem Feld) ergeben einen Undo-Schritt */
 function undoStand(text,quelle,vorher){
@@ -5456,6 +5590,7 @@ function standZuruecksetzen(json){
   ({parts,data,COLS,sollzeit,verteilzeitFactor,hourlyRate,colLabels,taktGroupKey,mtmCustom,mtmCustomGE,taktSoll,taktMitVz,taktSzenario,lwParams,projectDescription,currentProject}=st);
   unterbrechungen=Array.isArray(st.unterbrechungen)?st.unterbrechungen:[];
   stationMess=stMessPruefen(st.stationMess);
+  leistungsgrad=lgPruefen(st.leistungsgrad,LG_STD);
   activePart=parts.some(p=>p.id===st.activePart) ? st.activePart : (parts[0]?parts[0].id:null);
   Object.keys(teileOffen).forEach(id=>{ if(!data[id]) delete teileOffen[id]; });
   if(rowClipboard && !data[rowClipboard.sourceId]) rowClipboard=null;
@@ -6744,7 +6879,7 @@ let speicherWarnung=0;
 function saveState(){
   try{
     const state={ parts, data, COLS, activePart, unit, mode, currentProject, sollzeit,
-                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, messModus, messLauf, unterbrechungen, messGenau, taktZeitbasis, stationMess, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
+                  projectDescription, lastExportTime, verteilzeitFactor, uiMode, zeitModus, messModus, messLauf, unterbrechungen, messGenau, tzMtm, leistungsgrad, stationMess, hourlyRate, colVis, colLabels, taktGroupKey, anaTopNach, mtmCustom, mtmCustomGE, taktSoll, taktMitVz, taktSzenario, teileOffen, lwParams,
                   ungesichert: hasUnsavedChanges, projektId,
                   saved: new Date().toISOString() };
     if(!speicherSchreiben(LS_KEY,state)) throw new Error('voll');
@@ -6952,7 +7087,8 @@ function loadState(){
     if(typeof s.taktSoll==='number' && s.taktSoll>=0) taktSoll=s.taktSoll;
     if(typeof s.taktMitVz==='boolean') taktMitVz=s.taktMitVz;
     messGenau=s.messGenau===10?10:5;
-    taktZeitbasis=(s.taktZeitbasis==='mess'||s.taktZeitbasis==='station')?s.taktZeitbasis:'mtm';
+    tzMtm=s.tzMtm!==false;
+    leistungsgrad=lgPruefen(s.leistungsgrad,LG_STD);
     stationMess=stMessPruefen(s.stationMess);
     taktSzenario=taktSzenPruefen(s.taktSzenario);
     mtmCustom=mtmCustomPruefen(s.mtmCustom);
@@ -7381,14 +7517,14 @@ function xlsxSheetTeileJeStation(){
 <sheetData>${rows}</sheetData>
 </worksheet>`;
 }
-/* Blatt 7 (nur wenn gemessen wurde): Zeitmessung — Einzelwerte, Mittelwert, MTM, Leistungsgrad */
+/* Blatt 7 (nur wenn gemessen wurde): Zeitmessung — Einzelwerte, Mittelwert, Normalzeit, MTM, MTM-Erfüllung */
 function xlsxSheetZeitmessung(){
   const u=ul(), fU=u==='minD'?1:MIND_FACTOR, d=messDaten(parts), k=messKennzahlen(d);
   let rows='',rn=1;
   rows+=`<row r="${rn}" ht="20" customHeight="1">${xc(1,rn,'Zeitmessung'+(currentProject?' – '+currentProject:''),1)}</row>`;rn++;
-  rows+=`<row r="${rn}">${xc(1,rn,'Stoppuhr-Messungen gegen MTM (ohne Verteilzeit) · Leistungsgrad = MTM ÷ gemessen × 100 % · Werte in Klammern ausgeschlossen · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
+  rows+=`<row r="${rn}">${xc(1,rn,'Stoppuhr-Messungen gegen MTM (ohne Verteilzeit) · Leistungsgrad '+leistungsgrad+' %: Normalzeit = Ø gemessen × '+leistungsgrad+' % · MTM-Erfüllung = MTM ÷ Normalzeit × 100 % · Werte in Klammern ausgeschlossen · Export: '+new Date().toLocaleString('de-DE'),2)}</row>`;rn++;
   rn++;
-  const kopf=['Nr.','Prozessschritt',colLabel('extra1'),'Messungen','Einzelwerte [s]','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]','min [s]','max [s]','Streuung [%]','Noch nötig (±'+messGenau+' %)','Notizen'];
+  const kopf=['Nr.','Prozessschritt',colLabel('extra1'),'Messungen','Einzelwerte [s]','Ø [s]','Normalzeit ['+u+']','MTM ['+u+']','Abweichung ['+u+']','MTM-Erfüllung [%]','min [s]','max [s]','Streuung [%]','Noch nötig (±'+messGenau+' %)','Notizen'];
   if(d.length){   // nur Stationszeiten oder Unterbrechungen: keine leere Schritt-Tabelle
   rows+=`<row r="${rn}" ht="26" customHeight="1">${kopf.map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
   }
@@ -7411,14 +7547,15 @@ function xlsxSheetZeitmessung(){
     rows+=`<row r="${rn}">${['Zyklus','Schritte','Zeit [s]','Zeit ['+u+']'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
     zy.forEach(e=>{ rows+=`<row r="${rn}">${xc(1,rn,e.nr,33,true)}${xc(2,rn,e.n,33,true)}${xc(3,rn,xn(e.sek),32,true)}${xc(4,rn,xn(e.sek/SEK_JE_MIND*fU),32,true)}</row>`;rn++; });
   }
-  /* Stationszeiten von Hand */
-  if(stMessHat()){
-    const sd=stMessDaten(parts).filter(r=>!r.verwaist), stLbl=taktGroupLabel();
-    rn++; rows+=`<row r="${rn}">${xc(1,rn,'Stationszeiten – gemessen gegen MTM je '+stLbl+((taktMitVz&&verteilzeitFactor)?' (inkl. '+verteilzeitFactor+' % Verteilzeit)':''),40)}</row>`;rn++;
-    rows+=`<row r="${rn}">${[stLbl,'Durchläufe [s]','n','Ø [s]','Ø gemessen ['+u+']','MTM ['+u+']','Abweichung ['+u+']','Leistungsgrad [%]','min [s]','max [s]','Streuung [%]'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
-    sd.forEach(r=>{ rows+=`<row r="${rn}">${xc(1,rn,r.name,33)}${xc(2,rn,r.w.map((x,i)=>r.a[i]?'('+sekText(x)+')':sekText(x)).join(' / '),33)}${xc(3,rn,r.n,33,true)}${xc(4,rn,r.n?xn(r.avg):'',32,!!r.n)}`
-      +`${xc(5,rn,r.ist!=null?xn(r.ist*fU):'',32,r.ist!=null)}${xc(6,rn,xn(r.mtm*fU),32,true)}${xc(7,rn,r.abw==null?'':xn(r.abw*fU),32,r.abw!=null)}${xc(8,rn,r.lg==null?'':r.lg.toFixed(1),39,r.lg!=null)}`
-      +`${xc(9,rn,r.n?xn(r.min):'',32,!!r.n)}${xc(10,rn,r.n?xn(r.max):'',32,!!r.n)}${xc(11,rn,r.vk==null?'':r.vk.toFixed(1),39,r.vk!=null)}</row>`;rn++; });
+  /* Taktabgleich Zeitaufnahme: Normalzeit je Station */
+  const tzd=taktZData(parts);
+  if(tzd.gemessen){
+    const stLbl=taktGroupLabel();
+    rn++; rows+=`<row r="${rn}">${xc(1,rn,'Taktabgleich Zeitaufnahme – Normalzeit je '+stLbl+' (Leistungsgrad '+leistungsgrad+' %'+((taktMitVz&&verteilzeitFactor)?', inkl. '+verteilzeitFactor+' % Verteilzeit':'')+')',40)}</row>`;rn++;
+    rows+=`<row r="${rn}">${[stLbl,'Grundlage','Durchläufe [s]','Ø Durchlauf [s]','Normalzeit ['+u+']','MTM ['+u+']','Abweichung ['+u+']','MTM-Erfüllung [%]','Streuung [%]'].map((h,i)=>xc(i+1,rn,h,9)).join('')}</row>`;rn++;
+    tzd.list.forEach(e=>{ rows+=`<row r="${rn}">${xc(1,rn,e.name,33)}${xc(2,rn,tzGrundlage(e),33)}${xc(3,rn,e.quelle==='station'?e.w.map((x,i)=>e.a[i]?'('+sekText(x)+')':sekText(x)).join(' / '):'',33)}${xc(4,rn,e.quelle==='station'?xn(e.avg):'',32,e.quelle==='station')}`
+      +`${xc(5,rn,xn(e.minD*fU),32,true)}${xc(6,rn,xn(e.mtm*fU),32,true)}${xc(7,rn,e.abw==null?'':xn(e.abw*fU),32,e.abw!=null)}${xc(8,rn,e.erf==null?'':e.erf.toFixed(1),39,e.erf!=null)}${xc(9,rn,e.vk==null?'':e.vk.toFixed(1),39,e.vk!=null)}</row>`;rn++; });
+    rows+=`<row r="${rn}">${xc(1,rn,'∑ Gesamt',35)}${xc(2,rn,'',35)}${xc(3,rn,'',35)}${xc(4,rn,'',35)}${xc(5,rn,xn(tzd.total*fU),36,true)}${xc(6,rn,xn(tzd.mtmTotal*fU),36,true)}</row>`;rn++;
   }
   /* Unterbrechungen */
   const pz=pausenDaten(parts);
@@ -7610,6 +7747,7 @@ function csvProjektV4(){
     ['__MTMCUSTOM__',...csvJsonZellen(mtmCustom||{})],
     ['__MTMGE__',...csvJsonZellen(mtmCustomGE||{})],
     ['__TAKT__',zahlDe(taktSoll),taktMitVz?1:0,taktGroupKey],
+    ['__LEISTUNGSGRAD__',zahlDe(leistungsgrad)],
     ['__SZENARIO__',...csvJsonZellen(szenCsv)],
     ['__LWPARAM__',...LW_KEYS.map(k=>k+'|'+zahlDe(lwParams[k]))],
     ['__LW__',...csvJsonZellen(lwCsv)],
@@ -7846,6 +7984,7 @@ function importUebernehmen(parsed,start,dateiname){
   messLauf=null; messZyklusEnde=null; messUhrAn();
   unterbrechungen=parsed.pausen||[];   // die Schritte sind neu — alte Unterbrechungen hätten keinen Bezug mehr
   stationMess=stMessPruefen(parsed.stationMess);
+  leistungsgrad=lgPruefen(wert(parsed.leistungsgrad,leistungsgrad,LG_STD),LG_STD);
   teileOffen={}; colFilters={}; filterGeaendert();   // Filter gehören zum vorigen Stand — sie blendeten sonst Zeilen aus
   if(start || parsed.lwParams!==undefined) lwParams=lwParamsPruefen(parsed.lwParams);   // ältere Datei ohne Zeile → Standardwerte
   if(parsed.lwTrigger) Object.keys(parsed.lwTrigger).forEach(id=>{ if(data[id]) data[id].__lw=parsed.lwTrigger[id]; });

@@ -18,6 +18,33 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Behoben (Code-Review)
+- **Stationszeiten:** Ein Klick auf ✕ löschte mehrere Werte, Antippen zum Ausschließen wirkte nicht
+  (der Klick wurde nach jedem Neuzeichnen mehrfach ausgeführt).
+- **Stationszeiten – Vergleich:** Die MTM-Spalte zeigte bei Zeitbasis „Gemessen“ Messwerte statt MTM
+  (Druck, Excel). MTM zählt jetzt immer alle Schritte der Station, auch bei aktivem Filter; eine
+  ausgefilterte Station erschien fälschlich als „nicht mehr in der Tabelle“. Stationszeiten ohne
+  zugehörige Station zählen nicht mehr in die Summe.
+- **Stationszeiten – Eingabe:** „1,4 min“ mit Leerzeichen vor der Einheit wurde abgelehnt.
+- **Zähl-Kürzel:** Bei offenem Fenster „Sicherungsstände“, „Pausegründe“, „Undo-Verlauf“ oder einem
+  Popup zählte ein Tastendruck im Hintergrund eine Kategorie. Jetzt ruhen die Kürzel bei jedem
+  offenen Fenster.
+- **Aktiver Schritt:** Nach dem Löschen des aktiven Schritts und nach Undo von „+ Schritt“ sprang
+  die Auswahl auf #1 und keine Zeile war markiert. Jetzt wird der Nachbar bzw. der vorher aktive
+  Schritt gewählt und markiert.
+- **Zeile kopieren/einfügen** überschrieb die Stoppuhr-Messungen des Ziels mit denen der Quelle
+  (Zyklen zählten doppelt). Messungen bleiben jetzt beim jeweiligen Schritt.
+- **CSV:** Eine einzelne ausgeschlossene Messung „(25,8)“ machte Excel zu −25,8; beim Import ging
+  sie verloren. Sie ist jetzt geschützt, und negative Werte werden als ausgeschlossen gelesen.
+- **„+ Schritt“ mit Filter:** Der trotz Filter gezeigte neue Schritt tauchte später wieder auf,
+  wenn derselbe Filter erneut gesetzt wurde.
+- **Mess-Ansicht:** Leertaste/Taster nach „Stopp“ startete ab dem Startschritt statt – wie der
+  große Knopf – ab dem gezeigten Schritt. Alt+↑/↓ verschob Schritte unsichtbar. Enter verlässt
+  jetzt auch das Notizfeld der Unterbrechung.
+- Löschen-Rückfrage nennt auch Messungen; Excel-Blatt „Zeitmessung“ ohne leere Schritt-Tabelle,
+  wenn es nur Stationszeiten gibt; eigene Baustein-Herleitungen bleiben nicht mehr vom vorigen
+  Projekt hängen, wenn eine Datei eigene Kategorien ohne Herleitungen mitbringt.
+
 ### Stationszeiten von Hand
 - **Taktabgleich: dritte Zeitbasis „Station gemessen“.** Wurde in der Linie nicht je Schritt, sondern je
   Station gestoppt, lassen sich die Durchläufe dort je Station eintragen – in Sekunden („83,5“),

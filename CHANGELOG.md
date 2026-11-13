@@ -18,6 +18,14 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Neuer Baustein „Liquid seal 20 cm“
+- 0,43 minD, Gruppe Process, neues Grundelement #39 aus LAMRKE (Reinigen kleine Fläche, erste) +
+  LAMRZK (Zuschlag Nassreinigen) + LAMOKE (Ölen/Fetten kleine Fläche, erste) + LAMOKZ (… weitere).
+- Steht in neuen Projekten hinter „Ø Oil / Grease“. Bestehende Projekte und ältere CSV-Dateien bekommen
+  ihn beim Öffnen einmalig dazu (mit Hinweis); wer ihn danach entfernt, bekommt ihn nicht wieder
+  (neue CSV-Zeile `__KATSTAND__`).
+- Die Tastenkürzel der Kacheln dahinter rücken um eine Stelle (Ø Code scan jetzt I statt U usw.).
+
 ### Sprache Deutsch / Englisch
 Zuerst als Testversion `test.html` erprobt, jetzt in der App.
 - **Umschalter DE | EN** auf der Startseite (oben rechts) und im ⋯-Menü; die Sprache gilt je Gerät.

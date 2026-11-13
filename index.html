@@ -1700,6 +1700,7 @@ let COLS = [
   // Laufweg — gezählt oder aus dem Laufweg-Rechner
   {key:"meter",       label:"Meter in total",        param:0.0325,   group:"laufweg"},
 ];
+const COLS_STANDARD=COLS.map(c=>({...c}));   // Rückfallebene, wenn ein gespeicherter Stand keine brauchbaren Kategorien hat
 
 let parts = [];
 let data  = {};
@@ -1918,15 +1919,65 @@ function initPart(p){
   if(!Array.isArray(data[p].__teile)) data[p].__teile=[];
   schrittFelder(data[p]);
 }
+/* Werte eines Schritts absichern: ein beschädigter Stand (Text statt Zahl, fehlende Parallel-Liste)
+   ergäbe sonst „NaN" in allen Summen oder einen Abbruch mitten im Aufbau der Tabelle. Gültige Werte
+   bleiben unangetastet. */
+function schrittPruefen(d){
+  COLS.forEach(c=>{ const v=d[c.key]; if(typeof v!=='number'||!isFinite(v)||v<0){ const n=Number(v); d[c.key]=(typeof v!=='object'&&isFinite(n)&&n>0)?n:0; } });
+  const lv=Math.round(Number(d.__level)); d.__level=(lv>=1&&lv<=7)?lv:1;
+  [...ZUSATZ_KEYS,'note'].forEach(k=>{ const v=d['__'+k]; if(typeof v!=='string') d['__'+k]=(v==null||typeof v==='object')?'':String(v); });
+  if(d.__mess!==undefined || d.__messAus!==undefined || d.__messZ!==undefined || d.__messN!==undefined){
+    const m=Array.isArray(d.__mess)?d.__mess:[], lis=k=>Array.isArray(d[k])?d[k]:null;
+    const ok=[]; m.forEach((v,i)=>{ if(typeof v==='number'&&isFinite(v)&&v>0) ok.push(i); });
+    const schief=ok.length!==m.length || !Array.isArray(d.__mess) || ['__messAus','__messZ','__messN'].some(k=>d[k]!==undefined&&(!lis(k)||d[k].length!==m.length));
+    if(schief){
+      const a=lis('__messAus'), z=lis('__messZ'), n=lis('__messN');
+      const mm=ok.map(i=>m[i]), aa=ok.map(i=>!!(a&&a[i])), zz=ok.map(i=>(z&&z[i]>0)?Math.floor(z[i]):0), nn=ok.map(i=>(n&&typeof n[i]==='string')?n[i]:'');
+      if(mm.length) d.__mess=mm; else delete d.__mess;
+      if(mm.length&&aa.some(Boolean)) d.__messAus=aa; else delete d.__messAus;
+      if(mm.length&&zz.some(x=>x>0)) d.__messZ=zz; else delete d.__messZ;
+      if(mm.length&&nn.some(Boolean)) d.__messN=nn; else delete d.__messN;
+    }
+  }
+}
 function ensureKeys(){
   parts.forEach(part=>{
     const p=part.id;
-    if(!data[p]) data[p]={};
+    if(!data[p] || typeof data[p]!=='object') data[p]={};
     migrateLegacyStep(data[p],part.name);   // Vorversion umwandeln bzw. Teile-Liste absichern
     const lw=lwTrigPruefen(data[p].__lw);
     if(lw) data[p].__lw=lw; else delete data[p].__lw;
     schrittFelder(data[p]);
+    schrittPruefen(data[p]);
   });
+}
+/* Kategorien aus dem Speicher absichern; null = unbrauchbar (dann bleiben die bisherigen) */
+function colsPruefen(c){
+  if(!Array.isArray(c)) return null;
+  const vergeben=new Set(), r=[];
+  c.forEach(x=>{
+    if(!x || typeof x!=='object') return;
+    let key=x.key;
+    if(typeof key!=='string' || !key || key.startsWith('__') || (key in Object.prototype) || vergeben.has(key)){
+      do{ key='cat_'+Math.random().toString(36).slice(2,7); }while(vergeben.has(key));
+    }
+    vergeben.add(key);
+    const par=typeof x.param==='number'?x.param:parseFloat(String(x.param==null?'':x.param).replace(',','.'));
+    r.push({...x, key, label:(typeof x.label==='string'&&x.label.trim())?x.label:key, param:(isFinite(par)&&par>=0)?par:0,
+      group:Object.prototype.hasOwnProperty.call(GROUPS,x.group)?x.group:'process', note:typeof x.note==='string'?x.note:''});
+  });
+  return r.length?r:null;
+}
+/* Laufende Messung aus dem Speicher: nur mit vollständigen, plausiblen Feldern weiterführen */
+function messLaufLaden(o){
+  if(!o || typeof o!=='object' || typeof o.id!=='string' || !data[o.id]) return null;
+  const zahl=v=>typeof v==='number'&&isFinite(v);
+  if(!zahl(o.start)) return null;
+  return {id:o.id, start:o.start, pauseMs:(zahl(o.pauseMs)&&o.pauseMs>=0)?o.pauseMs:0, pauseStart:zahl(o.pauseStart)?o.pauseStart:null,
+    grund:typeof o.grund==='string'?o.grund:'', notiz:typeof o.notiz==='string'?o.notiz:'', mnotiz:typeof o.mnotiz==='string'?o.mnotiz:'',
+    zyklus:(zahl(o.zyklus)&&o.zyklus>0)?Math.floor(o.zyklus):0, startId:(typeof o.startId==='string'&&data[o.startId])?o.startId:o.id,
+    verlauf:Array.isArray(o.verlauf)?o.verlauf.filter(v=>v&&typeof v.id==='string').map(v=>({id:v.id,sek:zahl(v.sek)?v.sek:null,skip:!!v.skip||!zahl(v.sek)})):[],
+    danach:(typeof o.danach==='string'&&data[o.danach])?o.danach:null};
 }
 function calcTotal(p){ if(!p||!data[p]) return 0; return COLS.reduce((s,c)=>s+(data[p][c.key]||0)*c.param,0); }
 function disp(minD){ return unit==='minD' ? minD.toFixed(3) : (minD*MIND_FACTOR).toFixed(3); }
@@ -2026,6 +2077,14 @@ function filterAusnahmeSetzen(id){
   const sig=filterSig();
   if(filterAusnahme.sig!==sig) filterAusnahme={sig,ids:new Set()};
   filterAusnahme.ids.add(id);
+}
+/* Eine Änderung in einer gefilterten Spalte nähme die Zeile aus dem Filter. Sie stünde aber weiter da und
+   zählte nicht mehr zur Summenzeile und zur Auswertung. Wie in Excel bleibt sie deshalb gezeigt (und
+   mitgezählt), bis der Filter geändert wird. */
+function filterBehalten(id){
+  if(!hasAnyFilter()) return;
+  const p=parts.find(x=>x.id===id);
+  if(p && !partPassesFilters(p) && document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"]')) filterAusnahmeSetzen(id);
 }
 function partPassesFilters(part){
   if(filterAusnahme.ids.size && filterAusnahme.ids.has(part.id) && filterAusnahme.sig===filterSig()) return true;
@@ -2480,7 +2539,7 @@ function printAnalysis(){
         <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th>Streuung</th><th>Noch nötig (±${messGenau} %)</th><th>Normalzeit [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>MTM-Erfüllung</th></tr></thead>
         <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${messText(e.p.id,' / ')}${e.notizen.some(Boolean)?'<br><i>'+e.notizen.map((t,i)=>t?(i+1)+'. '+escHtml(t):'').filter(Boolean).join(' · ')+'</i>':''}</td><td>${e.n?sekText(e.avg):'–'}</td><td>${e.n?sekText(e.min)+'–'+sekText(e.max):'–'}</td><td>${streuText(e.vk)}</td><td>${messFehltText(e.fehlt)}</td>
           <td>${e.n?disp2(e.ist):'–'}</td><td>${disp2(e.mtm)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td><td>${mpct(e.lg)}</td></tr>`).join('')}
-          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td></td><td></td><td>${mk.fehlt?'+'+mk.fehlt:''}</td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
+          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td></td><td></td><td>${mk.fehlt?'+'+mk.fehlt:''}</td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${mk.abw==null?'–':(mk.abw>0?'+':'')+disp2(mk.abw)}</td><td>${mpct(mk.lg)}</td></tr>
         </tbody>
       </table>
       <p class="pr-hint">MTM ohne Verteilzeit. Normalzeit = Ø gemessen × Leistungsgrad ${leistungsgrad} %. MTM-Erfüllung = MTM ÷ Normalzeit × 100 %. Werte in Klammern sind ausgeschlossen und zählen nicht mit. Noch nötig = weitere Messungen für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit).</p>
@@ -2666,11 +2725,13 @@ function lgF(){ return leistungsgrad/100; }
 function messNormal(id){ return messMittel(id)*lgF(); }   // Normalzeit eines Schritts in Sekunden
 function setLeistungsgrad(v){
   const n=lgPruefen(String(v).replace(',','.'),null);
-  if(n===null){ toast('⚠ Leistungsgrad zwischen 50 und 200 % eingeben'); renderAnalysis(); return; }
-  if(n===leistungsgrad) return;
+  /* Das Feld selbst zurücksetzen: nach Enter bleibt es fokussiert und würde sonst den ungültigen Wert weiter zeigen */
+  const feld=()=>{ const li=document.getElementById('tzLgInput'); if(li) li.value=String(leistungsgrad); };
+  if(n===null){ toast('⚠ Leistungsgrad zwischen 50 und 200 % eingeben'); feld(); renderAnalysis(); return; }
+  if(n===leistungsgrad){ feld(); return; }
   undoStand('Leistungsgrad '+leistungsgrad+' → '+n+' %');
-  leistungsgrad=n;
-  markDirty(); renderBody(); renderAnalysis();
+  leistungsgrad=n; feld();
+  markDirty(); buildHead(); renderBody(); renderAnalysis();   // Spaltenkopf nennt den Leistungsgrad
   toast('✓ Leistungsgrad '+n+' % – gemessene Zeiten × '+(n/100).toFixed(2).replace('.',','));
 }
 let tzMtm=true;   // im Reiter „Taktabgleich Zeitaufnahme" MTM zum Vergleich zeigen (Anzeige, auf dem Gerät)
@@ -2694,11 +2755,11 @@ function stMessPruefen(o){
   });
   return r;
 }
-function stMessEintrag(name){ const g=stationMess[taktGroupKey]; return g&&g[name]?g[name]:{w:[],a:[]}; }
+function stMessEintrag(name){ const g=stationMess[taktGroupKey]; return g&&taktHas(g,name)&&g[name]&&Array.isArray(g[name].w)?g[name]:{w:[],a:[]}; }
 function stMessGueltig(name){ const e=stMessEintrag(name); return e.w.filter((_,i)=>!e.a[i]); }
 function stMessMittel(name){ const g=stMessGueltig(name); return g.length?g.reduce((a,b)=>a+b,0)/g.length:0; }
 function stMessStreuung(name){ const g=stMessGueltig(name), n=g.length; if(n<2) return null; const m=g.reduce((a,b)=>a+b,0)/n; return m>0?Math.sqrt(g.reduce((x,v)=>x+(v-m)*(v-m),0)/(n-1))/m*100:null; }
-function stMessNamen(){ const g=stationMess[taktGroupKey]||{}; return Object.keys(g).filter(n=>g[n].w.length); }
+function stMessNamen(){ const g=stationMess[taktGroupKey]||{}; return Object.keys(g).filter(n=>g[n]&&Array.isArray(g[n].w)&&g[n].w.length); }
 function stMessHat(){ return stMessNamen().length>0; }
 function stMessSetzen(name,w,a){
   if(!stationMess[taktGroupKey]) stationMess[taktGroupKey]={};
@@ -2719,7 +2780,8 @@ function stZeitenLesen(txt){
   return String(txt||'').replace(/(\d)\s+(sek|min|s|m)(?=$|[\s;|])/gi,'$1$2').split(/[\s;|]+/).filter(Boolean).map(stZeitLesen);
 }
 function stMessHinzu(name,txt){
-  const v=stZeitenLesen(txt); if(!v.length) return false;
+  /* auf Zehntelsekunden runden — was dabei 0 ergibt („0,0001"), ist keine Zeit und fiele beim Laden wieder weg */
+  const v=stZeitenLesen(txt).map(x=>x==null?null:(Math.round(x*10)/10>0?Math.round(x*10)/10:null)); if(!v.length) return false;
   if(v.some(x=>x==null)){ toast('⚠ Zeit nicht lesbar – Sekunden („83,5"), Minuten:Sekunden („1:23,5") oder „1,4 min"; mehrere Werte mit Leerzeichen',5000); return false; }
   undoStand('Stationszeit „'+name+'" eingetragen');
   const e=stMessEintrag(name);
@@ -2840,7 +2902,7 @@ function taktZData(liste){
   const f=taktFaktor(), lg=lgF(), sicht=liste||anaParts();
   const map=new Map(); let ohne=null;
   const neu=(name,o)=>({name,rows:0,relevant:0,gemSchritte:0,minD:0,mtm:0,ohne:!!o});
-  const rel=p=>lvlVon(p.id)>1||calcTotal(p.id)>0||messWerte(p.id).length>0;
+  const kopf=kopfTest(), rel=p=>!kopf(p.id)||calcTotal(p.id)>0||messWerte(p.id).length>0;
   sicht.forEach(p=>{
     const st=taktBasis(p);
     let e; if(st){ e=map.get(st); if(!e){ e=neu(st); map.set(st,e); } } else e=ohne||(ohne=neu(taktEmptyLabel(),true));
@@ -2865,11 +2927,12 @@ function taktZData(liste){
   const list=ohne?stations.concat([ohne]):stations;
   list.forEach(e=>{
     const gem=e.quelle!=='mtm';
-    e.abw=gem?e.minD-e.mtm:null; e.erf=gem&&e.minD>0?e.mtm/e.minD*100:null;
+    const vgl=gem&&e.mtm>0;   // ohne MTM-Wert nichts zu vergleichen
+    e.abw=vgl?e.minD-e.mtm:null; e.erf=vgl&&e.minD>0?e.mtm/e.minD*100:null;
     e.dev=e.ohne?null:e.minD-avgMinD; e.ausl=(taktSoll>0&&!e.ohne)?e.minD/taktSoll*100:null;
   });
-  const gemList=list.filter(e=>e.quelle!=='mtm');
-  const gZ=gemList.reduce((x,e)=>x+e.minD,0), gM=gemList.reduce((x,e)=>x+e.mtm,0);
+  const gemList=list.filter(e=>e.quelle!=='mtm'), vglList=gemList.filter(e=>e.mtm>0);
+  const gZ=vglList.reduce((x,e)=>x+e.minD,0), gM=vglList.reduce((x,e)=>x+e.mtm,0);
   return {list,stations,ohne,n,total:list.reduce((x,e)=>x+e.minD,0),mtmTotal:list.reduce((x,e)=>x+e.mtm,0),stTotal,avgMinD,maxMinD,engpass,
     bwg:(n&&maxMinD>0)?stTotal/(n*maxMinD):null, ueberTakt:taktSoll>0?stations.filter(e=>e.minD>taktSoll+1e-9).length:0,
     gemessen:gemList.length, nStation:list.filter(e=>e.quelle==='station').length, erf:gZ>0?gM/gZ*100:null};
@@ -2892,7 +2955,7 @@ function renderTaktZ(){
   document.getElementById('tzMtmChk').checked=tzMtm;
   const d=taktZData(), h=document.getElementById('tzHinweis');
   const kw=document.getElementById('tzKpiWrap'), tw=document.getElementById('tzTableWrap'), cw=document.getElementById('tzChartWrap');
-  const nGes=d.list.reduce((x,e)=>x+e.relevant,0), nGem=d.list.reduce((x,e)=>x+(e.quelle==='schritte'?e.gemSchritte:0),0);
+  const nGem=d.list.reduce((x,e)=>x+(e.quelle==='schritte'?e.gemSchritte:0),0);
   h.innerHTML=ic('uhr')+'Normalzeit = gemessene Zeit × Leistungsgrad '+leistungsgrad+' % · '
     +(d.gemessen ? d.nStation+' von '+d.n+' '+escHtml(taktMehrzahl())+' mit Stationszeit'+(nGem?' · '+nGem+' Schritte einzeln gemessen':'')+' · Ungemessenes zählt mit MTM'
       : 'noch nichts gemessen – unten Stationszeiten eintragen oder im Einfach-Modus → „Zeitaufnahme" je Schritt messen');
@@ -2979,6 +3042,7 @@ function setTaktSoll(v){
   const n=parseFloat(String(v).replace(',','.'));
   undoStand('Soll-Taktzeit geändert');
   taktSoll=(isNaN(n)||n<0) ? 0 : n;
+  ['taktSollInput','tzSollInput'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=taktSoll>0?String(mtmR6(taktSoll)):''; });
   markDirty(); taktNeuZeichnen();
 }
 function setTaktMitVz(on){ undoStand('Taktabgleich mit/ohne Verteilzeit'); taktMitVz=!!on; markDirty(); taktNeuZeichnen(); }
@@ -4488,6 +4552,7 @@ function schrittZeilen(part,k){
     lvSel.addEventListener('change',()=>{
       undoPush({part:id,key:'__level',prev:data[id].__level});
       data[id].__level=parseInt(lvSel.value)||1;
+      filterBehalten(id);
       markDirty();
       tr.className=tr.className.replace(/\blvl-\d\b/,'lvl-'+data[id].__level);
     });
@@ -4537,7 +4602,10 @@ function schrittZeilen(part,k){
       ei.addEventListener('keydown',e=>{if(e.key==='Enter')ei.blur();});
       ei.addEventListener('blur',()=>{
         const val=ei.value;
-        if((data[id][fld]||'')!==val){ undoPush({part:id,key:fld,prev:data[id][fld]||''}); data[id][fld]=val; markDirty(); }
+        if((data[id][fld]||'')!==val){
+          undoPush({part:id,key:fld,prev:data[id][fld]||''}); data[id][fld]=val; filterBehalten(id); markDirty();
+          if(id===activePart) updateActiveBar();   // die Leiste zeigt die Station des aktiven Schritts
+        }
       });
       tdE.appendChild(ei);
       tr.appendChild(tdE);
@@ -4568,7 +4636,7 @@ function schrittZeilen(part,k){
     noteBtn.innerHTML=ic('notiz');
     noteBtn.addEventListener('click',e=>{
       e.stopPropagation();
-      openNotePopup(noteBtn,'Notiz: '+name, data[id].__note||'', val=>{
+      openNotePopup(noteBtn,'Notiz: '+partName(id), data[id].__note||'', val=>{
         if(!data[id]) return;   // Schritt inzwischen gelöscht
         if((data[id].__note||'')!==val){
           undoPush({part:id,key:'__note',prev:data[id].__note||''});
@@ -4612,6 +4680,7 @@ function schrittZeilen(part,k){
 }
 function renderBody(){
   const body=document.getElementById('tblBody');
+  if(messSpalteSichtbar()!==!!document.querySelector('#tblHead th.mess')) buildHead();   // siehe messSpaltePruefen
   body.innerHTML='';
   const k=tabKontext(), {L,vis,extraFlds,td}=k;
   const visibleParts=getFilteredParts();
@@ -4730,9 +4799,15 @@ function messSummeFuellen(td,liste){
 }
 /* Nach einer neuen oder gelöschten Messung: Zelle und Summe nachführen; erscheint oder verschwindet
    die Spalte dadurch, die Tabelle neu aufbauen */
+/* Die Spalte „Normalzeit" gibt es nur, solange irgendein Schritt Messungen hat. Erscheint oder
+   verschwindet sie (erste Messung, letzter gemessener Schritt gelöscht, Undo, Einfügen), müssen Kopf und
+   Zeilen gemeinsam neu gebaut werden — sonst hat der Kopf eine Spalte mehr oder weniger als die Zeilen. */
+function messSpaltePruefen(){
+  if(messSpalteSichtbar()===!!document.querySelector('#tblHead th.mess')) return false;
+  buildHead(); renderBody(); return true;
+}
 function messNachfuehren(id){
-  if(messSpalteSichtbar()!==!!document.querySelector('#tblHead th.mess')){ buildHead(); renderBody(); }
-  else {
+  if(!messSpaltePruefen()){
     const td=document.querySelector('#tblBody tr[data-id="'+CSS.escape(id)+'"] td.mess'); if(td) messZelleFuellen(td,id);
     summenNachfuehren();
   }
@@ -4759,13 +4834,19 @@ const GRUENDE_STD=['Störung','Material fehlt','Warten','Gespräch','Sonstiges']
 function pauseGruende(){ const g=lsLesen(LS_GRUENDE,null); return Array.isArray(g)&&g.some(x=>typeof x==='string'&&x.trim()) ? g.filter(x=>typeof x==='string'&&x.trim()) : GRUENDE_STD.slice(); }
 function stoppFormat(sek){ const m=Math.floor(sek/60), r=sek-m*60; return m+':'+(r<10?'0':'')+r.toFixed(1).replace('.',','); }
 const lvlVon=id=>(data[id]&&data[id].__level)||1;
-function messSchritte(){ return getFilteredParts().filter(p=>lvlVon(p.id)>1); }
+/* Level 1 ist nur dann eine Überschrift, wenn das Projekt Unterebenen nutzt. In einem flachen Projekt
+   (neu angelegt: alle Schritte auf Level 1) ist jeder Schritt ein Arbeitsschritt — sonst ließe sich dort
+   kein Ablauf messen. kopfTest() ermittelt das einmal und liefert die Prüfung je Schritt. */
+function hatEbenen(){ return parts.some(p=>lvlVon(p.id)>1); }
+function kopfTest(){ const eb=hatEbenen(); return id=>eb && lvlVon(id)<=1; }
+function istKopf(id){ return kopfTest()(id); }
+function messSchritte(){ const kopf=kopfTest(); return getFilteredParts().filter(p=>!kopf(p.id)); }
 function messNaechster(id){
-  const l=getFilteredParts(), i=l.findIndex(p=>p.id===id);
-  for(let j=i+1;j<l.length;j++) if(lvlVon(l[j].id)>1) return l[j].id;
+  const l=getFilteredParts(), i=l.findIndex(p=>p.id===id), kopf=kopfTest();
+  for(let j=i+1;j<l.length;j++) if(!kopf(l[j].id)) return l[j].id;
   return null;
 }
-function messErsterAb(id){ return id && data[id] && lvlVon(id)>1 ? id : messNaechster(id); }
+function messErsterAb(id){ return id && data[id] && !istKopf(id) ? id : messNaechster(id); }
 function naechsteZyklusNr(){ let m=0; parts.forEach(p=>messZyk(p.id).forEach(z=>{ if(z>m) m=z; })); return m+1; }
 function messSek(){
   if(!messLauf) return 0;
@@ -4910,7 +4991,7 @@ function messZeileTipp(id){
   if(!data[id]) return;
   if(!messLauf){ messZyklusEnde=null; selectPart(id); return; }
   if(messModus!=='ablauf'){ toast('Erst „Fertig" oder „Stopp" – dann den nächsten Schritt wählen'); return; }
-  const ziel=lvlVon(id)>1?id:messNaechster(id);   // Überschrift: deren erster Schritt
+  const ziel=!istKopf(id)?id:messNaechster(id);   // Überschrift: deren erster Schritt
   if(!ziel||ziel===messLauf.id) return;
   messLauf.danach=messLauf.danach===ziel?null:ziel; messGeaendert();
 }
@@ -4938,7 +5019,8 @@ function messAnsichtZeichnen(){
     const ab=l.slice(i0), k=ab.findIndex(p=>p.id===id);
     status=lauf ? 'Zyklus '+lauf.zyklus+' · Schritt '+(k+1)+' von '+ab.length : 'Ablauf ab #'+(posNr.get(s)||'–')+' · '+ab.length+' Schritt'+(ab.length===1?'':'e');
   } else status=lauf ? 'Einzelmessung · '+(messWerte(id).length+1)+'. Messung' : 'Einzelmessung';
-  const nichtMessbar=messModus==='ablauf' && !lauf && id && lvlVon(id)<=1;
+  const kopf=kopfTest();
+  const nichtMessbar=messModus==='ablauf' && !lauf && id && kopf(id);
   let h=`<div class="ma-kopf">
       <div class="toggle-group"><button class="tg-btn${messModus==='ablauf'?' on-mode':''}" onclick="setMessModus('ablauf')"${lauf?' disabled':''}>Ablauf</button><button class="tg-btn${messModus==='einzeln'?' on-mode':''}" onclick="setMessModus('einzeln')"${lauf?' disabled':''}>Einzeln</button></div>
       <span class="ma-status">${escHtml(status)}</span>
@@ -4972,7 +5054,7 @@ function messAnsichtZeichnen(){
   /* Liste: alle sichtbaren Schritte, Überschriften als Zwischenzeilen */
   const imZyklus=new Map(); if(lauf) lauf.verlauf.forEach(v=>imZyklus.set(v.id,v));
   h+='<div class="ma-liste" id="maListe">'+getFilteredParts().map(p=>{
-    const lv=lvlVon(p.id), v=imZyklus.get(p.id), g=messGueltig(p.id);
+    const lv=kopf(p.id)?1:2, v=imZyklus.get(p.id), g=messGueltig(p.id);   // 1 = Überschrift (Zwischenzeile)
     const kl=['ma-zeile']; if(lv<=1) kl.push('kopf'); if(p.id===id) kl.push('aktuell'); if(v) kl.push(v.skip?'skip':'erledigt');
     let wert;
     if(p.id===id && lauf) wert=zustand==='pause'?'Pause':'läuft …';
@@ -5112,7 +5194,8 @@ function messDaten(liste){
     const sd=n>1 ? Math.sqrt(g.reduce((x,v)=>x+(v-avg)*(v-avg),0)/(n-1)) : null;
     const vk=sd!=null&&avg>0 ? sd/avg*100 : null;
     const b=messBedarf(n,vk);
-    return {p,m,aus,n,avg,ist,mtm,abw:n?ist-mtm:null,lg:ist>0?mtm/ist*100:null,
+    /* ohne MTM-Wert (noch nicht analysiert) gibt es nichts zu vergleichen: „–" statt „0 %" und einer Abweichung in voller Höhe */
+    return {p,m,aus,n,avg,ist,mtm,abw:(n&&mtm>0)?ist-mtm:null,lg:(ist>0&&mtm>0)?mtm/ist*100:null,
       min:n?Math.min(...g):null,max:n?Math.max(...g):null,vk,notizen:messNotizen(p.id),noetig:b?b.noetig:null,fehlt:b?b.fehlt:null};
   });
 }
@@ -5173,8 +5256,11 @@ function messStreuung(id){
 }
 function messKennzahlen(d){
   const g=d.filter(e=>e.n), mtm=g.reduce((x,e)=>x+e.mtm,0), ist=g.reduce((x,e)=>x+e.ist,0);
+  /* Abweichung und MTM-Erfüllung nur über Schritte, die gemessen UND mit MTM bewertet sind */
+  const b=g.filter(e=>e.mtm>0), mtmB=b.reduce((x,e)=>x+e.mtm,0), istB=b.reduce((x,e)=>x+e.ist,0);
   const mitB=d.filter(e=>e.fehlt!=null);
-  return {mtm,ist,schritte:g.length,n:d.reduce((x,e)=>x+e.n,0),aus:d.reduce((x,e)=>x+e.m.length-e.n,0),lg:ist>0?mtm/ist*100:null,
+  return {mtm,ist,schritte:g.length,n:d.reduce((x,e)=>x+e.n,0),aus:d.reduce((x,e)=>x+e.m.length-e.n,0),lg:istB>0?mtmB/istB*100:null,
+    abw:b.length?istB-mtmB:null, ohneMtm:g.length-b.length,
     fehlt:mitB.filter(e=>e.fehlt<=99).reduce((x,e)=>x+e.fehlt,0),offen:mitB.filter(e=>e.fehlt>0&&e.fehlt<=99).length,streut:mitB.filter(e=>e.fehlt>99).length,erreicht:mitB.filter(e=>e.fehlt===0).length,ohneB:d.filter(e=>e.fehlt==null).length};
 }
 function renderMess(){
@@ -5188,7 +5274,7 @@ function renderMess(){
       <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessene Schritte</span><span class="ana-kpi-val">${k.schritte} von ${liste.length}</span><span class="ana-kpi-sub">${k.n} Messungen${k.aus?' · '+k.aus+' ausgeschlossen':''}</span></div>
       <div class="ana-kpi"><span class="ana-kpi-lbl">MTM (gemessene Schritte)</span><span class="ana-kpi-val">${disp2(k.mtm)} ${u}</span></div>
       <div class="ana-kpi" title="Ø gemessen × Leistungsgrad"><span class="ana-kpi-lbl">Normalzeit</span><span class="ana-kpi-val">${disp2(k.ist)} ${u}</span><span class="ana-kpi-sub">gemessen × ${leistungsgrad} %</span></div>
-      <div class="ana-kpi" title="MTM-Zeit ÷ Normalzeit × 100 %"><span class="ana-kpi-lbl">MTM-Erfüllung</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ Normalzeit</span></div>
+      <div class="ana-kpi" title="MTM-Zeit ÷ Normalzeit × 100 %"><span class="ana-kpi-lbl">MTM-Erfüllung</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ Normalzeit${k.ohneMtm?' · '+k.ohneMtm+' ohne MTM-Wert nicht verglichen':''}</span></div>
       <div class="ana-kpi" title="Messungen, die für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit) noch fehlen"><span class="ana-kpi-lbl">Noch nötig für ±${messGenau} %</span>
         <span class="ana-kpi-val${k.offen||!k.erreicht||k.streut?'':' ok'}">${k.offen?k.fehlt+' Messungen':(k.erreicht&&!k.streut?'✓ erreicht':'–')}</span>
         <span class="ana-kpi-sub">${k.offen?'bei '+k.offen+' Schritt'+(k.offen===1?'':'en'):''}${k.offen&&k.erreicht?' · ':''}${k.erreicht?k.erreicht+' genau genug':''}${k.ohneB?((k.offen||k.erreicht)?' · ':'')+k.ohneB+' mit nur 1 Messung':''}${k.streut?((k.offen||k.erreicht||k.ohneB)?' · ':'')+k.streut+(k.streut===1?' streut':' streuen')+' stark – Ausreißer prüfen':''}</span></div>
@@ -5211,7 +5297,7 @@ function renderMess(){
         <td>${pct(e.lg)}</td>
       </tr>`).join('')}
       <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td></td><td></td><td>${k.fehlt?'+'+k.fehlt:''}</td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
-        <td>${(k.ist-k.mtm>0?'+':'')+disp2(k.ist-k.mtm)}</td><td>${pct(k.lg)}</td></tr></tbody>
+        <td>${k.abw==null?'–':(k.abw>0?'+':'')+disp2(k.abw)}</td><td>${pct(k.lg)}</td></tr></tbody>
     </table></div>
     <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✎ Notiz zur Messung · ✕ löscht. MTM ohne Verteilzeit. Normalzeit = Ø gemessen × Leistungsgrad ${leistungsgrad} % (auf Normalleistung umgerechnet, wie MTM). MTM-Erfüllung = MTM ÷ Normalzeit × 100 % — über 100 % liegt der Schritt unter der MTM-Vorgabe. Abw. = Normalzeit − MTM (rot: länger als MTM). Streuung = Standardabweichung ÷ Mittelwert: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span> – dann Ausreißer prüfen. Noch nötig = weitere Messungen, bis der Mittelwert mit 95 % Sicherheit auf ±${messGenau} % genau ist: n = (t · Streuung ÷ ${messGenau} %)².</div>`
     +messZyklenHtml(liste)+pausenHtml(pz,nr);
@@ -5219,7 +5305,7 @@ function renderMess(){
 function messZyklenHtml(liste){
   const z=messZyklen(liste); if(!z.length) return '';
   const u=ul(), max=Math.max(...z.map(e=>e.sek),1);
-  return `<div class="ana-chart-head mt5"><span class="ana-chart-title">Zyklen (Ablauf-Messung)</span><span class="takt-hint">Summe der gültigen Messungen je Zyklus</span></div>
+  return `<div class="ana-chart-head mt5"><span class="ana-chart-title">Zyklen (Ablauf-Messung)</span><span class="takt-hint">Summe der gültigen Messungen je Zyklus – echte Zeit, ohne Leistungsgrad</span></div>
     <table class="takt-tbl mess-zyk"><thead><tr><th>Zyklus</th><th>Schritte</th><th>Zeit [min:s]</th><th>Zeit [${u}]</th><th>Verteilung</th></tr></thead>
     <tbody>${z.map(e=>`<tr><td>${e.nr}</td><td>${e.n}</td><td>${stoppFormat(e.sek)}</td><td>${disp2(e.sek/SEK_JE_MIND)}</td>
       <td style="width:40%"><div class="tj-track tj-track-a"><div class="tj-fill-a" style="width:${(e.sek/max*100).toFixed(1)}%"></div></div></td></tr>`).join('')}</tbody></table>
@@ -5644,6 +5730,7 @@ function undoLast(){
     ensureKeys(); lwNeuRechnen();
     if(hasAnyFilter() || !schrittEinsetzen(p.id)) renderBody();
     else { nummernNachfuehren(); summenNachfuehren(); updateTeileAllBtn(); }
+    messSpaltePruefen();   // bringt der Schritt die ersten Messungen zurück, braucht die Tabelle die Spalte
     updGrid(); updateActiveBar(); markDirty();
     lastActionText='↩ Rückgängig: „'+p.name+'" wiederhergestellt'; toast(lastActionText); updateLastAction();
     return;
@@ -5667,6 +5754,7 @@ function undoLast(){
     last.ids.forEach(schrittZeilenEntfernen);
     nummernNachfuehren(); summenNachfuehren(); updateTeileAllBtn();
     if(aktivWeg){ const n=(last.aktivVor&&data[last.aktivVor]) ? {id:last.aktivVor} : parts[Math.max(0,Math.min(erst-1,parts.length-1))]; aktivSetzen(n?n.id:null); }
+    messSpaltePruefen();
     updGrid(); updateActiveBar(); markDirty();
     lastActionText='↩ Rückgängig: '+last.ids.length+' eingefügte Prozessschritte entfernt';
     toast(lastActionText); updateLastAction();
@@ -5782,6 +5870,7 @@ function teilAendern(stepId,teilId,key,val){
   if(key==='menge') t.menge=Math.max(0,parseInt(val)||0);
   else if(key==='sachnr') t.sachnr=String(val).trim();
   else t.name=val;
+  filterBehalten(stepId);
   markDirty();
   refreshStepSummary(stepId);
 }
@@ -5860,7 +5949,7 @@ function addPart(){
   if(activeIdx>=0){
     const a=parts[activeIdx].id, al=lvlVon(a);
     pos=schrittBlock(a,true)[1];
-    lvl=al<=1 ? 2 : al;
+    lvl=istKopf(a) ? 2 : al;   // flaches Projekt (alles Level 1): der neue Schritt bleibt auf Level 1
     st=String(data[a].__extra1||'').trim() || (pos-1>activeIdx ? String(data[parts[pos-1].id].__extra1||'').trim() : '');
   }
   parts.splice(pos,0,newPart);
@@ -5898,6 +5987,7 @@ function delPart(id){
   schrittZeilenEntfernen(id); nummernNachfuehren(); summenNachfuehren(); updateTeileAllBtn();
   /* War er aktiv: der Schritt, der an seine Stelle gerückt ist (am Ende der davor) */
   if(warAktiv){ const n=parts[Math.min(idx,parts.length-1)]; aktivSetzen(n?n.id:null); }
+  messSpaltePruefen();   // war es der letzte Schritt mit Messungen, entfällt die Spalte „Normalzeit"
   updGrid();updateActiveBar();markDirty();
   toast('✓ „'+name+'" gelöscht – ↩ Undo holt ihn zurück');
 }
@@ -5975,6 +6065,10 @@ function saveCfg(){
   });
   if(!newCols.length){toast('Mindestens eine Kategorie nötig');return;}
   undoStand('Zeiten geändert');
+  /* Ein Filter auf einen entfernten Baustein hätte keine Spalte mehr, blendete aber weiter Zeilen aus */
+  let filterWeg=false;
+  Object.keys(colFilters).forEach(fk=>{ if(fk.startsWith('cat:') && !newCols.some(c=>c.key===fk.slice(4))){ delete colFilters[fk]; filterWeg=true; } });
+  if(filterWeg){ filterGeaendert(); updateFilterClearBtn(); }
   COLS=newCols;ensureKeys();closeCfg();
   buildLegend();buildGrid();buildHead();renderBody();markDirty();toast('Gespeichert');
 }
@@ -6514,8 +6608,8 @@ function renderMtmNeu(){
    LAUFWEG-RECHNER (Fenster)
    Reiter „Parameter": Meterwerte je Auslöser und Kennzahlen.
    Reiter „Je Schritt": Auslöser je Prozessschritt.
-   Änderungen hier laufen bewusst nicht über den Undo-Stapel — Undo nimmt Zählschritte
-   zurück; der Weg zurück bei den Meterwerten ist „Standardwerte".
+   Änderungen im Fenster ergeben einen Undo-Schritt (fensterGeaendert); „Standardwerte" setzt die
+   Meterwerte zurück.
 ═══════════════════════════════════════ */
 let lwTab='param';
 /* Schlagwörter im Schrittnamen, die eine Bereitstellung bedeuten — so vorgegeben, nicht erweitert */
@@ -6651,7 +6745,7 @@ const LW_AUTO_HINWEIS='Setzt die Auslöser aller Schritte aus den vorhandenen Da
   +'• Scan = Anzahl „Code scan"\n'
   +'• Name enthält z.B. Transportwagen, Bereitstellung, abrüsten → Bereitstellen 1\n'
   +'• Rollwagen bleibt unverändert (von Hand eintragen)\n'
-  +'Level-1-Überschriften bleiben unangetastet. Nicht per Undo umkehrbar.';
+  +'Level-1-Überschriften bleiben unangetastet. ↩ Undo nimmt die Zuordnung zurück.';
 function lwAutoZuordnung(){
   if(!confirm('Auslöser für alle Prozessschritte aus den vorhandenen Daten setzen? Bereits eingetragene Rollwagen-Werte bleiben erhalten.')) return;
   /* Level-1-Zeilen sind Überschriften ohne eigenen Arbeitsgang und bekommen keinen Laufweg; sie bleiben
@@ -6945,8 +7039,14 @@ function projektAblegen(){
 }
 function projektOeffnen(id){
   if(messBlockiert()) return;
-  const e=lsLesen(LS_PROJ+id,null);
-  if(!e||!e.csv){ toast('⚠ Projekt auf diesem Gerät nicht gefunden'); renderStartProjekte(); return; }
+  let e=lsLesen(LS_PROJ+id,null);
+  if(!e||!e.csv){
+    /* Der abgelegte Stand fehlt (das Projekt war zuletzt geöffnet und sein Stand ist nicht mehr lesbar):
+       die Sicherungsstände des Projekts liegen getrennt und sind die Rückfallebene */
+    const sich=sicherungen(id).filter(x=>x&&x.csv);
+    if(sich.length && confirm('Der letzte Stand dieses Projekts ist auf dem Gerät nicht mehr lesbar.\n\nStattdessen den Sicherungsstand von '+datumKurz(sich[0].t)+' öffnen ('+sich[0].n+' Schritte)?')) e={csv:sich[0].csv,ui:{}};
+    else { toast('⚠ Projekt auf diesem Gerät nicht gefunden'); renderStartProjekte(); return; }
+  }
   let parsed;
   try{ parsed=parseImportedCSV(e.csv); }catch(err){ parsed=null; }
   if(!parsed||!parsed.parts.length){ toast('⚠ Gespeichertes Projekt ist beschädigt'); return; }
@@ -7063,28 +7163,49 @@ function loadState(){
     if(!raw){ raw=localStorage.getItem(LS_KEY_ALT); ausAlt=!!raw; }
     if(!raw) return false;
     const s=JSON.parse(raw);
-    if(!s.parts || s.parts.length===0) return false;
-    if(s.COLS)   COLS=colsAktualisieren(s.COLS);
-    if(s.parts)  parts=s.parts;
-    if(s.data)   data=s.data;
-    if(s.activePart && parts.some(p=>p.id===s.activePart)) activePart=s.activePart;
-    if(s.unit)   unit=s.unit;
-    if(s.mode)   mode=s.mode;
-    if(s.currentProject) currentProject=s.currentProject;
-    sollzeit = s.sollzeit || 0;
-    projectDescription = s.projectDescription || '';
-    lastExportTime = s.lastExportTime || null;
-    verteilzeitFactor = s.verteilzeitFactor || 0;
+    if(!s || typeof s!=='object') return false;
+    /* Schritte: nur Einträge mit ID; fehlender Name bekommt einen, doppelte IDs werden getrennt */
+    const sp=Array.isArray(s.parts) ? s.parts.filter(x=>x && typeof x==='object' && typeof x.id==='string' && x.id) : [];
+    if(!sp.length) return false;
+    const sd=(s.data && typeof s.data==='object' && !Array.isArray(s.data)) ? s.data : {};
+    const cols=colsPruefen(s.COLS);
+    if(cols) COLS=colsAktualisieren(cols);
+    const gesehen=new Set();
+    parts=sp.map((x,i)=>{
+      let id=x.id;
+      if(gesehen.has(id)){
+        const neu=newPartId();
+        try{ sd[neu]=JSON.parse(JSON.stringify(sd[id]||{})); }catch(e){ sd[neu]={}; }
+        if(Array.isArray(sd[neu].__teile)) sd[neu].__teile.forEach(t=>{ if(t && typeof t==='object') t.id=newTeilId(); });
+        id=neu;
+      }
+      gesehen.add(id);
+      const nm=typeof x.name==='string' ? x.name : (x.name==null?'':String(x.name));
+      return {id, name:nm.trim()?nm:'Schritt '+(i+1)};
+    });
+    data=sd;
+    const zahlOder0=v=>(typeof v==='number'&&isFinite(v)&&v>0)?v:0;
+    activePart=(typeof s.activePart==='string' && parts.some(p=>p.id===s.activePart)) ? s.activePart : parts[0].id;
+    if(s.unit==='min'||s.unit==='minD') unit=s.unit;
+    if(s.mode==='add'||s.mode==='sub') mode=s.mode;
+    if(typeof s.currentProject==='string' && s.currentProject) currentProject=s.currentProject;
+    sollzeit = zahlOder0(s.sollzeit);
+    projectDescription = typeof s.projectDescription==='string' ? s.projectDescription : '';
+    lastExportTime = typeof s.lastExportTime==='string' ? s.lastExportTime : null;
+    verteilzeitFactor = zahlOder0(s.verteilzeitFactor);
     uiMode = s.uiMode === 'beginner' ? 'beginner' : 'advanced';
     zeitModus = s.zeitModus===true;
     messModus = s.messModus==='einzeln'?'einzeln':'ablauf';
-    unterbrechungen = Array.isArray(s.unterbrechungen) ? s.unterbrechungen.filter(u=>u&&typeof u.id==='string'&&u.sek>0) : [];
-    messLauf = s.messLauf && typeof s.messLauf.id==='string' && s.data && s.data[s.messLauf.id] ? s.messLauf : null;
-    hourlyRate = s.hourlyRate || 0;
-    if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
+    unterbrechungen = Array.isArray(s.unterbrechungen) ? s.unterbrechungen.filter(u=>u&&typeof u.id==='string'&&typeof u.sek==='number'&&isFinite(u.sek)&&u.sek>0)
+      .map(u=>({id:u.id,sek:u.sek,grund:typeof u.grund==='string'?u.grund:'',notiz:typeof u.notiz==='string'?u.notiz:'',zyklus:(u.zyklus>0)?Math.floor(u.zyklus):0,t:typeof u.t==='string'?u.t:''})) : [];
+    messLauf = messLaufLaden(s.messLauf);
+    hourlyRate = zahlOder0(s.hourlyRate);
+    if(s.colLabels && typeof s.colLabels==='object' && !Array.isArray(s.colLabels)){
+      colLabels={}; ZUSATZ_KEYS.forEach(k=>{ if(typeof s.colLabels[k]==='string' && s.colLabels[k].trim()) colLabels[k]=s.colLabels[k]; });
+    }
     if(s.taktGroupKey && OPT_COLS.some(o=>!o.own&&o.key===s.taktGroupKey)) taktGroupKey=s.taktGroupKey;
     if(typeof s.anaTopNach==='string') anaTopNach=s.anaTopNach;   // ungültig → anaTopGueltig() fällt auf Prozessschritte zurück
-    if(typeof s.taktSoll==='number' && s.taktSoll>=0) taktSoll=s.taktSoll;
+    if(typeof s.taktSoll==='number' && isFinite(s.taktSoll) && s.taktSoll>=0) taktSoll=s.taktSoll;
     if(typeof s.taktMitVz==='boolean') taktMitVz=s.taktMitVz;
     messGenau=s.messGenau===10?10:5;
     tzMtm=s.tzMtm!==false;
@@ -7104,7 +7225,18 @@ function loadState(){
     lwNeuRechnen();   // gespeicherte Meterzahlen könnten zu anderen Meterwerten gehören
     if(ausAlt) saveState();   // ab jetzt unter dem neuen Schlüssel; der alte bleibt als Rückfallebene
     return true;
-  } catch(e){ return false; }
+  } catch(e){ standBeiseite(); return false; }
+}
+/* Unlesbaren Stand zusätzlich unter eigenem Schlüssel ablegen: der nächste gespeicherte Stand (neues oder
+   anderes Projekt) überschriebe ihn sonst endgültig. Der Stand selbst bleibt, wo er ist. */
+const LS_DEFEKT='zeitaufnahme_defekt';
+let standDefekt=false;
+function standBeiseite(){
+  try{
+    const raw=localStorage.getItem(LS_KEY); if(!raw) return;
+    standDefekt=true;
+    localStorage.setItem(LS_DEFEKT,raw);
+  }catch(e){}
 }
 
 /* ═══════════════════════════════════════
@@ -7538,7 +7670,7 @@ function xlsxSheetZeitmessung(){
   });
   if(d.length){
   rows+=`<row r="${rn}">${xc(1,rn,'',35)}${xc(2,rn,'∑ Gemessene Schritte',35)}${xc(3,rn,'',35)}${xc(4,rn,k.n,36,true)}${xc(5,rn,'',35)}${xc(6,rn,'',35)}`
-    +`${xc(7,rn,xn(k.ist*fU),36,true)}${xc(8,rn,xn(k.mtm*fU),36,true)}${xc(9,rn,xn((k.ist-k.mtm)*fU),36,true)}${xc(10,rn,k.lg==null?'':k.lg.toFixed(1),36,k.lg!=null)}</row>`;rn++;
+    +`${xc(7,rn,xn(k.ist*fU),36,true)}${xc(8,rn,xn(k.mtm*fU),36,true)}${xc(9,rn,k.abw==null?'':xn(k.abw*fU),36,k.abw!=null)}${xc(10,rn,k.lg==null?'':k.lg.toFixed(1),36,k.lg!=null)}</row>`;rn++;
   }
   /* Zyklen */
   const zy=messZyklen(parts);
@@ -8049,21 +8181,35 @@ if(isIOS&&!isStandalone&&!ibDismissed()){
 /* ═══════════════════════════════════════
    INIT
 ═══════════════════════════════════════ */
-const hadSaved = loadState();
-document.getElementById('modeBeginnerBtn').className='tg-btn'+(uiMode==='beginner'?' on-mode':'');
-document.getElementById('modeAdvancedBtn').className='tg-btn'+(uiMode==='advanced'?' on-mode':'');
-document.body.classList.toggle('beginner-mode', uiMode==='beginner');
-zeitModusAnwenden();
-buildLegend();
-buildGrid();
-buildHead();
-renderBody();
-updateActiveBar();
-setUnit(unit);
-setMode(mode);
-updateProjLabel();
-updateExportIndicator();
-updateLastAction();
+let hadSaved = loadState();
+function ersteAnzeige(){
+  document.getElementById('modeBeginnerBtn').className='tg-btn'+(uiMode==='beginner'?' on-mode':'');
+  document.getElementById('modeAdvancedBtn').className='tg-btn'+(uiMode==='advanced'?' on-mode':'');
+  document.body.classList.toggle('beginner-mode', uiMode==='beginner');
+  zeitModusAnwenden();
+  buildLegend();
+  buildGrid();
+  buildHead();
+  renderBody();
+  updateActiveBar();
+  setUnit(unit);
+  setMode(mode);
+  updateProjLabel();
+  updateExportIndicator();
+  updateLastAction();
+}
+try{ ersteAnzeige(); }
+catch(e){
+  /* Der gespeicherte Stand lässt sich nicht anzeigen. Ohne Auffangnetz bräche das Skript hier ab: die App
+     bliebe bei jedem Start hängen, und die übrigen Projekte auf dem Gerät wären nicht mehr erreichbar.
+     Stand beiseitelegen, leer starten — Projekte und Sicherungsstände bleiben über die Startseite erreichbar. */
+  standBeiseite();
+  parts=[]; data={}; activePart=null; COLS=COLS_STANDARD.map(c=>({...c})); currentProject=null; hadSaved=false;
+  messLauf=null; messZyklusEnde=null; unterbrechungen=[]; stationMess={}; taktSzenario=null; colFilters={}; teileOffen={};
+  mtmCustom={}; mtmCustomGE={}; colLabels={}; uiMode='advanced'; zeitModus=false; unit='minD'; mode='add';
+  try{ ersteAnzeige(); }catch(e2){}
+}
+if(standDefekt) setTimeout(()=>toast('⚠ Der zuletzt geöffnete Stand war beschädigt – das Projekt über die Startseite aus seinem Sicherungsstand öffnen',12000),600);
 if(hadSaved && currentProject){
   document.getElementById('startScreen').classList.remove('open');
   if(dot()) dot().className='save-dot saved';

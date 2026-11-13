@@ -2539,7 +2539,7 @@ function printAnalysis(){
         <thead><tr><th>Prozessschritt</th><th class="pr-txt">Messungen [s]</th><th>Ø [s]</th><th>min–max [s]</th><th>Streuung</th><th>Noch nötig (±${messGenau} %)</th><th>Normalzeit [${u}]</th><th>MTM [${u}]</th><th>Abw. [${u}]</th><th>MTM-Erfüllung</th></tr></thead>
         <tbody>${md.map(e=>`<tr><td class="pr-txt">${escHtml(e.p.name)}</td><td class="pr-txt">${messText(e.p.id,' / ')}${e.notizen.some(Boolean)?'<br><i>'+e.notizen.map((t,i)=>t?(i+1)+'. '+escHtml(t):'').filter(Boolean).join(' · ')+'</i>':''}</td><td>${e.n?sekText(e.avg):'–'}</td><td>${e.n?sekText(e.min)+'–'+sekText(e.max):'–'}</td><td>${streuText(e.vk)}</td><td>${messFehltText(e.fehlt)}</td>
           <td>${e.n?disp2(e.ist):'–'}</td><td>${disp2(e.mtm)}</td><td class="${e.abw>1e-9?'pr-pos':(e.abw<-1e-9?'pr-neg':'')}">${e.abw==null?'–':(e.abw>0?'+':'')+disp2(e.abw)}</td><td>${mpct(e.lg)}</td></tr>`).join('')}
-          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td></td><td></td><td>${mk.fehlt?'+'+mk.fehlt:''}</td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${(mk.ist-mk.mtm>0?'+':'')+disp2(mk.ist-mk.mtm)}</td><td>${mpct(mk.lg)}</td></tr>
+          <tr class="pr-sum"><td class="pr-txt">∑ Gemessene Schritte</td><td class="pr-txt">${mk.n} Messungen${mk.aus?' (+'+mk.aus+' ausgeschl.)':''}</td><td></td><td></td><td></td><td>${mk.fehlt?'+'+mk.fehlt:''}</td><td>${disp2(mk.ist)}</td><td>${disp2(mk.mtm)}</td><td>${mk.abw==null?'–':(mk.abw>0?'+':'')+disp2(mk.abw)}</td><td>${mpct(mk.lg)}</td></tr>
         </tbody>
       </table>
       <p class="pr-hint">MTM ohne Verteilzeit. Normalzeit = Ø gemessen × Leistungsgrad ${leistungsgrad} %. MTM-Erfüllung = MTM ÷ Normalzeit × 100 %. Werte in Klammern sind ausgeschlossen und zählen nicht mit. Noch nötig = weitere Messungen für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit).</p>
@@ -2902,7 +2902,7 @@ function taktZData(liste){
   const f=taktFaktor(), lg=lgF(), sicht=liste||anaParts();
   const map=new Map(); let ohne=null;
   const neu=(name,o)=>({name,rows:0,relevant:0,gemSchritte:0,minD:0,mtm:0,ohne:!!o});
-  const rel=p=>lvlVon(p.id)>1||calcTotal(p.id)>0||messWerte(p.id).length>0;
+  const kopf=kopfTest(), rel=p=>!kopf(p.id)||calcTotal(p.id)>0||messWerte(p.id).length>0;
   sicht.forEach(p=>{
     const st=taktBasis(p);
     let e; if(st){ e=map.get(st); if(!e){ e=neu(st); map.set(st,e); } } else e=ohne||(ohne=neu(taktEmptyLabel(),true));
@@ -2927,11 +2927,12 @@ function taktZData(liste){
   const list=ohne?stations.concat([ohne]):stations;
   list.forEach(e=>{
     const gem=e.quelle!=='mtm';
-    e.abw=gem?e.minD-e.mtm:null; e.erf=gem&&e.minD>0?e.mtm/e.minD*100:null;
+    const vgl=gem&&e.mtm>0;   // ohne MTM-Wert nichts zu vergleichen
+    e.abw=vgl?e.minD-e.mtm:null; e.erf=vgl&&e.minD>0?e.mtm/e.minD*100:null;
     e.dev=e.ohne?null:e.minD-avgMinD; e.ausl=(taktSoll>0&&!e.ohne)?e.minD/taktSoll*100:null;
   });
-  const gemList=list.filter(e=>e.quelle!=='mtm');
-  const gZ=gemList.reduce((x,e)=>x+e.minD,0), gM=gemList.reduce((x,e)=>x+e.mtm,0);
+  const gemList=list.filter(e=>e.quelle!=='mtm'), vglList=gemList.filter(e=>e.mtm>0);
+  const gZ=vglList.reduce((x,e)=>x+e.minD,0), gM=vglList.reduce((x,e)=>x+e.mtm,0);
   return {list,stations,ohne,n,total:list.reduce((x,e)=>x+e.minD,0),mtmTotal:list.reduce((x,e)=>x+e.mtm,0),stTotal,avgMinD,maxMinD,engpass,
     bwg:(n&&maxMinD>0)?stTotal/(n*maxMinD):null, ueberTakt:taktSoll>0?stations.filter(e=>e.minD>taktSoll+1e-9).length:0,
     gemessen:gemList.length, nStation:list.filter(e=>e.quelle==='station').length, erf:gZ>0?gM/gZ*100:null};
@@ -4833,13 +4834,19 @@ const GRUENDE_STD=['Störung','Material fehlt','Warten','Gespräch','Sonstiges']
 function pauseGruende(){ const g=lsLesen(LS_GRUENDE,null); return Array.isArray(g)&&g.some(x=>typeof x==='string'&&x.trim()) ? g.filter(x=>typeof x==='string'&&x.trim()) : GRUENDE_STD.slice(); }
 function stoppFormat(sek){ const m=Math.floor(sek/60), r=sek-m*60; return m+':'+(r<10?'0':'')+r.toFixed(1).replace('.',','); }
 const lvlVon=id=>(data[id]&&data[id].__level)||1;
-function messSchritte(){ return getFilteredParts().filter(p=>lvlVon(p.id)>1); }
+/* Level 1 ist nur dann eine Überschrift, wenn das Projekt Unterebenen nutzt. In einem flachen Projekt
+   (neu angelegt: alle Schritte auf Level 1) ist jeder Schritt ein Arbeitsschritt — sonst ließe sich dort
+   kein Ablauf messen. kopfTest() ermittelt das einmal und liefert die Prüfung je Schritt. */
+function hatEbenen(){ return parts.some(p=>lvlVon(p.id)>1); }
+function kopfTest(){ const eb=hatEbenen(); return id=>eb && lvlVon(id)<=1; }
+function istKopf(id){ return kopfTest()(id); }
+function messSchritte(){ const kopf=kopfTest(); return getFilteredParts().filter(p=>!kopf(p.id)); }
 function messNaechster(id){
-  const l=getFilteredParts(), i=l.findIndex(p=>p.id===id);
-  for(let j=i+1;j<l.length;j++) if(lvlVon(l[j].id)>1) return l[j].id;
+  const l=getFilteredParts(), i=l.findIndex(p=>p.id===id), kopf=kopfTest();
+  for(let j=i+1;j<l.length;j++) if(!kopf(l[j].id)) return l[j].id;
   return null;
 }
-function messErsterAb(id){ return id && data[id] && lvlVon(id)>1 ? id : messNaechster(id); }
+function messErsterAb(id){ return id && data[id] && !istKopf(id) ? id : messNaechster(id); }
 function naechsteZyklusNr(){ let m=0; parts.forEach(p=>messZyk(p.id).forEach(z=>{ if(z>m) m=z; })); return m+1; }
 function messSek(){
   if(!messLauf) return 0;
@@ -4984,7 +4991,7 @@ function messZeileTipp(id){
   if(!data[id]) return;
   if(!messLauf){ messZyklusEnde=null; selectPart(id); return; }
   if(messModus!=='ablauf'){ toast('Erst „Fertig" oder „Stopp" – dann den nächsten Schritt wählen'); return; }
-  const ziel=lvlVon(id)>1?id:messNaechster(id);   // Überschrift: deren erster Schritt
+  const ziel=!istKopf(id)?id:messNaechster(id);   // Überschrift: deren erster Schritt
   if(!ziel||ziel===messLauf.id) return;
   messLauf.danach=messLauf.danach===ziel?null:ziel; messGeaendert();
 }
@@ -5012,7 +5019,8 @@ function messAnsichtZeichnen(){
     const ab=l.slice(i0), k=ab.findIndex(p=>p.id===id);
     status=lauf ? 'Zyklus '+lauf.zyklus+' · Schritt '+(k+1)+' von '+ab.length : 'Ablauf ab #'+(posNr.get(s)||'–')+' · '+ab.length+' Schritt'+(ab.length===1?'':'e');
   } else status=lauf ? 'Einzelmessung · '+(messWerte(id).length+1)+'. Messung' : 'Einzelmessung';
-  const nichtMessbar=messModus==='ablauf' && !lauf && id && lvlVon(id)<=1;
+  const kopf=kopfTest();
+  const nichtMessbar=messModus==='ablauf' && !lauf && id && kopf(id);
   let h=`<div class="ma-kopf">
       <div class="toggle-group"><button class="tg-btn${messModus==='ablauf'?' on-mode':''}" onclick="setMessModus('ablauf')"${lauf?' disabled':''}>Ablauf</button><button class="tg-btn${messModus==='einzeln'?' on-mode':''}" onclick="setMessModus('einzeln')"${lauf?' disabled':''}>Einzeln</button></div>
       <span class="ma-status">${escHtml(status)}</span>
@@ -5046,7 +5054,7 @@ function messAnsichtZeichnen(){
   /* Liste: alle sichtbaren Schritte, Überschriften als Zwischenzeilen */
   const imZyklus=new Map(); if(lauf) lauf.verlauf.forEach(v=>imZyklus.set(v.id,v));
   h+='<div class="ma-liste" id="maListe">'+getFilteredParts().map(p=>{
-    const lv=lvlVon(p.id), v=imZyklus.get(p.id), g=messGueltig(p.id);
+    const lv=kopf(p.id)?1:2, v=imZyklus.get(p.id), g=messGueltig(p.id);   // 1 = Überschrift (Zwischenzeile)
     const kl=['ma-zeile']; if(lv<=1) kl.push('kopf'); if(p.id===id) kl.push('aktuell'); if(v) kl.push(v.skip?'skip':'erledigt');
     let wert;
     if(p.id===id && lauf) wert=zustand==='pause'?'Pause':'läuft …';
@@ -5186,7 +5194,8 @@ function messDaten(liste){
     const sd=n>1 ? Math.sqrt(g.reduce((x,v)=>x+(v-avg)*(v-avg),0)/(n-1)) : null;
     const vk=sd!=null&&avg>0 ? sd/avg*100 : null;
     const b=messBedarf(n,vk);
-    return {p,m,aus,n,avg,ist,mtm,abw:n?ist-mtm:null,lg:ist>0?mtm/ist*100:null,
+    /* ohne MTM-Wert (noch nicht analysiert) gibt es nichts zu vergleichen: „–" statt „0 %" und einer Abweichung in voller Höhe */
+    return {p,m,aus,n,avg,ist,mtm,abw:(n&&mtm>0)?ist-mtm:null,lg:(ist>0&&mtm>0)?mtm/ist*100:null,
       min:n?Math.min(...g):null,max:n?Math.max(...g):null,vk,notizen:messNotizen(p.id),noetig:b?b.noetig:null,fehlt:b?b.fehlt:null};
   });
 }
@@ -5247,8 +5256,11 @@ function messStreuung(id){
 }
 function messKennzahlen(d){
   const g=d.filter(e=>e.n), mtm=g.reduce((x,e)=>x+e.mtm,0), ist=g.reduce((x,e)=>x+e.ist,0);
+  /* Abweichung und MTM-Erfüllung nur über Schritte, die gemessen UND mit MTM bewertet sind */
+  const b=g.filter(e=>e.mtm>0), mtmB=b.reduce((x,e)=>x+e.mtm,0), istB=b.reduce((x,e)=>x+e.ist,0);
   const mitB=d.filter(e=>e.fehlt!=null);
-  return {mtm,ist,schritte:g.length,n:d.reduce((x,e)=>x+e.n,0),aus:d.reduce((x,e)=>x+e.m.length-e.n,0),lg:ist>0?mtm/ist*100:null,
+  return {mtm,ist,schritte:g.length,n:d.reduce((x,e)=>x+e.n,0),aus:d.reduce((x,e)=>x+e.m.length-e.n,0),lg:istB>0?mtmB/istB*100:null,
+    abw:b.length?istB-mtmB:null, ohneMtm:g.length-b.length,
     fehlt:mitB.filter(e=>e.fehlt<=99).reduce((x,e)=>x+e.fehlt,0),offen:mitB.filter(e=>e.fehlt>0&&e.fehlt<=99).length,streut:mitB.filter(e=>e.fehlt>99).length,erreicht:mitB.filter(e=>e.fehlt===0).length,ohneB:d.filter(e=>e.fehlt==null).length};
 }
 function renderMess(){
@@ -5262,7 +5274,7 @@ function renderMess(){
       <div class="ana-kpi"><span class="ana-kpi-lbl">Gemessene Schritte</span><span class="ana-kpi-val">${k.schritte} von ${liste.length}</span><span class="ana-kpi-sub">${k.n} Messungen${k.aus?' · '+k.aus+' ausgeschlossen':''}</span></div>
       <div class="ana-kpi"><span class="ana-kpi-lbl">MTM (gemessene Schritte)</span><span class="ana-kpi-val">${disp2(k.mtm)} ${u}</span></div>
       <div class="ana-kpi" title="Ø gemessen × Leistungsgrad"><span class="ana-kpi-lbl">Normalzeit</span><span class="ana-kpi-val">${disp2(k.ist)} ${u}</span><span class="ana-kpi-sub">gemessen × ${leistungsgrad} %</span></div>
-      <div class="ana-kpi" title="MTM-Zeit ÷ Normalzeit × 100 %"><span class="ana-kpi-lbl">MTM-Erfüllung</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ Normalzeit</span></div>
+      <div class="ana-kpi" title="MTM-Zeit ÷ Normalzeit × 100 %"><span class="ana-kpi-lbl">MTM-Erfüllung</span><span class="ana-kpi-val">${pct(k.lg)}</span><span class="ana-kpi-sub">MTM ÷ Normalzeit${k.ohneMtm?' · '+k.ohneMtm+' ohne MTM-Wert nicht verglichen':''}</span></div>
       <div class="ana-kpi" title="Messungen, die für einen auf ±${messGenau} % genauen Mittelwert (95 % Sicherheit) noch fehlen"><span class="ana-kpi-lbl">Noch nötig für ±${messGenau} %</span>
         <span class="ana-kpi-val${k.offen||!k.erreicht||k.streut?'':' ok'}">${k.offen?k.fehlt+' Messungen':(k.erreicht&&!k.streut?'✓ erreicht':'–')}</span>
         <span class="ana-kpi-sub">${k.offen?'bei '+k.offen+' Schritt'+(k.offen===1?'':'en'):''}${k.offen&&k.erreicht?' · ':''}${k.erreicht?k.erreicht+' genau genug':''}${k.ohneB?((k.offen||k.erreicht)?' · ':'')+k.ohneB+' mit nur 1 Messung':''}${k.streut?((k.offen||k.erreicht||k.ohneB)?' · ':'')+k.streut+(k.streut===1?' streut':' streuen')+' stark – Ausreißer prüfen':''}</span></div>
@@ -5285,7 +5297,7 @@ function renderMess(){
         <td>${pct(e.lg)}</td>
       </tr>`).join('')}
       <tr class="tk-sum"><td></td><td class="tk-name">∑ Gemessene Schritte</td><td>${k.n}</td><td></td><td></td><td></td><td>${k.fehlt?'+'+k.fehlt:''}</td><td>${disp2(k.ist)}</td><td>${disp2(k.mtm)}</td>
-        <td>${(k.ist-k.mtm>0?'+':'')+disp2(k.ist-k.mtm)}</td><td>${pct(k.lg)}</td></tr></tbody>
+        <td>${k.abw==null?'–':(k.abw>0?'+':'')+disp2(k.abw)}</td><td>${pct(k.lg)}</td></tr></tbody>
     </table></div>
     <div class="takt-fuss">Messwert antippen: aus der Auswertung nehmen (grau) oder wieder aufnehmen · ✎ Notiz zur Messung · ✕ löscht. MTM ohne Verteilzeit. Normalzeit = Ø gemessen × Leistungsgrad ${leistungsgrad} % (auf Normalleistung umgerechnet, wie MTM). MTM-Erfüllung = MTM ÷ Normalzeit × 100 % — über 100 % liegt der Schritt unter der MTM-Vorgabe. Abw. = Normalzeit − MTM (rot: länger als MTM). Streuung = Standardabweichung ÷ Mittelwert: <span class="streu gruen">unter 10 %</span> <span class="streu gelb">10–20 %</span> <span class="streu rot">über 20 %</span> – dann Ausreißer prüfen. Noch nötig = weitere Messungen, bis der Mittelwert mit 95 % Sicherheit auf ±${messGenau} % genau ist: n = (t · Streuung ÷ ${messGenau} %)².</div>`
     +messZyklenHtml(liste)+pausenHtml(pz,nr);
@@ -5937,7 +5949,7 @@ function addPart(){
   if(activeIdx>=0){
     const a=parts[activeIdx].id, al=lvlVon(a);
     pos=schrittBlock(a,true)[1];
-    lvl=al<=1 ? 2 : al;
+    lvl=istKopf(a) ? 2 : al;   // flaches Projekt (alles Level 1): der neue Schritt bleibt auf Level 1
     st=String(data[a].__extra1||'').trim() || (pos-1>activeIdx ? String(data[parts[pos-1].id].__extra1||'').trim() : '');
   }
   parts.splice(pos,0,newPart);
@@ -7658,7 +7670,7 @@ function xlsxSheetZeitmessung(){
   });
   if(d.length){
   rows+=`<row r="${rn}">${xc(1,rn,'',35)}${xc(2,rn,'∑ Gemessene Schritte',35)}${xc(3,rn,'',35)}${xc(4,rn,k.n,36,true)}${xc(5,rn,'',35)}${xc(6,rn,'',35)}`
-    +`${xc(7,rn,xn(k.ist*fU),36,true)}${xc(8,rn,xn(k.mtm*fU),36,true)}${xc(9,rn,xn((k.ist-k.mtm)*fU),36,true)}${xc(10,rn,k.lg==null?'':k.lg.toFixed(1),36,k.lg!=null)}</row>`;rn++;
+    +`${xc(7,rn,xn(k.ist*fU),36,true)}${xc(8,rn,xn(k.mtm*fU),36,true)}${xc(9,rn,k.abw==null?'':xn(k.abw*fU),36,k.abw!=null)}${xc(10,rn,k.lg==null?'':k.lg.toFixed(1),36,k.lg!=null)}</row>`;rn++;
   }
   /* Zyklen */
   const zy=messZyklen(parts);

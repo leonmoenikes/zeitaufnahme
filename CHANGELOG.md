@@ -18,6 +18,28 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Behoben (Review 2)
+- **Beschädigter gespeicherter Stand:** Ein unlesbarer oder unvollständiger Stand (z. B. nach einem
+  Absturz beim Speichern) konnte den Start blockieren oder „NaN“ in den Summen erzeugen. Der Stand wird
+  jetzt beim Laden geprüft und repariert; lässt er sich gar nicht lesen, startet die App leer, legt eine
+  Kopie beiseite und meldet das. Fehlt der gespeicherte Stand eines Projekts, wird der letzte
+  Sicherungsstand angeboten.
+- **Neues Projekt ohne Überschriften:** „Ablauf messen“ ließ sich nicht starten, und „+ Schritt“ legte den
+  neuen Schritt eine Ebene tiefer an. Ohne Ebenen zählt jetzt jeder Schritt als messbarer Schritt.
+- **Gemessen, aber noch ohne MTM-Wert:** Solche Schritte und Stationen zeigten „MTM-Erfüllung 0 %“ und
+  eine Abweichung in voller Höhe und drückten die Gesamt-Kennzahl. Sie zeigen jetzt „–“ und bleiben aus
+  dem Vergleich heraus; die Kennzahl nennt, wie viele nicht verglichen wurden.
+- **Filter:** Ändert man einen Wert in einer gefilterten Spalte (Station, Ebene, Teil), blieb die Zeile
+  stehen, zählte aber nicht mehr zur Summe. Sie bleibt jetzt sichtbar und mitgezählt, bis der Filter
+  geändert wird. Filter auf einen entfernten Baustein werden verworfen.
+- **Spalte „Normalzeit“:** Nach Löschen oder Undo der letzten Messung passten Spaltenkopf und Zeilen
+  nicht mehr zusammen.
+- **Stationszeit:** Sehr kleine Eingaben, die auf 0 runden, werden abgelehnt statt als 0 gespeichert.
+- Kleinigkeiten: Leistungsgrad- und Soll-Takt-Feld zeigen nach ungültiger Eingabe wieder den gültigen
+  Wert; der Spaltenkopf nennt den aktuellen Leistungsgrad sofort; Notiz-Fenster zeigt den aktuellen
+  Schrittnamen; Stationsnamen wie „constructor“ funktionieren; Hinweistexte korrigiert (Auto-Zuordnung
+  ist per Undo umkehrbar; Zyklen zeigen die echte Zeit ohne Leistungsgrad).
+
 ### Taktabgleich in zwei Reitern, Leistungsgrad
 - **„Taktabgleich MTM“:** reine MTM-Zeiten je Station mit Soll-Taktzeit, Verteilzeit und Szenario
   (Prozessschritte verschieben). Der Umschalter MTM | Gemessen | Station gemessen entfällt.

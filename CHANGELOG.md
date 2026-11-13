@@ -18,6 +18,18 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Testversion `test.html`: Englisch vollständig
+Eigene Datei neben `index.html` (rotes „TEST“); die normale App bleibt unverändert.
+- Auf Englisch jetzt auch Hinweis- und Fußtexte, Statuszeilen, Meldungen, Rückfragen (Bestätigen/Eingabe),
+  Undo-Texte, Druck/PDF (inkl. Datum) und der Excel-Report (Zellen und Blattnamen; Formeln verweisen
+  auf die englischen Blätter).
+- Standard-Pausegründe englisch angezeigt (Breakdown, Missing material, Waiting, Conversation, Other);
+  gespeichert bleiben sie unverändert, selbst angelegte Gründe bleiben wie geschrieben.
+- MTM-Katalog: Bereiche und Untergruppen englisch; LAMA-Codes und -Kurztexte bleiben im Original.
+- Technik: Vorlagen mit Platzhaltern für Zahlen und Namen; zusammengesetzte Texte werden stückweise
+  übersetzt; eingesetzte Spaltennamen (Station, Baugruppe …) mit übersetzt. Eigene Daten werden nie
+  übersetzt. Zahlen behalten das deutsche Format (Komma).
+
 ### Neuer Baustein „Liquid seal 20 cm“
 - 0,43 minD, Gruppe Process, neues Grundelement #39 aus LAMRKE (Reinigen kleine Fläche, erste) +
   LAMRZK (Zuschlag Nassreinigen) + LAMOKE (Ölen/Fetten kleine Fläche, erste) + LAMOKZ (… weitere).

@@ -1700,6 +1700,7 @@ let COLS = [
   // Laufweg — gezählt oder aus dem Laufweg-Rechner
   {key:"meter",       label:"Meter in total",        param:0.0325,   group:"laufweg"},
 ];
+const COLS_STANDARD=COLS.map(c=>({...c}));   // Rückfallebene, wenn ein gespeicherter Stand keine brauchbaren Kategorien hat
 
 let parts = [];
 let data  = {};
@@ -1918,15 +1919,65 @@ function initPart(p){
   if(!Array.isArray(data[p].__teile)) data[p].__teile=[];
   schrittFelder(data[p]);
 }
+/* Werte eines Schritts absichern: ein beschädigter Stand (Text statt Zahl, fehlende Parallel-Liste)
+   ergäbe sonst „NaN" in allen Summen oder einen Abbruch mitten im Aufbau der Tabelle. Gültige Werte
+   bleiben unangetastet. */
+function schrittPruefen(d){
+  COLS.forEach(c=>{ const v=d[c.key]; if(typeof v!=='number'||!isFinite(v)||v<0){ const n=Number(v); d[c.key]=(typeof v!=='object'&&isFinite(n)&&n>0)?n:0; } });
+  const lv=Math.round(Number(d.__level)); d.__level=(lv>=1&&lv<=7)?lv:1;
+  [...ZUSATZ_KEYS,'note'].forEach(k=>{ const v=d['__'+k]; if(typeof v!=='string') d['__'+k]=(v==null||typeof v==='object')?'':String(v); });
+  if(d.__mess!==undefined || d.__messAus!==undefined || d.__messZ!==undefined || d.__messN!==undefined){
+    const m=Array.isArray(d.__mess)?d.__mess:[], lis=k=>Array.isArray(d[k])?d[k]:null;
+    const ok=[]; m.forEach((v,i)=>{ if(typeof v==='number'&&isFinite(v)&&v>0) ok.push(i); });
+    const schief=ok.length!==m.length || !Array.isArray(d.__mess) || ['__messAus','__messZ','__messN'].some(k=>d[k]!==undefined&&(!lis(k)||d[k].length!==m.length));
+    if(schief){
+      const a=lis('__messAus'), z=lis('__messZ'), n=lis('__messN');
+      const mm=ok.map(i=>m[i]), aa=ok.map(i=>!!(a&&a[i])), zz=ok.map(i=>(z&&z[i]>0)?Math.floor(z[i]):0), nn=ok.map(i=>(n&&typeof n[i]==='string')?n[i]:'');
+      if(mm.length) d.__mess=mm; else delete d.__mess;
+      if(mm.length&&aa.some(Boolean)) d.__messAus=aa; else delete d.__messAus;
+      if(mm.length&&zz.some(x=>x>0)) d.__messZ=zz; else delete d.__messZ;
+      if(mm.length&&nn.some(Boolean)) d.__messN=nn; else delete d.__messN;
+    }
+  }
+}
 function ensureKeys(){
   parts.forEach(part=>{
     const p=part.id;
-    if(!data[p]) data[p]={};
+    if(!data[p] || typeof data[p]!=='object') data[p]={};
     migrateLegacyStep(data[p],part.name);   // Vorversion umwandeln bzw. Teile-Liste absichern
     const lw=lwTrigPruefen(data[p].__lw);
     if(lw) data[p].__lw=lw; else delete data[p].__lw;
     schrittFelder(data[p]);
+    schrittPruefen(data[p]);
   });
+}
+/* Kategorien aus dem Speicher absichern; null = unbrauchbar (dann bleiben die bisherigen) */
+function colsPruefen(c){
+  if(!Array.isArray(c)) return null;
+  const vergeben=new Set(), r=[];
+  c.forEach(x=>{
+    if(!x || typeof x!=='object') return;
+    let key=x.key;
+    if(typeof key!=='string' || !key || key.startsWith('__') || (key in Object.prototype) || vergeben.has(key)){
+      do{ key='cat_'+Math.random().toString(36).slice(2,7); }while(vergeben.has(key));
+    }
+    vergeben.add(key);
+    const par=typeof x.param==='number'?x.param:parseFloat(String(x.param==null?'':x.param).replace(',','.'));
+    r.push({...x, key, label:(typeof x.label==='string'&&x.label.trim())?x.label:key, param:(isFinite(par)&&par>=0)?par:0,
+      group:Object.prototype.hasOwnProperty.call(GROUPS,x.group)?x.group:'process', note:typeof x.note==='string'?x.note:''});
+  });
+  return r.length?r:null;
+}
+/* Laufende Messung aus dem Speicher: nur mit vollständigen, plausiblen Feldern weiterführen */
+function messLaufLaden(o){
+  if(!o || typeof o!=='object' || typeof o.id!=='string' || !data[o.id]) return null;
+  const zahl=v=>typeof v==='number'&&isFinite(v);
+  if(!zahl(o.start)) return null;
+  return {id:o.id, start:o.start, pauseMs:(zahl(o.pauseMs)&&o.pauseMs>=0)?o.pauseMs:0, pauseStart:zahl(o.pauseStart)?o.pauseStart:null,
+    grund:typeof o.grund==='string'?o.grund:'', notiz:typeof o.notiz==='string'?o.notiz:'', mnotiz:typeof o.mnotiz==='string'?o.mnotiz:'',
+    zyklus:(zahl(o.zyklus)&&o.zyklus>0)?Math.floor(o.zyklus):0, startId:(typeof o.startId==='string'&&data[o.startId])?o.startId:o.id,
+    verlauf:Array.isArray(o.verlauf)?o.verlauf.filter(v=>v&&typeof v.id==='string').map(v=>({id:v.id,sek:zahl(v.sek)?v.sek:null,skip:!!v.skip||!zahl(v.sek)})):[],
+    danach:(typeof o.danach==='string'&&data[o.danach])?o.danach:null};
 }
 function calcTotal(p){ if(!p||!data[p]) return 0; return COLS.reduce((s,c)=>s+(data[p][c.key]||0)*c.param,0); }
 function disp(minD){ return unit==='minD' ? minD.toFixed(3) : (minD*MIND_FACTOR).toFixed(3); }
@@ -6976,8 +7027,14 @@ function projektAblegen(){
 }
 function projektOeffnen(id){
   if(messBlockiert()) return;
-  const e=lsLesen(LS_PROJ+id,null);
-  if(!e||!e.csv){ toast('⚠ Projekt auf diesem Gerät nicht gefunden'); renderStartProjekte(); return; }
+  let e=lsLesen(LS_PROJ+id,null);
+  if(!e||!e.csv){
+    /* Der abgelegte Stand fehlt (das Projekt war zuletzt geöffnet und sein Stand ist nicht mehr lesbar):
+       die Sicherungsstände des Projekts liegen getrennt und sind die Rückfallebene */
+    const sich=sicherungen(id).filter(x=>x&&x.csv);
+    if(sich.length && confirm('Der letzte Stand dieses Projekts ist auf dem Gerät nicht mehr lesbar.\n\nStattdessen den Sicherungsstand von '+datumKurz(sich[0].t)+' öffnen ('+sich[0].n+' Schritte)?')) e={csv:sich[0].csv,ui:{}};
+    else { toast('⚠ Projekt auf diesem Gerät nicht gefunden'); renderStartProjekte(); return; }
+  }
   let parsed;
   try{ parsed=parseImportedCSV(e.csv); }catch(err){ parsed=null; }
   if(!parsed||!parsed.parts.length){ toast('⚠ Gespeichertes Projekt ist beschädigt'); return; }
@@ -7094,28 +7151,49 @@ function loadState(){
     if(!raw){ raw=localStorage.getItem(LS_KEY_ALT); ausAlt=!!raw; }
     if(!raw) return false;
     const s=JSON.parse(raw);
-    if(!s.parts || s.parts.length===0) return false;
-    if(s.COLS)   COLS=colsAktualisieren(s.COLS);
-    if(s.parts)  parts=s.parts;
-    if(s.data)   data=s.data;
-    if(s.activePart && parts.some(p=>p.id===s.activePart)) activePart=s.activePart;
-    if(s.unit)   unit=s.unit;
-    if(s.mode)   mode=s.mode;
-    if(s.currentProject) currentProject=s.currentProject;
-    sollzeit = s.sollzeit || 0;
-    projectDescription = s.projectDescription || '';
-    lastExportTime = s.lastExportTime || null;
-    verteilzeitFactor = s.verteilzeitFactor || 0;
+    if(!s || typeof s!=='object') return false;
+    /* Schritte: nur Einträge mit ID; fehlender Name bekommt einen, doppelte IDs werden getrennt */
+    const sp=Array.isArray(s.parts) ? s.parts.filter(x=>x && typeof x==='object' && typeof x.id==='string' && x.id) : [];
+    if(!sp.length) return false;
+    const sd=(s.data && typeof s.data==='object' && !Array.isArray(s.data)) ? s.data : {};
+    const cols=colsPruefen(s.COLS);
+    if(cols) COLS=colsAktualisieren(cols);
+    const gesehen=new Set();
+    parts=sp.map((x,i)=>{
+      let id=x.id;
+      if(gesehen.has(id)){
+        const neu=newPartId();
+        try{ sd[neu]=JSON.parse(JSON.stringify(sd[id]||{})); }catch(e){ sd[neu]={}; }
+        if(Array.isArray(sd[neu].__teile)) sd[neu].__teile.forEach(t=>{ if(t && typeof t==='object') t.id=newTeilId(); });
+        id=neu;
+      }
+      gesehen.add(id);
+      const nm=typeof x.name==='string' ? x.name : (x.name==null?'':String(x.name));
+      return {id, name:nm.trim()?nm:'Schritt '+(i+1)};
+    });
+    data=sd;
+    const zahlOder0=v=>(typeof v==='number'&&isFinite(v)&&v>0)?v:0;
+    activePart=(typeof s.activePart==='string' && parts.some(p=>p.id===s.activePart)) ? s.activePart : parts[0].id;
+    if(s.unit==='min'||s.unit==='minD') unit=s.unit;
+    if(s.mode==='add'||s.mode==='sub') mode=s.mode;
+    if(typeof s.currentProject==='string' && s.currentProject) currentProject=s.currentProject;
+    sollzeit = zahlOder0(s.sollzeit);
+    projectDescription = typeof s.projectDescription==='string' ? s.projectDescription : '';
+    lastExportTime = typeof s.lastExportTime==='string' ? s.lastExportTime : null;
+    verteilzeitFactor = zahlOder0(s.verteilzeitFactor);
     uiMode = s.uiMode === 'beginner' ? 'beginner' : 'advanced';
     zeitModus = s.zeitModus===true;
     messModus = s.messModus==='einzeln'?'einzeln':'ablauf';
-    unterbrechungen = Array.isArray(s.unterbrechungen) ? s.unterbrechungen.filter(u=>u&&typeof u.id==='string'&&u.sek>0) : [];
-    messLauf = s.messLauf && typeof s.messLauf.id==='string' && s.data && s.data[s.messLauf.id] ? s.messLauf : null;
-    hourlyRate = s.hourlyRate || 0;
-    if(s.colLabels && typeof s.colLabels==='object') colLabels=s.colLabels;
+    unterbrechungen = Array.isArray(s.unterbrechungen) ? s.unterbrechungen.filter(u=>u&&typeof u.id==='string'&&typeof u.sek==='number'&&isFinite(u.sek)&&u.sek>0)
+      .map(u=>({id:u.id,sek:u.sek,grund:typeof u.grund==='string'?u.grund:'',notiz:typeof u.notiz==='string'?u.notiz:'',zyklus:(u.zyklus>0)?Math.floor(u.zyklus):0,t:typeof u.t==='string'?u.t:''})) : [];
+    messLauf = messLaufLaden(s.messLauf);
+    hourlyRate = zahlOder0(s.hourlyRate);
+    if(s.colLabels && typeof s.colLabels==='object' && !Array.isArray(s.colLabels)){
+      colLabels={}; ZUSATZ_KEYS.forEach(k=>{ if(typeof s.colLabels[k]==='string' && s.colLabels[k].trim()) colLabels[k]=s.colLabels[k]; });
+    }
     if(s.taktGroupKey && OPT_COLS.some(o=>!o.own&&o.key===s.taktGroupKey)) taktGroupKey=s.taktGroupKey;
     if(typeof s.anaTopNach==='string') anaTopNach=s.anaTopNach;   // ungültig → anaTopGueltig() fällt auf Prozessschritte zurück
-    if(typeof s.taktSoll==='number' && s.taktSoll>=0) taktSoll=s.taktSoll;
+    if(typeof s.taktSoll==='number' && isFinite(s.taktSoll) && s.taktSoll>=0) taktSoll=s.taktSoll;
     if(typeof s.taktMitVz==='boolean') taktMitVz=s.taktMitVz;
     messGenau=s.messGenau===10?10:5;
     tzMtm=s.tzMtm!==false;
@@ -7135,7 +7213,18 @@ function loadState(){
     lwNeuRechnen();   // gespeicherte Meterzahlen könnten zu anderen Meterwerten gehören
     if(ausAlt) saveState();   // ab jetzt unter dem neuen Schlüssel; der alte bleibt als Rückfallebene
     return true;
-  } catch(e){ return false; }
+  } catch(e){ standBeiseite(); return false; }
+}
+/* Unlesbaren Stand zusätzlich unter eigenem Schlüssel ablegen: der nächste gespeicherte Stand (neues oder
+   anderes Projekt) überschriebe ihn sonst endgültig. Der Stand selbst bleibt, wo er ist. */
+const LS_DEFEKT='zeitaufnahme_defekt';
+let standDefekt=false;
+function standBeiseite(){
+  try{
+    const raw=localStorage.getItem(LS_KEY); if(!raw) return;
+    standDefekt=true;
+    localStorage.setItem(LS_DEFEKT,raw);
+  }catch(e){}
 }
 
 /* ═══════════════════════════════════════
@@ -8080,21 +8169,35 @@ if(isIOS&&!isStandalone&&!ibDismissed()){
 /* ═══════════════════════════════════════
    INIT
 ═══════════════════════════════════════ */
-const hadSaved = loadState();
-document.getElementById('modeBeginnerBtn').className='tg-btn'+(uiMode==='beginner'?' on-mode':'');
-document.getElementById('modeAdvancedBtn').className='tg-btn'+(uiMode==='advanced'?' on-mode':'');
-document.body.classList.toggle('beginner-mode', uiMode==='beginner');
-zeitModusAnwenden();
-buildLegend();
-buildGrid();
-buildHead();
-renderBody();
-updateActiveBar();
-setUnit(unit);
-setMode(mode);
-updateProjLabel();
-updateExportIndicator();
-updateLastAction();
+let hadSaved = loadState();
+function ersteAnzeige(){
+  document.getElementById('modeBeginnerBtn').className='tg-btn'+(uiMode==='beginner'?' on-mode':'');
+  document.getElementById('modeAdvancedBtn').className='tg-btn'+(uiMode==='advanced'?' on-mode':'');
+  document.body.classList.toggle('beginner-mode', uiMode==='beginner');
+  zeitModusAnwenden();
+  buildLegend();
+  buildGrid();
+  buildHead();
+  renderBody();
+  updateActiveBar();
+  setUnit(unit);
+  setMode(mode);
+  updateProjLabel();
+  updateExportIndicator();
+  updateLastAction();
+}
+try{ ersteAnzeige(); }
+catch(e){
+  /* Der gespeicherte Stand lässt sich nicht anzeigen. Ohne Auffangnetz bräche das Skript hier ab: die App
+     bliebe bei jedem Start hängen, und die übrigen Projekte auf dem Gerät wären nicht mehr erreichbar.
+     Stand beiseitelegen, leer starten — Projekte und Sicherungsstände bleiben über die Startseite erreichbar. */
+  standBeiseite();
+  parts=[]; data={}; activePart=null; COLS=COLS_STANDARD.map(c=>({...c})); currentProject=null; hadSaved=false;
+  messLauf=null; messZyklusEnde=null; unterbrechungen=[]; stationMess={}; taktSzenario=null; colFilters={}; teileOffen={};
+  mtmCustom={}; mtmCustomGE={}; colLabels={}; uiMode='advanced'; zeitModus=false; unit='minD'; mode='add';
+  try{ ersteAnzeige(); }catch(e2){}
+}
+if(standDefekt) setTimeout(()=>toast('⚠ Der zuletzt geöffnete Stand war beschädigt – das Projekt über die Startseite aus seinem Sicherungsstand öffnen',12000),600);
 if(hadSaved && currentProject){
   document.getElementById('startScreen').classList.remove('open');
   if(dot()) dot().className='save-dot saved';

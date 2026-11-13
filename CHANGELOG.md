@@ -18,6 +18,18 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Testversion `test.html`: Sprache Deutsch / Englisch
+Eigene Datei neben `index.html`; die normale App bleibt unverändert. Beide teilen sich die Projekte auf
+dem Gerät. Erkennbar am roten „TEST“ neben dem Titel.
+- **Umschalter DE | EN** auf der Startseite (oben rechts) und im ⋯-Menü; die Sprache gilt je Gerät.
+- **Englisch werden die festen Texte:** Knöpfe, Menüs, Reiter, Überschriften, Tabellenköpfe, Feldnamen,
+  Tooltips und Platzhalter. Deutsch bleiben Hinweissätze, Meldungen, Rückfragen, Excel/CSV und alle
+  eigenen Daten (Schritte, Teile, Stationen, Notizen, Pausegründe).
+- **Kategorien englisch:** „Ø Ölen / Fetten“ → „Ø Oil / Grease“, „Prozesszeit geb. [s]“ →
+  „Process-bound time [s]“, „Ø Ausrichten“ → „Ø Align / Adjust“ (auch die Grundelemente). Bestehende
+  Projekte werden beim Öffnen umgestellt; von Hand umbenannte Kategorien bleiben.
+- ⋯-Menü auf dem iPhone ragte links aus dem Bildschirm; es wird jetzt passend verschoben.
+
 ### Behoben (Review 2)
 - **Beschädigter gespeicherter Stand:** Ein unlesbarer oder unvollständiger Stand (z. B. nach einem
   Absturz beim Speichern) konnte den Start blockieren oder „NaN“ in den Summen erzeugen. Der Stand wird

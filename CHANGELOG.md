@@ -18,9 +18,8 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
-### Testversion `test.html`: Sprache Deutsch / Englisch
-Eigene Datei neben `index.html`; die normale App bleibt unverändert. Beide teilen sich die Projekte auf
-dem Gerät. Erkennbar am roten „TEST“ neben dem Titel.
+### Sprache Deutsch / Englisch
+Zuerst als Testversion `test.html` erprobt, jetzt in der App.
 - **Umschalter DE | EN** auf der Startseite (oben rechts) und im ⋯-Menü; die Sprache gilt je Gerät.
 - **Englisch werden die festen Texte:** Knöpfe, Menüs, Reiter, Überschriften, Tabellenköpfe, Feldnamen,
   Tooltips und Platzhalter. Deutsch bleiben Hinweissätze, Meldungen, Rückfragen, Excel/CSV und alle

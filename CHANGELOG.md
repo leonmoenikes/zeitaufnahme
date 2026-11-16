@@ -18,6 +18,12 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Behoben: Sachnummern beim Einfügen abgeschnitten
+- Das Feld „Sachnr.“ nahm nur 8 Zeichen an. Längere Nummern – oder eine kopierte Nummer mit
+  Leerzeichen, Tab oder Zeilenumbruch (aus Excel oder einer anderen Zeile) – wurden beim Einfügen
+  hinten abgeschnitten; man musste die führenden Nullen weglassen. Jetzt bis 40 Zeichen, beim
+  Einfügen werden Leerzeichen, Tabs und Zeilenumbrüche am Rand entfernt, führende Nullen bleiben.
+
 ### Englisch vollständig
 Zuerst als Testversion `test.html` erprobt, jetzt in der App.
 - Auf Englisch jetzt auch Hinweis- und Fußtexte, Statuszeilen, Meldungen, Rückfragen (Bestätigen/Eingabe),

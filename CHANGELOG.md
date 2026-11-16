@@ -18,6 +18,30 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Testversion `test.html`: Englisch vollständig
+Eigene Datei neben `index.html` (rotes „TEST“); die normale App bleibt unverändert.
+- Auf Englisch jetzt auch Hinweis- und Fußtexte, Statuszeilen, Meldungen, Rückfragen (Bestätigen/Eingabe),
+  Undo-Texte, Druck/PDF (inkl. Datum) und der Excel-Report (Zellen und Blattnamen; Formeln verweisen
+  auf die englischen Blätter).
+- Standard-Pausegründe englisch angezeigt (Breakdown, Missing material, Waiting, Conversation, Other);
+  gespeichert bleiben sie unverändert, selbst angelegte Gründe bleiben wie geschrieben.
+- MTM-Katalog: Bereiche und Untergruppen englisch; LAMA-Codes und -Kurztexte bleiben im Original.
+- Technik: Vorlagen mit Platzhaltern für Zahlen und Namen; zusammengesetzte Texte werden stückweise
+  übersetzt; eingesetzte Spaltennamen (Station, Baugruppe …) mit übersetzt. Eigene Daten werden nie
+  übersetzt. Zahlen behalten das deutsche Format (Komma).
+- **Fehlerprüfung der Testversion:**
+  - Halb übersetzte Texte behoben (z. B. „Undone: Notiz …“, „0 von 1 Montagestufen …“, Undo-Meldungen
+    mit „ · “): eingesetzte Textteile werden jetzt selbst übersetzt, Namen in Anführungszeichen nie.
+  - Eine zu allgemeine Vorlage machte aus „Schritt in der Liste wählen“ „Step in der Liste wählen“;
+    Zahlen-Vorlagen greifen jetzt nur noch bei Zahlen.
+  - Eigene Daten, die wie ein Begriff heißen (Station „Werkzeug“, Sachnummer „Notiz“), bleiben auch
+    direkt nach einer Änderung unübersetzt (die Liste der eigenen Daten wird bei jedem Neuzeichnen
+    aktualisiert). In der normalen App werden solche Namen im englischen Modus noch übersetzt angezeigt.
+  - „Aus Excel einfügen“ erkennt auch die englischen Spaltenköpfe des Excel-Reports (Process step,
+    Parts, Qty …) – vorher ließ sich ein englischer Report nicht zurückholen.
+  - Blattname „Teile je …“ im englischen Excel-Report vollständig übersetzt.
+  - Sehr lange Texte werden nicht mehr gegen alle Vorlagen geprüft (Schutz vor Verzögerungen).
+
 ### Neuer Baustein „Liquid seal 20 cm“
 - 0,43 minD, Gruppe Process, neues Grundelement #39 aus LAMRKE (Reinigen kleine Fläche, erste) +
   LAMRZK (Zuschlag Nassreinigen) + LAMOKE (Ölen/Fetten kleine Fläche, erste) + LAMOKZ (… weitere).

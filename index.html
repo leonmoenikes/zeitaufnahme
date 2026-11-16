@@ -5576,10 +5576,23 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
     i.addEventListener('focus',()=>teilFeldBetreten(stepId));
     i.addEventListener('input',()=>teilAendern(stepId,t.id,key,i.value));
     if(key==='menge') i.addEventListener('blur',()=>{ i.value=t.menge; });   // leeres Feld zeigt danach 0
+    /* Sachnummer: Eingefügtes ohne Leerzeichen, Tabs und Zeilenumbrüche am Rand (aus Excel oder einer
+       anderen Zeile kopiert) — führende Nullen bleiben, es wird nichts abgeschnitten */
+    if(key==='sachnr'){
+      i.addEventListener('paste',e=>{
+        const roh=(e.clipboardData||window.clipboardData)?.getData('text'); if(roh==null) return;
+        const txt=String(roh).replace(/[\r\n\t]+/g,' ').trim();
+        if(txt===roh) return;
+        e.preventDefault();
+        i.setRangeText(txt,i.selectionStart,i.selectionEnd,'end');
+        i.dispatchEvent(new Event('input'));
+      });
+      i.addEventListener('blur',()=>{ if(i.value!==t.sachnr) i.value=t.sachnr; });   // zeigt den gespeicherten, getrimmten Wert
+    }
     c.appendChild(i);
     tr.appendChild(c);
   };
-  feld('sachnr',vis.sachnr,'sachnr',{type:'text',maxLength:8,inputMode:'numeric',className:'sachnr-input',placeholder:'Sachnr.'});
+  feld('sachnr',vis.sachnr,'sachnr',{type:'text',maxLength:40,inputMode:'numeric',className:'sachnr-input',placeholder:'Sachnr.'});   // vorher 8: längere Nummern wurden beim Einfügen abgeschnitten
   feld('teilname',vis.teilname,'name',{type:'text',className:'teil-name-in',placeholder:'Bezeichnung'});
   extraFlds.forEach(f=>tr.appendChild(td('extra x-'+f.slice(2))));
   feld('qty',true,'menge',{type:'number',min:0,step:1,inputMode:'numeric',className:'qi',title:'Menge'});

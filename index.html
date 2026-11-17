@@ -557,6 +557,9 @@ body.sub .active-bar{box-shadow:inset 4px 0 0 var(--red);}
   border-bottom:1px solid transparent;
 }
 .sachnr-input:focus{border-bottom-color:var(--accent);background:var(--surface2);}
+/* Punkt vor dem Index der Sachnummer — nur Anzeige, wird beim Kopieren nicht mitgenommen; im Druck ohne Punkt */
+.sn-p::before{content:'.';}
+@media print{ .sn-p::before{content:none;} }
 /* Level-Farben (fachlich belegt) bis einschließlich „Anzahl" — die aktive Zeile hat per !important Vorrang */
 .data-tbl tr.lvl-1{--lvl:#ffffff}.data-tbl tr.lvl-2{--lvl:#eef3fb}.data-tbl tr.lvl-3{--lvl:#d8e6f7}.data-tbl tr.lvl-4{--lvl:#b9d0f0}.data-tbl tr.lvl-5{--lvl:#97b8e8}.data-tbl tr.lvl-6{--lvl:#7aa3de}.data-tbl tr.lvl-7{--lvl:#5c8bd1}
 .data-tbl tbody tr[class*="lvl-"] :is(td.nr,td.level,td.sachnr,td.teilname,td.cn,td.extra,td.qty){background:var(--lvl);}
@@ -1881,12 +1884,36 @@ function stepKurz(id,feld){
   if(!erst) return t.length>1 ? '+'+t.length : '';
   return String(erst[feld]).trim()+(t.length>1 ? ' +'+(t.length-1) : '');
 }
+/* Sachnummer (Materialnummer): 8 Stellen, die letzte ist der Index. Kürzere Nummern bekommen führende Nullen,
+   ein noch offener Index ist „x". Gespeichert, kopiert und exportiert wird ohne Punkt („05889852"),
+   angezeigt mit Punkt vor dem Index („0588985.2"). Nummern außerhalb des Schemas bleiben unverändert. */
+function sachnrNorm(v){
+  const s=String(v==null?'':v).trim();
+  let m=/^(\d{1,8})$/.exec(s);
+  if(m) return m[1].padStart(8,'0');
+  m=/^(\d{1,7})\.?([\dxX])$/.exec(s);          // „588985.2", „0588985.x", „588985x"
+  if(m) return m[1].padStart(7,'0')+m[2].toLowerCase();
+  return s;
+}
+const sachnrSchema=v=>/^\d{7}[\dx]$/.test(String(v||''));
+/* Anzeige als Text (Tooltips, Filterliste) */
+function sachnrText(v){ const s=String(v==null?'':v); return sachnrSchema(s)?s.slice(0,7)+'.'+s[7]:s; }
+/* Anzeige als HTML: der Punkt kommt aus CSS (.sn-p::before) — beim Kopieren wird er nicht mitgenommen */
+function sachnrHtml(v){ const s=String(v==null?'':v); return sachnrSchema(s)?escHtml(s.slice(0,7))+'<span class="sn-p"></span>'+s[7]:escHtml(s); }
+/* Kurzanzeige in der zugeklappten Zeile: erste Sachnummer, „+n" für weitere */
+function stepSachnrHtml(id){
+  const t=stepTeile(id);
+  if(!t.length) return '—';
+  const erst=t.find(x=>String(x.sachnr||'').trim());
+  if(!erst) return t.length>1 ? '+'+t.length : '—';
+  return sachnrHtml(String(erst.sachnr).trim())+(t.length>1 ? ' +'+(t.length-1) : '');
+}
 /* Teile-Liste aus Speicher oder Datei absichern: fehlende IDs ergänzen, Menge ganzzahlig ≥ 0 */
 function normTeile(arr){
   if(!Array.isArray(arr)) return [];
   return arr.filter(t=>t && typeof t==='object').map(t=>({
     id: (typeof t.id==='string' && t.id) ? t.id : newTeilId(),
-    sachnr: String(t.sachnr==null?'':t.sachnr).trim(),
+    sachnr: sachnrNorm(t.sachnr),
     name: String(t.name==null?'':t.name),
     menge: Math.max(0, parseInt(t.menge)||0),
   }));
@@ -1895,7 +1922,7 @@ function normTeile(arr){
    wenn es eine Sachnummer oder eine Anzahl gab. Leere Platzhalterzeilen bleiben Schritte ohne Teile. */
 function migrateLegacyStep(d,stepName){
   if(!Array.isArray(d.__teile)){
-    const sachnr=String(d.__sachnr||'').trim(), qty=parseInt(d.__qty)||0;
+    const sachnr=sachnrNorm(d.__sachnr), qty=parseInt(d.__qty)||0;
     d.__teile=(sachnr||qty>0) ? [{id:newTeilId(), sachnr, name:stepName||'', menge:qty>0?qty:1}] : [];
   } else {
     d.__teile=normTeile(d.__teile);
@@ -2261,7 +2288,7 @@ function openColFilter(anchorEl,fk,label,kind){
     /* Solange gesucht wird, gelten die Treffer als Auswahl (wie in Excel), ohne sel zu überschreiben */
     let query='', searchSel=null;
     const activeSel=()=>query?searchSel:sel;
-    const shownVals=()=>query?vals.filter(v=>v.toLowerCase().includes(query)):vals;
+    const shownVals=()=>query?vals.filter(v=>v.toLowerCase().includes(query)||(fk==='sachnr'&&v.toLowerCase().includes(query.replace(/\./g,'')))):vals;
 
     const search=document.createElement('input');
     search.className='flt-search';search.type='text';search.placeholder='Suchen …';
@@ -2298,7 +2325,7 @@ function openColFilter(anchorEl,fk,label,kind){
       shown.forEach(v=>{
         const lab=document.createElement('label');
         lab.className='col-opt';
-        lab.innerHTML=`<input type="checkbox" class="flt-val" ${cur.has(v)?'checked':''}/><span>${escHtml(v)}</span>`;
+        lab.innerHTML=`<input type="checkbox" class="flt-val" ${cur.has(v)?'checked':''}/><span>${fk==='sachnr'?sachnrHtml(v):escHtml(v)}</span>`;
         lab.querySelector('input').addEventListener('change',ev=>{
           if(ev.target.checked) activeSel().add(v); else activeSel().delete(v);
           syncState();
@@ -3473,7 +3500,7 @@ function renderTeileJeStation(){
     ${e.teile.length?`<table class="takt-tbl tj-tbl">
       <thead><tr><th>Sachnr.</th><th>Benennung</th><th>Stück</th><th>Prozessschritt(e)</th></tr></thead>
       <tbody>${e.teile.map(t=>`<tr${t.aus.length?' class="tj-moved"':''}>
-        <td class="tj-sn">${escHtml(t.sachnr||'–')}</td>
+        <td class="tj-sn">${t.sachnr?sachnrHtml(t.sachnr):'–'}</td>
         <td class="tk-name">${escHtml(t.name||'–')}</td>
         <td>${t.menge}</td>
         <td class="tj-sch">${escHtml(t.schritte.join(', '))}${t.aus.length?` <span class="takt-part-from">↪ aus ${escHtml(t.aus.join(', '))}</span>`:''}</td>
@@ -3878,7 +3905,7 @@ function teileAusText(s){
     const m=/^(.*?)\s*\((\d+)×\)$/.exec(x);
     const rest=(m?m[1]:x).trim(), menge=m?+m[2]:1;
     const sm=/^(\d[\d.\-\/]*)(?:\s+(.*))?$/.exec(rest);   // führende Nummer = Sachnummer
-    return {id:newTeilId(), sachnr:sm?sm[1]:'', name:sm?(sm[2]||''):rest, menge};
+    return {id:newTeilId(), sachnr:sm?sachnrNorm(sm[1]):'', name:sm?(sm[2]||''):rest, menge};
   });
 }
 /* Index der Kopfzeile: erste Zeile mit „Prozessschritt" — beim Einfügen reicht auch „Sachnummer"/„Benennung" */
@@ -3993,7 +4020,7 @@ function csvV4Lesen(rows,einfuegen){
     const lvTxt=zelle(row,'level');
     if(!name && lvTxt && !/^\d/.test(lvTxt)) continue;   // Titel- und Zeitwert-Zeilen des Excel-Reports
     const sachnr=zelle(row,'sachnr'), tname=zelle(row,'teilname'), mTxt=zelle(row,'menge');
-    const teil=(sachnr||tname||mTxt!=='') ? {id:newTeilId(), sachnr, name:tname, menge:mTxt===''?1:Math.max(0,parseInt(mTxt)||0)} : null;
+    const teil=(sachnr||tname||mTxt!=='') ? {id:newTeilId(), sachnr:sachnrNorm(sachnr), name:tname, menge:mTxt===''?1:Math.max(0,parseInt(mTxt)||0)} : null;
     if(feld.name===undefined){ if(teil){ nurTeile.push(teil); nTeile++; } continue; }   // nur Teile (Einfügen)
     if(!name){
       if(teil && letzte){
@@ -4623,8 +4650,8 @@ function schrittZeilen(part,k){
     /* Antippen klappt die Teile auf und zu — größere Fläche als das kleine ▸ */
     const klapp=c=>{ c.classList.add('teil-toggle'); c.addEventListener('click',e=>{e.stopPropagation();toggleTeile(id);}); };
     const tdSach=td('sachnr',vis.sachnr);
-    tdSach.textContent=stepKurz(id,'sachnr')||'—';
-    tdSach.title=teile.map(t=>t.sachnr).filter(Boolean).join(', ');
+    tdSach.innerHTML=stepSachnrHtml(id);
+    tdSach.title=teile.map(t=>sachnrText(t.sachnr)).filter(Boolean).join(', ');
     klapp(tdSach);
     tr.appendChild(tdSach);
     const tdTn=td('teilname',vis.teilname);
@@ -5476,7 +5503,8 @@ function suchenJetzt(){
   const treffer=p=>{
     const d=data[p.id], h=[];
     if(suchNorm(p.name).includes(q) || ZUSATZ_KEYS.some(k=>suchNorm(d['__'+k]).includes(q))) h.push({id:p.id,teil:null});
-    stepTeile(p.id).forEach(t=>{ if(suchNorm(t.sachnr).includes(q)||suchNorm(t.name).includes(q)) h.push({id:p.id,teil:t.id}); });
+    const qs=q.replace(/\./g,'');   // „0588985.2" findet „05889852"
+    stepTeile(p.id).forEach(t=>{ if(suchNorm(t.sachnr).includes(q)||(qs&&qs!==q&&suchNorm(t.sachnr).includes(qs))||suchNorm(t.name).includes(q)) h.push({id:p.id,teil:t.id}); });
     return h;
   };
   getFilteredParts().forEach(p=>suchTreffer.push(...treffer(p)));
@@ -5587,7 +5615,15 @@ function teilZeile(stepId,t,vis,extraFlds,L,td){
         i.setRangeText(txt,i.selectionStart,i.selectionEnd,'end');
         i.dispatchEvent(new Event('input'));
       });
-      i.addEventListener('blur',()=>{ if(i.value!==t.sachnr) i.value=t.sachnr; });   // zeigt den gespeicherten, getrimmten Wert
+      /* Beim Bearbeiten (und Kopieren aus dem Feld) die Nummer ohne Punkt, sonst mit Punkt vor dem Index.
+         Beim Verlassen kürzere Nummern auf 8 Stellen auffüllen bzw. einen eingetippten Punkt entfernen. */
+      i.value=sachnrText(t.sachnr);
+      i.addEventListener('focus',()=>{ if(i.value!==t.sachnr) i.value=t.sachnr; });
+      i.addEventListener('blur',()=>{
+        const n=sachnrNorm(i.value);
+        if(n!==t.sachnr) teilAendern(stepId,t.id,'sachnr',n);
+        i.value=sachnrText(t.sachnr);
+      });
     }
     c.appendChild(i);
     tr.appendChild(c);
@@ -5933,7 +5969,7 @@ function refreshStepSummary(id){
   const tr=document.querySelector('#tblBody tr[data-id="'+id+'"]');
   if(tr){
     const s=tr.querySelector('td.sachnr'), n=tr.querySelector('td.teilname'), q=tr.querySelector('td.qty');
-    if(s){ s.textContent=stepKurz(id,'sachnr')||'—'; s.title=teile.map(t=>t.sachnr).filter(Boolean).join(', '); }
+    if(s){ s.innerHTML=stepSachnrHtml(id); s.title=teile.map(t=>sachnrText(t.sachnr)).filter(Boolean).join(', '); }
     if(n){ n.textContent=stepKurz(id,'name')||'—'; n.title=teile.map(t=>t.name).filter(Boolean).join(', '); }
     if(q) q.textContent=stepQty(id);
     const c=tr.querySelector('.teil-caret'); if(c) c.classList.toggle('leer',!teile.length);
@@ -6848,7 +6884,7 @@ function lwZeileHtml(id,i){
 /* Unterzeile: welche Teile der Schritt anpackt — Grundlage, um die Auslöser sinnvoll zu wählen */
 function lwTeileHtml(id){
   const teile=stepTeile(id);
-  const zeilen=teile.map(t=>`<tr><td>${escHtml(t.sachnr||'–')}</td><td>${escHtml(t.name||'–')}</td><td class="mg">${t.menge}×</td></tr>`).join('');
+  const zeilen=teile.map(t=>`<tr><td>${t.sachnr?sachnrHtml(t.sachnr):'–'}</td><td>${escHtml(t.name||'–')}</td><td class="mg">${t.menge}×</td></tr>`).join('');
   return `<tr class="lw-teile" data-fuer="${escAttr(id)}"><td colspan="${5+LW_KEYS.length+2}"><div class="lw-teile-box">`
     +(teile.length?`<table><tr><th>Sachnummer</th><th>Bezeichnung</th><th>Menge</th></tr>${zeilen}</table>`:'keine Teile')
     +'</div></td></tr>';

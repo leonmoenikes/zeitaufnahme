@@ -18,6 +18,16 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Sachnummern mit Index-Punkt
+- Materialnummern haben 8 Stellen, die letzte ist der Index. Kürzere Nummern werden beim Eingeben,
+  Einfügen und Einlesen (CSV, Excel, Speicher) mit führenden Nullen aufgefüllt; „.x" bzw. „x" steht
+  für einen noch offenen Index.
+- Angezeigt wird „0588985.2" (Tabelle, Teil-Felder, Teile je Station, Laufwege, Filterliste);
+  kopiert, gespeichert und exportiert wird „05889852" ohne Punkt (offener Index: „0588985x").
+  Im Feld erscheint beim Bearbeiten die Nummer ohne Punkt.
+- Excel-Report, Druck und CSV ohne Punkt. Die Suche findet die Nummer mit und ohne Punkt.
+- Nummern außerhalb des Schemas (mehr als 8 Stellen, Buchstaben …) bleiben unverändert.
+
 ### Behoben: Sachnummern beim Einfügen abgeschnitten
 - Das Feld „Sachnr.“ nahm nur 8 Zeichen an. Längere Nummern – oder eine kopierte Nummer mit
   Leerzeichen, Tab oder Zeilenumbruch (aus Excel oder einer anderen Zeile) – wurden beim Einfügen

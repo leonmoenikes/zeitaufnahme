@@ -18,6 +18,12 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### „Alle einklappen"
+
+- Neben „Alle aufklappen" gibt es jetzt einen eigenen Knopf „Alle einklappen" (EN: „Expand all" /
+  „Collapse all"), in der Tabelle und im Laufwege-Fenster. Ein Knopf ist ausgegraut, wenn es
+  nichts mehr auf- bzw. einzuklappen gibt.
+
 ### Sachnummern mit Index-Punkt
 - Materialnummern haben 8 Stellen, die letzte ist der Index. Kürzere Nummern werden beim Eingeben,
   Einfügen und Einlesen (CSV, Excel, Speicher) mit führenden Nullen aufgefüllt; „.x" bzw. „x" steht

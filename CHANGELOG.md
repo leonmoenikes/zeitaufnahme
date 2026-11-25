@@ -18,6 +18,31 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Neues Design – Testversion (`test.html`)
+
+- Grundlegend neu gestaltet nach dem Prinzip „ruhig & präzise": neutrale Flächen, eine Akzentfarbe;
+  Farbe nur mit Bedeutung (Blau = gezählt/Aktion, Bernstein = aktiver Schritt/Eingabe, Rot = Abziehen,
+  Grün = Stoppuhr läuft). Kategorie-Farben erscheinen nur noch als Markierung (Strich, Punkt, Kopfbalken).
+- Neue Navigation mit vier Bereichen: **Zählen · Stoppuhr · Laufwege · Auswertung** – am Laptop und
+  iPad als Leiste links, am iPhone unten. Laufwege und Auswertung sind eigene Seiten statt Fenster;
+  das Logo oben links führt zu den Projekten.
+- Kopfzeile nur noch mit Projekt, Speicherstand, Undo, Export und ⋯-Menü. Darstellung
+  (Einfach/Erweitert), Einheit (minD/min), Design (Hell/Dunkel) und Sprache stehen im Menü unter „Ansicht".
+- Leiste „Aktiv": vorheriger/nächster Schritt per ‹ › (oder Pfeiltasten ↑ ↓), Summe des Schritts und
+  Add/Sub an einer Stelle.
+- Kacheln neu: Name, große Anzahl, Kategorie als Farbstrich; im Erweitert-Modus zusätzlich Zeitwert,
+  Tastenkürzel und Zeit im Schritt. Tastenkürzel nur noch auf Geräten mit Tastatur.
+- Tabelle ruhiger: Schrittnamen in Textfarbe, Kategorie-Köpfe mit Farbbalken statt Farbfläche,
+  Zeilen-Aktionen nur an der aktiven Zeile und unter der Maus, Summenzeile bleibt unten stehen.
+- Stoppuhr jetzt in beiden Darstellungen. Während einer Messung sind die anderen Bereiche gesperrt
+  (iPhone: Leiste ausgeblendet, die Uhr bleibt allein im Blick).
+- Dunkelmodus, umschaltbar im ⋯-Menü und auf der Startseite (gilt für dieses Gerät).
+- Startseite mit Projektliste und „Neues Projekt" als Karten; Auswertung mit Ring-Diagramm und
+  Gesamtzeit in der Mitte; Fenster am iPhone als Blatt von unten.
+- Behoben: Am iPhone (hochkant) waren im Einfach-Modus die unteren Kacheln, die Aktiv-Leiste und die
+  Tabelle nicht erreichbar – jetzt scrollt die Arbeitsfläche.
+- Unverändert: Daten, Berechnungen, CSV, Excel und Druck (auch bei dunkler Oberfläche auf weißem Papier).
+
 ### „Alle einklappen"
 
 - Neben „Alle aufklappen" gibt es jetzt einen eigenen Knopf „Alle einklappen" (EN: „Expand all" /

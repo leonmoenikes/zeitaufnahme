@@ -18,6 +18,17 @@ die Versionsnummern folgen [Semantic Versioning](https://semver.org/lang/de/)
 > Ältere CSV-Dateien und der gespeicherte Stand der Vorversion werden weiterhin
 > übernommen und umgewandelt.
 
+### Behoben: Projektname nach „CSV importieren" passte nicht zum Inhalt
+
+- Der Import im ⋯-Menü ersetzte bisher immer den Inhalt des offenen Projekts, der Name in der Kopfzeile
+  blieb aber stehen – und das offene Projekt war in der Projektliste mit fremden Daten überschrieben.
+- Jetzt: Hat die Datei denselben Projektnamen wie das offene Projekt (z.B. nach Bearbeiten in Excel),
+  wird dieses aktualisiert (Sicherungsstand vorher wie bisher). Sonst öffnet sich die Datei als eigenes
+  Projekt mit ihrem Namen (aus der Datei, sonst aus dem Dateinamen); das bisherige bleibt unverändert
+  in der Projektliste. Die Rückfrage sagt vorher, was passiert.
+- Übersetzung: Platzhalter in Textvorlagen greifen nicht mehr über Zeilenumbrüche – mehrzeilige
+  Meldungen wurden sonst teils nur halb übersetzt.
+
 ### „Alle einklappen"
 
 - Neben „Alle aufklappen" gibt es jetzt einen eigenen Knopf „Alle einklappen" (EN: „Expand all" /
